@@ -1,0 +1,18 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU10 Gestionar Medico - Diagrama de comunicacion (Registrar medico)
+actor Administrador
+boundary UI_Medicos
+control Ctrl_Medicos
+entity Medico
+entity Especialidad
+entity Usuario
+entity Bitacora
+Administrador -- UI_Medicos : "1: solicitar gestion de medicos →\n5: solicitar nuevo medico →\n10: ingresar datos, marcar especialidades, elegir cuenta y guardar →"
+UI_Medicos -- Ctrl_Medicos : "2: obtener lista de medicos →\n4: mostrar lista de medicos ←\n6: obtener especialidades y cuentas →\n9: mostrar formulario ←\n11: registrar medico →\n16: mostrar medico registrado ←"
+Ctrl_Medicos -- Medico : "3: listar medicos →\n12: verificar registro profesional unico →\n13: generar codigo →\n14: guardar medico →"
+Ctrl_Medicos -- Especialidad : "7: listar especialidades activas →"
+Ctrl_Medicos -- Bitacora : "15: registrar accion →"
+Ctrl_Medicos -- Usuario : "8: listar usuarios medicos sin vincular →"
+@enduml

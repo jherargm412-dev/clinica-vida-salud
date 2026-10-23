@@ -1,0 +1,49 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+skinparam nodesep 60
+skinparam ranksep 110
+hide circle
+title CU09 Gestionar Especialidad - Diagrama de clases de analisis
+class UI_Especialidades <<boundary>> {
+  --
+  mostrar lista de especialidades
+  mostrar formulario
+  mostrar confirmacion
+  mostrar mensaje
+}
+class Ctrl_Especialidades <<control>> {
+  --
+  obtener lista de especialidades
+  registrar especialidad
+  obtener datos de la especialidad
+  modificar especialidad
+  buscar especialidades
+  desactivar especialidad
+  activar especialidad
+}
+class Especialidad <<entity>> {
+  nombre
+  descripcion
+  estado
+  --
+  listar especialidades
+  verificar nombre unico
+  guardar especialidad
+  obtener especialidad
+  actualizar especialidad
+  buscar especialidades
+  cambiar estado
+}
+class Bitacora <<entity>> {
+  fechaHora
+  accion
+  detalle
+  ip
+  --
+  registrar accion
+}
+UI_Especialidades -- Ctrl_Especialidades
+Ctrl_Especialidades -- Especialidad
+Ctrl_Especialidades -- Bitacora
+@enduml

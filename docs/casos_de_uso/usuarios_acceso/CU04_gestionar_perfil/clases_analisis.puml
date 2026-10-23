@@ -1,0 +1,52 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+skinparam nodesep 60
+skinparam ranksep 110
+hide circle
+title CU04 Gestionar Perfil de Usuario - Diagrama de clases de analisis
+class UI_Perfil <<boundary>> {
+  --
+  mostrar datos del perfil
+  mostrar formulario de contrasena
+  mostrar mensaje
+}
+class Ctrl_Perfil <<control>> {
+  --
+  obtener perfil
+  actualizar perfil
+  cambiar contrasena
+}
+class Rol <<entity>> {
+  nombre
+  --
+  obtener nombre del rol
+}
+class Usuario <<entity>> {
+  nombres
+  apellidos
+  correo
+  nombreUsuario
+  contrasena
+  --
+  obtener datos del usuario
+  verificar correo unico
+  actualizar datos personales
+  verificar contrasena actual
+  actualizar contrasena
+}
+class Bitacora <<entity>> {
+  fechaHora
+  accion
+  detalle
+  ip
+  --
+  registrar accion
+}
+UI_Perfil -- Ctrl_Perfil
+Ctrl_Perfil -- Rol
+Ctrl_Perfil -- Usuario
+Ctrl_Perfil -- Bitacora
+Rol "1" -[norank]- "*" Usuario
+Usuario "1" -[norank]- "*" Bitacora
+@enduml

@@ -1,0 +1,14 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU09 Gestionar Especialidad - Diagrama de comunicacion (Desactivar especialidad)
+actor Administrador
+boundary UI_Especialidades
+control Ctrl_Especialidades
+entity Especialidad
+entity Bitacora
+Administrador -- UI_Especialidades : "1: solicitar gestion de especialidades →\n5: seleccionar especialidad y desactivar →\n6: confirmar desactivacion →"
+UI_Especialidades -- Ctrl_Especialidades : "2: obtener lista de especialidades →\n4: mostrar lista de especialidades ←\n7: desactivar especialidad →\n10: mostrar especialidad desactivada ←"
+Ctrl_Especialidades -- Especialidad : "3: listar especialidades →\n8: cambiar estado →"
+Ctrl_Especialidades -- Bitacora : "9: registrar accion →"
+@enduml

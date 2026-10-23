@@ -1,0 +1,65 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+skinparam nodesep 60
+skinparam ranksep 110
+hide circle
+title CU03 Gestionar Roles y Permisos - Diagrama de clases de analisis
+class UI_Roles <<boundary>> {
+  --
+  mostrar lista de roles
+  mostrar formulario
+  mostrar datos del rol
+  mostrar confirmacion
+  mostrar mensaje
+}
+class Ctrl_Roles <<control>> {
+  --
+  obtener lista de roles
+  obtener permisos
+  registrar rol
+  modificar rol
+  obtener datos del rol
+  deshabilitar rol
+}
+class Permiso <<entity>> {
+  nombre
+  descripcion
+  --
+  listar permisos
+}
+class Rol <<entity>> {
+  nombre
+  descripcion
+  estado
+  --
+  listar roles
+  verificar nombre unico
+  guardar rol con permisos
+  actualizar rol
+  obtener rol con permisos
+  cambiar estado
+}
+class Usuario <<entity>> {
+  nombreUsuario
+  estado
+  --
+  contar usuarios activos por rol
+}
+class Bitacora <<entity>> {
+  fechaHora
+  accion
+  detalle
+  ip
+  --
+  registrar accion
+}
+UI_Roles -- Ctrl_Roles
+Ctrl_Roles -- Permiso
+Ctrl_Roles -- Rol
+Ctrl_Roles -- Usuario
+Ctrl_Roles -- Bitacora
+Permiso "1..*" -[norank]- "*" Rol
+Rol "1" -[norank]- "*" Usuario
+Usuario "1" -[norank]- "*" Bitacora
+@enduml

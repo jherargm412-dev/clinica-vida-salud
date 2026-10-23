@@ -1,0 +1,72 @@
+@startuml
+title CU10 Gestionar Medico - Diagrama de secuencia (Registrar medico)
+actor Administrador
+boundary UI_Medicos
+control Ctrl_Medicos
+entity Medico
+entity Especialidad
+entity Usuario
+entity Bitacora
+autonumber
+Administrador -> UI_Medicos : seleccionarGestionarMedicos()
+activate UI_Medicos
+UI_Medicos -> Ctrl_Medicos : obtenerMedicos()
+activate Ctrl_Medicos
+Ctrl_Medicos -> Medico : listar()
+activate Medico
+Medico --> Ctrl_Medicos : medicos
+deactivate Medico
+Ctrl_Medicos --> UI_Medicos : medicos
+deactivate Ctrl_Medicos
+UI_Medicos -> UI_Medicos : mostrarLista(medicos)
+Administrador -> UI_Medicos : seleccionarNuevoMedico()
+UI_Medicos -> Ctrl_Medicos : obtenerEspecialidadesYCuentas()
+activate Ctrl_Medicos
+Ctrl_Medicos -> Especialidad : listarActivas()
+activate Especialidad
+Especialidad --> Ctrl_Medicos : especialidades
+deactivate Especialidad
+Ctrl_Medicos -> Usuario : listarMedicosSinVincular()
+activate Usuario
+Usuario --> Ctrl_Medicos : usuarios
+deactivate Usuario
+Ctrl_Medicos --> UI_Medicos : especialidades, usuarios
+deactivate Ctrl_Medicos
+UI_Medicos -> UI_Medicos : mostrarFormulario(especialidades, usuarios)
+Administrador -> UI_Medicos : guardar(idUsuario, registroProfesional, telefono, especialidades)
+UI_Medicos -> Ctrl_Medicos : registrarMedico(idUsuario, registroProfesional, telefono, especialidades)
+activate Ctrl_Medicos
+Ctrl_Medicos -> Ctrl_Medicos : validarDatos(registroProfesional, telefono, especialidades, idUsuario)
+alt campos obligatorios vacios
+  Ctrl_Medicos --> UI_Medicos : "Complete los campos obligatorios"
+else ninguna especialidad marcada
+  Ctrl_Medicos --> UI_Medicos : "Seleccione al menos una especialidad"
+else ninguna cuenta seleccionada
+  Ctrl_Medicos --> UI_Medicos : "Seleccione la cuenta de usuario del medico"
+else datos validos
+  Ctrl_Medicos -> Medico : existeRegistro(registroProfesional)
+  activate Medico
+  Medico --> Ctrl_Medicos : existe
+  deactivate Medico
+  alt existe = verdadero
+    Ctrl_Medicos --> UI_Medicos : "El numero de registro profesional ya esta registrado"
+  else existe = falso
+    Ctrl_Medicos -> Medico : generarCodigo()
+    activate Medico
+    Medico --> Ctrl_Medicos : codigo
+    deactivate Medico
+    Ctrl_Medicos -> Medico : guardar(codigo, idUsuario, registroProfesional, telefono, especialidades)
+    activate Medico
+    Medico --> Ctrl_Medicos : medico
+    deactivate Medico
+    Ctrl_Medicos -> Bitacora : registrar(administrador, "Registrar medico", detalle, ip)
+    activate Bitacora
+    Bitacora --> Ctrl_Medicos : ok
+    deactivate Bitacora
+    Ctrl_Medicos --> UI_Medicos : "Medico registrado"
+  end
+end
+deactivate Ctrl_Medicos
+UI_Medicos -> UI_Medicos : mostrarMensaje(mensaje)
+deactivate UI_Medicos
+@enduml

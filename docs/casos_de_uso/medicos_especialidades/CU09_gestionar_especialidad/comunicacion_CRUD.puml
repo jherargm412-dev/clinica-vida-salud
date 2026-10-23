@@ -1,0 +1,24 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+skinparam nodesep 40
+skinparam ranksep 120
+title CU09 Gestionar Especialidad - Diagrama de comunicacion (CRUD completo)
+actor Administrador
+boundary UI_Especialidades
+control Ctrl_Especialidades
+entity Especialidad
+entity Bitacora
+Administrador -- UI_Especialidades : "<color:#000000>1: solicitar gestion de especialidades →</color>\n<color:#1F5FBF>2: solicitar nueva especialidad →</color>\n<color:#1F5FBF>2.1: ingresar datos y guardar →</color>\n<color:#D9730D>3: seleccionar especialidad y editar →</color>\n<color:#D9730D>3.4: modificar datos y guardar →</color>\n<color:#2E8B57>4: ingresar texto y buscar →</color>\n<color:#C0392B>5: seleccionar especialidad y desactivar →</color>\n<color:#C0392B>5.1: confirmar desactivacion →</color>\n<color:#7D3C98>6: seleccionar especialidad inactiva y activar →</color>"
+UI_Especialidades -- Ctrl_Especialidades : "<color:#000000>1.1: obtener lista de especialidades →</color>\n<color:#000000>1.3: mostrar lista de especialidades ←</color>\n<color:#1F5FBF>2.2: registrar especialidad →</color>\n<color:#1F5FBF>2.6: mostrar especialidad registrada ←</color>\n<color:#D9730D>3.1: obtener datos de la especialidad →</color>\n<color:#D9730D>3.3: mostrar datos de la especialidad ←</color>\n<color:#D9730D>3.5: modificar especialidad →</color>\n<color:#D9730D>3.9: mostrar especialidad actualizada ←</color>\n<color:#2E8B57>4.1: buscar especialidades →</color>\n<color:#2E8B57>4.3: mostrar resultados ←</color>\n<color:#C0392B>5.2: desactivar especialidad →</color>\n<color:#C0392B>5.5: mostrar especialidad desactivada ←</color>\n<color:#7D3C98>6.1: activar especialidad →</color>\n<color:#7D3C98>6.4: mostrar especialidad activada ←</color>"
+Ctrl_Especialidades -- Especialidad : "<color:#000000>1.2: listar especialidades →</color>\n<color:#1F5FBF>2.3: verificar nombre unico →</color>\n<color:#1F5FBF>2.4: guardar especialidad →</color>\n<color:#D9730D>3.2: obtener especialidad →</color>\n<color:#D9730D>3.6: verificar nombre unico →</color>\n<color:#D9730D>3.7: actualizar especialidad →</color>\n<color:#2E8B57>4.2: buscar especialidades →</color>\n<color:#C0392B>5.3: cambiar estado →</color>\n<color:#7D3C98>6.2: cambiar estado →</color>"
+Ctrl_Especialidades -- Bitacora : "<color:#1F5FBF>2.5: registrar accion →</color>\n<color:#D9730D>3.8: registrar accion →</color>\n<color:#C0392B>5.4: registrar accion →</color>\n<color:#7D3C98>6.3: registrar accion →</color>"
+legend right
+<color:#000000>1: Listar</color>
+<color:#1F5FBF>2: Registrar</color>
+<color:#D9730D>3: Modificar</color>
+<color:#2E8B57>4: Consultar</color>
+<color:#C0392B>5: Desactivar</color>
+<color:#7D3C98>6: Activar</color>
+endlegend
+@enduml

@@ -1,0 +1,41 @@
+@startuml
+title CU04 Gestionar Perfil de Usuario - Diagrama de secuencia (Cambiar contrasena)
+actor Usuario as Actor
+boundary UI_Perfil
+control Ctrl_Perfil
+entity Usuario
+entity Bitacora
+autonumber
+Actor -> UI_Perfil : seleccionarCambiarContrasena()
+activate UI_Perfil
+UI_Perfil -> UI_Perfil : mostrarFormularioContrasena()
+Actor -> UI_Perfil : guardar(actual, nueva, confirmacion)
+UI_Perfil -> Ctrl_Perfil : cambiarContrasena(idUsuarioSesion, actual, nueva, confirmacion)
+activate Ctrl_Perfil
+Ctrl_Perfil -> Usuario : verificarContrasena(idUsuarioSesion, actual)
+activate Usuario
+Usuario --> Ctrl_Perfil : correcta
+deactivate Usuario
+alt correcta = falso
+  Ctrl_Perfil --> UI_Perfil : "La contrasena actual es incorrecta"
+else correcta = verdadero
+  Ctrl_Perfil -> Ctrl_Perfil : validarNueva(nueva, confirmacion)
+  alt menos de 8 caracteres o no coincide
+    Ctrl_Perfil --> UI_Perfil : mensaje de error
+  else nueva valida
+    Ctrl_Perfil -> Ctrl_Perfil : cifrarContrasena(nueva)
+    Ctrl_Perfil -> Usuario : actualizarContrasena(idUsuarioSesion, contrasenaCifrada)
+    activate Usuario
+    Usuario --> Ctrl_Perfil : ok
+    deactivate Usuario
+    Ctrl_Perfil -> Bitacora : registrar(usuario, "Cambiar contrasena", detalle, ip)
+    activate Bitacora
+    Bitacora --> Ctrl_Perfil : ok
+    deactivate Bitacora
+    Ctrl_Perfil --> UI_Perfil : "Contrasena actualizada"
+  end
+end
+deactivate Ctrl_Perfil
+UI_Perfil -> UI_Perfil : mostrarMensaje(mensaje)
+deactivate UI_Perfil
+@enduml

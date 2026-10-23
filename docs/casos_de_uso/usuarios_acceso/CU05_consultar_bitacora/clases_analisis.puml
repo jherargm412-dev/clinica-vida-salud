@@ -1,0 +1,40 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+skinparam nodesep 60
+skinparam ranksep 110
+hide circle
+title CU05 Consultar Bitacora - Diagrama de clases de analisis
+class UI_Bitacora <<boundary>> {
+  --
+  mostrar registros
+  mostrar detalle
+  mostrar mensaje
+}
+class Ctrl_Bitacora <<control>> {
+  --
+  obtener registros
+  buscar registros
+  limpiar filtros
+  ver detalle
+}
+class Usuario <<entity>> {
+  nombreUsuario
+  --
+  listar usuarios
+}
+class Bitacora <<entity>> {
+  fechaHora
+  accion
+  detalle
+  ip
+  --
+  listar registros recientes
+  filtrar registros
+  obtener registro
+}
+UI_Bitacora -- Ctrl_Bitacora
+Ctrl_Bitacora -- Usuario
+Ctrl_Bitacora -- Bitacora
+Usuario "1" -[norank]- "*" Bitacora
+@enduml

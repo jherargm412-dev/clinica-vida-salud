@@ -1,0 +1,139 @@
+@startuml
+title CU09 Gestionar Especialidad - Diagrama de secuencia (CRUD completo)
+skinparam sequenceMessageAlign left
+actor Administrador
+boundary UI_Especialidades
+control Ctrl_Especialidades
+entity Especialidad
+entity Bitacora
+== 1. Listar ==
+Administrador -[#000000]> UI_Especialidades : <color:#000000><b>1</b> seleccionarGestionarEspecialidades()</color>
+activate UI_Especialidades
+UI_Especialidades -[#000000]> Ctrl_Especialidades : <color:#000000><b>1.1</b> obtenerEspecialidades()</color>
+activate Ctrl_Especialidades
+Ctrl_Especialidades -[#000000]> Especialidad : <color:#000000><b>1.2</b> listar()</color>
+activate Especialidad
+Especialidad -[#000000]-> Ctrl_Especialidades : <color:#000000><b>1.3</b> especialidades</color>
+deactivate Especialidad
+Ctrl_Especialidades -[#000000]-> UI_Especialidades : <color:#000000><b>1.4</b> especialidades</color>
+deactivate Ctrl_Especialidades
+UI_Especialidades -[#000000]> UI_Especialidades : <color:#000000><b>1.5</b> mostrarLista(especialidades)</color>
+== 2. Registrar especialidad ==
+Administrador -[#1F5FBF]> UI_Especialidades : <color:#1F5FBF><b>2</b> seleccionarNuevaEspecialidad()</color>
+UI_Especialidades -[#1F5FBF]> UI_Especialidades : <color:#1F5FBF><b>2.1</b> mostrarFormulario()</color>
+Administrador -[#1F5FBF]> UI_Especialidades : <color:#1F5FBF><b>2.2</b> guardar(nombre, descripcion)</color>
+UI_Especialidades -[#1F5FBF]> Ctrl_Especialidades : <color:#1F5FBF><b>2.3</b> registrarEspecialidad(nombre, descripcion)</color>
+activate Ctrl_Especialidades
+Ctrl_Especialidades -[#1F5FBF]> Ctrl_Especialidades : <color:#1F5FBF><b>2.4</b> validarNombre(nombre)</color>
+alt nombre vacio
+  Ctrl_Especialidades -[#1F5FBF]-> UI_Especialidades : <color:#1F5FBF><b>2.5</b> "Ingrese el nombre de la especialidad"</color>
+else nombre ingresado
+  Ctrl_Especialidades -[#1F5FBF]> Ctrl_Especialidades : <color:#1F5FBF><b>2.6</b> normalizar(nombre)</color>
+  Ctrl_Especialidades -[#1F5FBF]> Especialidad : <color:#1F5FBF><b>2.7</b> existeNombre(nombreNormalizado)</color>
+  activate Especialidad
+  Especialidad -[#1F5FBF]-> Ctrl_Especialidades : <color:#1F5FBF><b>2.8</b> existe</color>
+  deactivate Especialidad
+  alt existe = verdadero
+    Ctrl_Especialidades -[#1F5FBF]-> UI_Especialidades : <color:#1F5FBF><b>2.9</b> "Ya existe una especialidad con ese nombre"</color>
+  else existe = falso
+    Ctrl_Especialidades -[#1F5FBF]> Especialidad : <color:#1F5FBF><b>2.10</b> guardar(nombre, descripcion)</color>
+    activate Especialidad
+    Especialidad -[#1F5FBF]-> Ctrl_Especialidades : <color:#1F5FBF><b>2.11</b> especialidad</color>
+    deactivate Especialidad
+    Ctrl_Especialidades -[#1F5FBF]> Bitacora : <color:#1F5FBF><b>2.12</b> registrar(administrador, "Registrar especialidad", detalle, ip)</color>
+    activate Bitacora
+    Bitacora -[#1F5FBF]-> Ctrl_Especialidades : <color:#1F5FBF><b>2.13</b> ok</color>
+    deactivate Bitacora
+    Ctrl_Especialidades -[#1F5FBF]-> UI_Especialidades : <color:#1F5FBF><b>2.14</b> "Especialidad registrada"</color>
+  end
+end
+deactivate Ctrl_Especialidades
+UI_Especialidades -[#1F5FBF]> UI_Especialidades : <color:#1F5FBF><b>2.15</b> mostrarMensaje(mensaje)</color>
+== 3. Modificar especialidad ==
+Administrador -[#D9730D]> UI_Especialidades : <color:#D9730D><b>3</b> seleccionarEditar(idEspecialidad)</color>
+UI_Especialidades -[#D9730D]> Ctrl_Especialidades : <color:#D9730D><b>3.1</b> obtenerEspecialidad(idEspecialidad)</color>
+activate Ctrl_Especialidades
+Ctrl_Especialidades -[#D9730D]> Especialidad : <color:#D9730D><b>3.2</b> buscarPorId(idEspecialidad)</color>
+activate Especialidad
+Especialidad -[#D9730D]-> Ctrl_Especialidades : <color:#D9730D><b>3.3</b> especialidad</color>
+deactivate Especialidad
+Ctrl_Especialidades -[#D9730D]-> UI_Especialidades : <color:#D9730D><b>3.4</b> especialidad</color>
+deactivate Ctrl_Especialidades
+UI_Especialidades -[#D9730D]> UI_Especialidades : <color:#D9730D><b>3.5</b> mostrarFormulario(especialidad)</color>
+Administrador -[#D9730D]> UI_Especialidades : <color:#D9730D><b>3.6</b> guardar(nombre, descripcion)</color>
+UI_Especialidades -[#D9730D]> Ctrl_Especialidades : <color:#D9730D><b>3.7</b> modificarEspecialidad(idEspecialidad, nombre, descripcion)</color>
+activate Ctrl_Especialidades
+Ctrl_Especialidades -[#D9730D]> Ctrl_Especialidades : <color:#D9730D><b>3.8</b> validarNombre(nombre)</color>
+alt nombre vacio
+  Ctrl_Especialidades -[#D9730D]-> UI_Especialidades : <color:#D9730D><b>3.9</b> "Ingrese el nombre de la especialidad"</color>
+else nombre ingresado
+  Ctrl_Especialidades -[#D9730D]> Ctrl_Especialidades : <color:#D9730D><b>3.10</b> normalizar(nombre)</color>
+  Ctrl_Especialidades -[#D9730D]> Especialidad : <color:#D9730D><b>3.11</b> existeNombreEnOtra(nombreNormalizado, idEspecialidad)</color>
+  activate Especialidad
+  Especialidad -[#D9730D]-> Ctrl_Especialidades : <color:#D9730D><b>3.12</b> existe</color>
+  deactivate Especialidad
+  alt existe = verdadero
+    Ctrl_Especialidades -[#D9730D]-> UI_Especialidades : <color:#D9730D><b>3.13</b> "Ya existe una especialidad con ese nombre"</color>
+  else existe = falso
+    Ctrl_Especialidades -[#D9730D]> Especialidad : <color:#D9730D><b>3.14</b> actualizar(idEspecialidad, nombre, descripcion)</color>
+    activate Especialidad
+    Especialidad -[#D9730D]-> Ctrl_Especialidades : <color:#D9730D><b>3.15</b> ok</color>
+    deactivate Especialidad
+    Ctrl_Especialidades -[#D9730D]> Bitacora : <color:#D9730D><b>3.16</b> registrar(administrador, "Modificar especialidad", detalle, ip)</color>
+    activate Bitacora
+    Bitacora -[#D9730D]-> Ctrl_Especialidades : <color:#D9730D><b>3.17</b> ok</color>
+    deactivate Bitacora
+    Ctrl_Especialidades -[#D9730D]-> UI_Especialidades : <color:#D9730D><b>3.18</b> "Especialidad actualizada"</color>
+  end
+end
+deactivate Ctrl_Especialidades
+UI_Especialidades -[#D9730D]> UI_Especialidades : <color:#D9730D><b>3.19</b> mostrarMensaje(mensaje)</color>
+== 4. Consultar especialidad ==
+Administrador -[#2E8B57]> UI_Especialidades : <color:#2E8B57><b>4</b> buscar(texto)</color>
+UI_Especialidades -[#2E8B57]> Ctrl_Especialidades : <color:#2E8B57><b>4.1</b> buscarEspecialidades(texto)</color>
+activate Ctrl_Especialidades
+Ctrl_Especialidades -[#2E8B57]> Especialidad : <color:#2E8B57><b>4.2</b> buscar(texto)</color>
+activate Especialidad
+Especialidad -[#2E8B57]-> Ctrl_Especialidades : <color:#2E8B57><b>4.3</b> especialidades</color>
+deactivate Especialidad
+alt especialidades vacio
+  Ctrl_Especialidades -[#2E8B57]-> UI_Especialidades : <color:#2E8B57><b>4.4</b> "No se encontraron especialidades"</color>
+else hay especialidades
+  Ctrl_Especialidades -[#2E8B57]-> UI_Especialidades : <color:#2E8B57><b>4.5</b> especialidades</color>
+end
+deactivate Ctrl_Especialidades
+UI_Especialidades -[#2E8B57]> UI_Especialidades : <color:#2E8B57><b>4.6</b> mostrarResultado(resultado)</color>
+== 5. Desactivar especialidad ==
+Administrador -[#C0392B]> UI_Especialidades : <color:#C0392B><b>5</b> seleccionarDesactivar(idEspecialidad)</color>
+UI_Especialidades -[#C0392B]> UI_Especialidades : <color:#C0392B><b>5.1</b> mostrarConfirmacion()</color>
+Administrador -[#C0392B]> UI_Especialidades : <color:#C0392B><b>5.2</b> confirmar()</color>
+UI_Especialidades -[#C0392B]> Ctrl_Especialidades : <color:#C0392B><b>5.3</b> desactivarEspecialidad(idEspecialidad)</color>
+activate Ctrl_Especialidades
+Ctrl_Especialidades -[#C0392B]> Especialidad : <color:#C0392B><b>5.4</b> cambiarEstado(idEspecialidad, "inactivo")</color>
+activate Especialidad
+Especialidad -[#C0392B]-> Ctrl_Especialidades : <color:#C0392B><b>5.5</b> ok</color>
+deactivate Especialidad
+Ctrl_Especialidades -[#C0392B]> Bitacora : <color:#C0392B><b>5.6</b> registrar(administrador, "Desactivar especialidad", detalle, ip)</color>
+activate Bitacora
+Bitacora -[#C0392B]-> Ctrl_Especialidades : <color:#C0392B><b>5.7</b> ok</color>
+deactivate Bitacora
+Ctrl_Especialidades -[#C0392B]-> UI_Especialidades : <color:#C0392B><b>5.8</b> "Especialidad desactivada"</color>
+deactivate Ctrl_Especialidades
+UI_Especialidades -[#C0392B]> UI_Especialidades : <color:#C0392B><b>5.9</b> mostrarMensaje(mensaje)</color>
+== 6. Activar especialidad ==
+Administrador -[#7D3C98]> UI_Especialidades : <color:#7D3C98><b>6</b> seleccionarActivar(idEspecialidad)</color>
+UI_Especialidades -[#7D3C98]> Ctrl_Especialidades : <color:#7D3C98><b>6.1</b> activarEspecialidad(idEspecialidad)</color>
+activate Ctrl_Especialidades
+Ctrl_Especialidades -[#7D3C98]> Especialidad : <color:#7D3C98><b>6.2</b> cambiarEstado(idEspecialidad, "activo")</color>
+activate Especialidad
+Especialidad -[#7D3C98]-> Ctrl_Especialidades : <color:#7D3C98><b>6.3</b> ok</color>
+deactivate Especialidad
+Ctrl_Especialidades -[#7D3C98]> Bitacora : <color:#7D3C98><b>6.4</b> registrar(administrador, "Activar especialidad", detalle, ip)</color>
+activate Bitacora
+Bitacora -[#7D3C98]-> Ctrl_Especialidades : <color:#7D3C98><b>6.5</b> ok</color>
+deactivate Bitacora
+Ctrl_Especialidades -[#7D3C98]-> UI_Especialidades : <color:#7D3C98><b>6.6</b> "Especialidad activada"</color>
+deactivate Ctrl_Especialidades
+UI_Especialidades -[#7D3C98]> UI_Especialidades : <color:#7D3C98><b>6.7</b> mostrarMensaje(mensaje)</color>
+deactivate UI_Especialidades
+@enduml

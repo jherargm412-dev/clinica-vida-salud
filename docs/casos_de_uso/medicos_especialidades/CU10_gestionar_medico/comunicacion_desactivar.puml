@@ -1,0 +1,14 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU10 Gestionar Medico - Diagrama de comunicacion (Desactivar medico)
+actor Administrador
+boundary UI_Medicos
+control Ctrl_Medicos
+entity Medico
+entity Bitacora
+Administrador -- UI_Medicos : "1: solicitar gestion de medicos →\n5: seleccionar medico y desactivar →\n6: confirmar desactivacion →"
+UI_Medicos -- Ctrl_Medicos : "2: obtener lista de medicos →\n4: mostrar lista de medicos ←\n7: desactivar medico →\n10: mostrar medico desactivado ←"
+Ctrl_Medicos -- Medico : "3: listar medicos →\n8: cambiar estado →"
+Ctrl_Medicos -- Bitacora : "9: registrar accion →"
+@enduml

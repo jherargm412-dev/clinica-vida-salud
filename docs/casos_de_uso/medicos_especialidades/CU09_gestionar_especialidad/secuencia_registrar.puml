@@ -1,0 +1,51 @@
+@startuml
+title CU09 Gestionar Especialidad - Diagrama de secuencia (Registrar especialidad)
+actor Administrador
+boundary UI_Especialidades
+control Ctrl_Especialidades
+entity Especialidad
+entity Bitacora
+autonumber
+Administrador -> UI_Especialidades : seleccionarGestionarEspecialidades()
+activate UI_Especialidades
+UI_Especialidades -> Ctrl_Especialidades : obtenerEspecialidades()
+activate Ctrl_Especialidades
+Ctrl_Especialidades -> Especialidad : listar()
+activate Especialidad
+Especialidad --> Ctrl_Especialidades : especialidades
+deactivate Especialidad
+Ctrl_Especialidades --> UI_Especialidades : especialidades
+deactivate Ctrl_Especialidades
+UI_Especialidades -> UI_Especialidades : mostrarLista(especialidades)
+Administrador -> UI_Especialidades : seleccionarNuevaEspecialidad()
+UI_Especialidades -> UI_Especialidades : mostrarFormulario()
+Administrador -> UI_Especialidades : guardar(nombre, descripcion)
+UI_Especialidades -> Ctrl_Especialidades : registrarEspecialidad(nombre, descripcion)
+activate Ctrl_Especialidades
+Ctrl_Especialidades -> Ctrl_Especialidades : validarNombre(nombre)
+alt nombre vacio
+  Ctrl_Especialidades --> UI_Especialidades : "Ingrese el nombre de la especialidad"
+else nombre ingresado
+  Ctrl_Especialidades -> Ctrl_Especialidades : normalizar(nombre)
+  Ctrl_Especialidades -> Especialidad : existeNombre(nombreNormalizado)
+  activate Especialidad
+  Especialidad --> Ctrl_Especialidades : existe
+  deactivate Especialidad
+  alt existe = verdadero
+    Ctrl_Especialidades --> UI_Especialidades : "Ya existe una especialidad con ese nombre"
+  else existe = falso
+    Ctrl_Especialidades -> Especialidad : guardar(nombre, descripcion)
+    activate Especialidad
+    Especialidad --> Ctrl_Especialidades : especialidad
+    deactivate Especialidad
+    Ctrl_Especialidades -> Bitacora : registrar(administrador, "Registrar especialidad", detalle, ip)
+    activate Bitacora
+    Bitacora --> Ctrl_Especialidades : ok
+    deactivate Bitacora
+    Ctrl_Especialidades --> UI_Especialidades : "Especialidad registrada"
+  end
+end
+deactivate Ctrl_Especialidades
+UI_Especialidades -> UI_Especialidades : mostrarMensaje(mensaje)
+deactivate UI_Especialidades
+@enduml

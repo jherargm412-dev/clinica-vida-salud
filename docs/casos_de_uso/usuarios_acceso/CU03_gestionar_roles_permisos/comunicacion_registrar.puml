@@ -1,0 +1,16 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU03 Gestionar Roles y Permisos - Diagrama de comunicacion (Registrar rol)
+actor Administrador
+boundary UI_Roles
+control Ctrl_Roles
+entity Rol
+entity Permiso
+entity Bitacora
+Administrador -- UI_Roles : "1: solicitar gestion de roles →\n5: solicitar nuevo rol →\n9: ingresar datos, marcar permisos y guardar →"
+UI_Roles -- Ctrl_Roles : "2: obtener lista de roles →\n4: mostrar lista de roles ←\n6: obtener permisos →\n8: mostrar formulario ←\n10: registrar rol →\n14: mostrar rol registrado ←"
+Ctrl_Roles -- Rol : "3: listar roles →\n11: verificar nombre unico →\n12: guardar rol con permisos →"
+Ctrl_Roles -- Permiso : "7: listar permisos →"
+Ctrl_Roles -- Bitacora : "13: registrar accion →"
+@enduml

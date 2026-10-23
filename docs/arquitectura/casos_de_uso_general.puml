@@ -1,0 +1,86 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F8F8F8
+}
+title Diagrama de casos de uso general - Sistema de gestion de citas medicas
+
+actor Usuario
+actor Administrador
+actor Recepcionista
+actor Medico
+actor Paciente
+
+Administrador -up-|> Usuario
+Recepcionista -up-|> Usuario
+Medico -up-|> Usuario
+Paciente -up-|> Usuario
+
+rectangle "Sistema de gestion de citas medicas" {
+  package "Usuarios y Acceso" {
+    usecase "CU01 Gestionar Usuarios\ny Asignar Roles" as CU01
+    usecase "CU02 Iniciar Sesion" as CU02
+    usecase "CU03 Gestionar Roles\ny Permisos" as CU03
+    usecase "CU04 Gestionar Perfil\nde Usuario" as CU04
+    usecase "CU05 Consultar Bitacora" as CU05
+  }
+  package "Medicos, Especialidades y Horarios" {
+    usecase "CU09 Gestionar Especialidad" as CU09
+    usecase "CU10 Gestionar Medico" as CU10
+    usecase "CU11 Gestionar Horario\nde Atencion" as CU11
+  }
+  package "Reportes" {
+    usecase "CU19 Generar Reporte" as CU19
+  }
+  package "Agenda Medica" {
+    usecase "CU17 Consultar Agenda\nMedica" as CU17
+    usecase "CU18 Registrar Atencion\nde Cita" as CU18
+  }
+  package "Pacientes" {
+    usecase "CU06 Gestionar Paciente" as CU06
+    usecase "CU07 Gestionar Perfil Medico" as CU07
+    usecase "CU08 Consultar Historial\nde Citas" as CU08
+  }
+  package "Citas Medicas" {
+    usecase "CU12 Consultar\nDisponibilidad" as CU12
+    usecase "CU13 Registrar Cita" as CU13
+    usecase "CU14 Reprogramar Cita" as CU14
+    usecase "CU15 Cancelar Cita" as CU15
+    usecase "CU16 Controlar Estado y\nAsistencia de Cita" as CU16
+  }
+}
+
+Usuario -- CU02
+Usuario -- CU04
+
+Administrador -- CU01
+Administrador -- CU03
+Administrador -- CU05
+Administrador -- CU09
+Administrador -- CU10
+Administrador -- CU11
+Administrador -- CU17
+Administrador -- CU19
+
+Recepcionista -- CU06
+Recepcionista -- CU08
+Recepcionista -- CU12
+Recepcionista -- CU13
+Recepcionista -- CU14
+Recepcionista -- CU15
+Recepcionista -- CU16
+Recepcionista -- CU17
+Recepcionista -- CU19
+
+Medico -- CU17
+Medico -- CU18
+
+CU07 -- Paciente
+CU08 -- Paciente
+CU12 -- Paciente
+CU13 -- Paciente
+
+CU13 ..> CU12 : <<include>>
+CU14 ..> CU12 : <<include>>
+@enduml

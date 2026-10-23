@@ -1,0 +1,172 @@
+@startuml
+title CU10 Gestionar Medico - Diagrama de secuencia (CRUD completo)
+skinparam sequenceMessageAlign left
+actor Administrador
+boundary UI_Medicos
+control Ctrl_Medicos
+entity Medico
+entity Especialidad
+entity Usuario
+entity Bitacora
+== 1. Listar ==
+Administrador -[#000000]> UI_Medicos : <color:#000000><b>1</b> seleccionarGestionarMedicos()</color>
+activate UI_Medicos
+UI_Medicos -[#000000]> Ctrl_Medicos : <color:#000000><b>1.1</b> obtenerMedicos()</color>
+activate Ctrl_Medicos
+Ctrl_Medicos -[#000000]> Medico : <color:#000000><b>1.2</b> listar()</color>
+activate Medico
+Medico -[#000000]-> Ctrl_Medicos : <color:#000000><b>1.3</b> medicos</color>
+deactivate Medico
+Ctrl_Medicos -[#000000]-> UI_Medicos : <color:#000000><b>1.4</b> medicos</color>
+deactivate Ctrl_Medicos
+UI_Medicos -[#000000]> UI_Medicos : <color:#000000><b>1.5</b> mostrarLista(medicos)</color>
+== 2. Registrar medico ==
+Administrador -[#1F5FBF]> UI_Medicos : <color:#1F5FBF><b>2</b> seleccionarNuevoMedico()</color>
+UI_Medicos -[#1F5FBF]> Ctrl_Medicos : <color:#1F5FBF><b>2.1</b> obtenerEspecialidadesYCuentas()</color>
+activate Ctrl_Medicos
+Ctrl_Medicos -[#1F5FBF]> Especialidad : <color:#1F5FBF><b>2.2</b> listarActivas()</color>
+activate Especialidad
+Especialidad -[#1F5FBF]-> Ctrl_Medicos : <color:#1F5FBF><b>2.3</b> especialidades</color>
+deactivate Especialidad
+Ctrl_Medicos -[#1F5FBF]> Usuario : <color:#1F5FBF><b>2.4</b> listarMedicosSinVincular()</color>
+activate Usuario
+Usuario -[#1F5FBF]-> Ctrl_Medicos : <color:#1F5FBF><b>2.5</b> usuarios</color>
+deactivate Usuario
+Ctrl_Medicos -[#1F5FBF]-> UI_Medicos : <color:#1F5FBF><b>2.6</b> especialidades, usuarios</color>
+deactivate Ctrl_Medicos
+UI_Medicos -[#1F5FBF]> UI_Medicos : <color:#1F5FBF><b>2.7</b> mostrarFormulario(especialidades, usuarios)</color>
+Administrador -[#1F5FBF]> UI_Medicos : <color:#1F5FBF><b>2.8</b> guardar(idUsuario, registroProfesional, telefono, especialidades)</color>
+UI_Medicos -[#1F5FBF]> Ctrl_Medicos : <color:#1F5FBF><b>2.9</b> registrarMedico(idUsuario, registroProfesional, telefono, especialidades)</color>
+activate Ctrl_Medicos
+Ctrl_Medicos -[#1F5FBF]> Ctrl_Medicos : <color:#1F5FBF><b>2.10</b> validarDatos(registroProfesional, telefono, especialidades, idUsuario)</color>
+alt campos obligatorios vacios
+  Ctrl_Medicos -[#1F5FBF]-> UI_Medicos : <color:#1F5FBF><b>2.11</b> "Complete los campos obligatorios"</color>
+else ninguna especialidad marcada
+  Ctrl_Medicos -[#1F5FBF]-> UI_Medicos : <color:#1F5FBF><b>2.12</b> "Seleccione al menos una especialidad"</color>
+else ninguna cuenta seleccionada
+  Ctrl_Medicos -[#1F5FBF]-> UI_Medicos : <color:#1F5FBF><b>2.13</b> "Seleccione la cuenta de usuario del medico"</color>
+else datos validos
+  Ctrl_Medicos -[#1F5FBF]> Medico : <color:#1F5FBF><b>2.14</b> existeRegistro(registroProfesional)</color>
+  activate Medico
+  Medico -[#1F5FBF]-> Ctrl_Medicos : <color:#1F5FBF><b>2.15</b> existe</color>
+  deactivate Medico
+  alt existe = verdadero
+    Ctrl_Medicos -[#1F5FBF]-> UI_Medicos : <color:#1F5FBF><b>2.16</b> "El numero de registro profesional ya esta registrado"</color>
+  else existe = falso
+    Ctrl_Medicos -[#1F5FBF]> Medico : <color:#1F5FBF><b>2.17</b> generarCodigo()</color>
+    activate Medico
+    Medico -[#1F5FBF]-> Ctrl_Medicos : <color:#1F5FBF><b>2.18</b> codigo</color>
+    deactivate Medico
+    Ctrl_Medicos -[#1F5FBF]> Medico : <color:#1F5FBF><b>2.19</b> guardar(codigo, idUsuario, registroProfesional, telefono, especialidades)</color>
+    activate Medico
+    Medico -[#1F5FBF]-> Ctrl_Medicos : <color:#1F5FBF><b>2.20</b> medico</color>
+    deactivate Medico
+    Ctrl_Medicos -[#1F5FBF]> Bitacora : <color:#1F5FBF><b>2.21</b> registrar(administrador, "Registrar medico", detalle, ip)</color>
+    activate Bitacora
+    Bitacora -[#1F5FBF]-> Ctrl_Medicos : <color:#1F5FBF><b>2.22</b> ok</color>
+    deactivate Bitacora
+    Ctrl_Medicos -[#1F5FBF]-> UI_Medicos : <color:#1F5FBF><b>2.23</b> "Medico registrado"</color>
+  end
+end
+deactivate Ctrl_Medicos
+UI_Medicos -[#1F5FBF]> UI_Medicos : <color:#1F5FBF><b>2.24</b> mostrarMensaje(mensaje)</color>
+== 3. Modificar medico ==
+Administrador -[#D9730D]> UI_Medicos : <color:#D9730D><b>3</b> seleccionarEditar(idMedico)</color>
+UI_Medicos -[#D9730D]> Ctrl_Medicos : <color:#D9730D><b>3.1</b> obtenerMedico(idMedico)</color>
+activate Ctrl_Medicos
+Ctrl_Medicos -[#D9730D]> Medico : <color:#D9730D><b>3.2</b> buscarPorId(idMedico)</color>
+activate Medico
+Medico -[#D9730D]-> Ctrl_Medicos : <color:#D9730D><b>3.3</b> medico</color>
+deactivate Medico
+Ctrl_Medicos -[#D9730D]> Especialidad : <color:#D9730D><b>3.4</b> listarActivas()</color>
+activate Especialidad
+Especialidad -[#D9730D]-> Ctrl_Medicos : <color:#D9730D><b>3.5</b> especialidades</color>
+deactivate Especialidad
+Ctrl_Medicos -[#D9730D]> Usuario : <color:#D9730D><b>3.6</b> listarMedicosSinVincular(idMedico)</color>
+activate Usuario
+Usuario -[#D9730D]-> Ctrl_Medicos : <color:#D9730D><b>3.7</b> usuarios</color>
+deactivate Usuario
+Ctrl_Medicos -[#D9730D]-> UI_Medicos : <color:#D9730D><b>3.8</b> medico, especialidades, usuarios</color>
+deactivate Ctrl_Medicos
+UI_Medicos -[#D9730D]> UI_Medicos : <color:#D9730D><b>3.9</b> mostrarFormulario(medico, especialidades, usuarios)</color>
+Administrador -[#D9730D]> UI_Medicos : <color:#D9730D><b>3.10</b> guardar(idUsuario, registroProfesional, telefono, especialidades)</color>
+UI_Medicos -[#D9730D]> Ctrl_Medicos : <color:#D9730D><b>3.11</b> modificarMedico(idMedico, idUsuario, registroProfesional, telefono, especialidades)</color>
+activate Ctrl_Medicos
+Ctrl_Medicos -[#D9730D]> Ctrl_Medicos : <color:#D9730D><b>3.12</b> validarDatos(registroProfesional, telefono, especialidades, idUsuario)</color>
+alt campos obligatorios vacios
+  Ctrl_Medicos -[#D9730D]-> UI_Medicos : <color:#D9730D><b>3.13</b> "Complete los campos obligatorios"</color>
+else ninguna especialidad marcada
+  Ctrl_Medicos -[#D9730D]-> UI_Medicos : <color:#D9730D><b>3.14</b> "Seleccione al menos una especialidad"</color>
+else ninguna cuenta seleccionada
+  Ctrl_Medicos -[#D9730D]-> UI_Medicos : <color:#D9730D><b>3.15</b> "Seleccione la cuenta de usuario del medico"</color>
+else datos validos
+  Ctrl_Medicos -[#D9730D]> Medico : <color:#D9730D><b>3.16</b> existeRegistroEnOtro(registroProfesional, idMedico)</color>
+  activate Medico
+  Medico -[#D9730D]-> Ctrl_Medicos : <color:#D9730D><b>3.17</b> existe</color>
+  deactivate Medico
+  alt existe = verdadero
+    Ctrl_Medicos -[#D9730D]-> UI_Medicos : <color:#D9730D><b>3.18</b> "El numero de registro profesional ya esta registrado"</color>
+  else existe = falso
+    Ctrl_Medicos -[#D9730D]> Medico : <color:#D9730D><b>3.19</b> actualizar(idMedico, idUsuario, registroProfesional, telefono, especialidades)</color>
+    activate Medico
+    Medico -[#D9730D]-> Ctrl_Medicos : <color:#D9730D><b>3.20</b> ok</color>
+    deactivate Medico
+    Ctrl_Medicos -[#D9730D]> Bitacora : <color:#D9730D><b>3.21</b> registrar(administrador, "Modificar medico", detalle, ip)</color>
+    activate Bitacora
+    Bitacora -[#D9730D]-> Ctrl_Medicos : <color:#D9730D><b>3.22</b> ok</color>
+    deactivate Bitacora
+    Ctrl_Medicos -[#D9730D]-> UI_Medicos : <color:#D9730D><b>3.23</b> "Medico actualizado"</color>
+  end
+end
+deactivate Ctrl_Medicos
+UI_Medicos -[#D9730D]> UI_Medicos : <color:#D9730D><b>3.24</b> mostrarMensaje(mensaje)</color>
+== 4. Consultar medico ==
+Administrador -[#2E8B57]> UI_Medicos : <color:#2E8B57><b>4</b> buscar(texto)</color>
+UI_Medicos -[#2E8B57]> Ctrl_Medicos : <color:#2E8B57><b>4.1</b> buscarMedicos(texto)</color>
+activate Ctrl_Medicos
+Ctrl_Medicos -[#2E8B57]> Medico : <color:#2E8B57><b>4.2</b> buscarPorNombreOEspecialidad(texto)</color>
+activate Medico
+Medico -[#2E8B57]-> Ctrl_Medicos : <color:#2E8B57><b>4.3</b> medicos</color>
+deactivate Medico
+alt medicos vacio
+  Ctrl_Medicos -[#2E8B57]-> UI_Medicos : <color:#2E8B57><b>4.4</b> "No se encontraron medicos"</color>
+else hay medicos
+  Ctrl_Medicos -[#2E8B57]-> UI_Medicos : <color:#2E8B57><b>4.5</b> medicos</color>
+end
+deactivate Ctrl_Medicos
+UI_Medicos -[#2E8B57]> UI_Medicos : <color:#2E8B57><b>4.6</b> mostrarResultado(resultado)</color>
+== 5. Desactivar medico ==
+Administrador -[#C0392B]> UI_Medicos : <color:#C0392B><b>5</b> seleccionarDesactivar(idMedico)</color>
+UI_Medicos -[#C0392B]> UI_Medicos : <color:#C0392B><b>5.1</b> mostrarConfirmacion()</color>
+Administrador -[#C0392B]> UI_Medicos : <color:#C0392B><b>5.2</b> confirmar()</color>
+UI_Medicos -[#C0392B]> Ctrl_Medicos : <color:#C0392B><b>5.3</b> desactivarMedico(idMedico)</color>
+activate Ctrl_Medicos
+Ctrl_Medicos -[#C0392B]> Medico : <color:#C0392B><b>5.4</b> cambiarEstado(idMedico, "inactivo")</color>
+activate Medico
+Medico -[#C0392B]-> Ctrl_Medicos : <color:#C0392B><b>5.5</b> ok</color>
+deactivate Medico
+note right of Medico : no recibe nuevas citas;\nsu historial se conserva
+Ctrl_Medicos -[#C0392B]> Bitacora : <color:#C0392B><b>5.6</b> registrar(administrador, "Desactivar medico", detalle, ip)</color>
+activate Bitacora
+Bitacora -[#C0392B]-> Ctrl_Medicos : <color:#C0392B><b>5.7</b> ok</color>
+deactivate Bitacora
+Ctrl_Medicos -[#C0392B]-> UI_Medicos : <color:#C0392B><b>5.8</b> "Medico desactivado"</color>
+deactivate Ctrl_Medicos
+UI_Medicos -[#C0392B]> UI_Medicos : <color:#C0392B><b>5.9</b> mostrarMensaje(mensaje)</color>
+== 6. Activar medico ==
+Administrador -[#7D3C98]> UI_Medicos : <color:#7D3C98><b>6</b> seleccionarActivar(idMedico)</color>
+UI_Medicos -[#7D3C98]> Ctrl_Medicos : <color:#7D3C98><b>6.1</b> activarMedico(idMedico)</color>
+activate Ctrl_Medicos
+Ctrl_Medicos -[#7D3C98]> Medico : <color:#7D3C98><b>6.2</b> cambiarEstado(idMedico, "activo")</color>
+activate Medico
+Medico -[#7D3C98]-> Ctrl_Medicos : <color:#7D3C98><b>6.3</b> ok</color>
+deactivate Medico
+Ctrl_Medicos -[#7D3C98]> Bitacora : <color:#7D3C98><b>6.4</b> registrar(administrador, "Activar medico", detalle, ip)</color>
+activate Bitacora
+Bitacora -[#7D3C98]-> Ctrl_Medicos : <color:#7D3C98><b>6.5</b> ok</color>
+deactivate Bitacora
+Ctrl_Medicos -[#7D3C98]-> UI_Medicos : <color:#7D3C98><b>6.6</b> "Medico activado"</color>
+deactivate Ctrl_Medicos
+UI_Medicos -[#7D3C98]> UI_Medicos : <color:#7D3C98><b>6.7</b> mostrarMensaje(mensaje)</color>
+deactivate UI_Medicos
+@enduml

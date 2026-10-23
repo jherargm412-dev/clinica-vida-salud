@@ -1,0 +1,35 @@
+@startuml
+title CU10 Gestionar Medico - Diagrama de secuencia (Activar medico)
+actor Administrador
+boundary UI_Medicos
+control Ctrl_Medicos
+entity Medico
+entity Bitacora
+autonumber
+Administrador -> UI_Medicos : seleccionarGestionarMedicos()
+activate UI_Medicos
+UI_Medicos -> Ctrl_Medicos : obtenerMedicos()
+activate Ctrl_Medicos
+Ctrl_Medicos -> Medico : listar()
+activate Medico
+Medico --> Ctrl_Medicos : medicos
+deactivate Medico
+Ctrl_Medicos --> UI_Medicos : medicos
+deactivate Ctrl_Medicos
+UI_Medicos -> UI_Medicos : mostrarLista(medicos)
+Administrador -> UI_Medicos : seleccionarActivar(idMedico)
+UI_Medicos -> Ctrl_Medicos : activarMedico(idMedico)
+activate Ctrl_Medicos
+Ctrl_Medicos -> Medico : cambiarEstado(idMedico, "activo")
+activate Medico
+Medico --> Ctrl_Medicos : ok
+deactivate Medico
+Ctrl_Medicos -> Bitacora : registrar(administrador, "Activar medico", detalle, ip)
+activate Bitacora
+Bitacora --> Ctrl_Medicos : ok
+deactivate Bitacora
+Ctrl_Medicos --> UI_Medicos : "Medico activado"
+deactivate Ctrl_Medicos
+UI_Medicos -> UI_Medicos : mostrarMensaje(mensaje)
+deactivate UI_Medicos
+@enduml

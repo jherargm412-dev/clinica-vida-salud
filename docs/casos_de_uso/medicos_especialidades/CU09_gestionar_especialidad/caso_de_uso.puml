@@ -1,0 +1,9 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+actor Administrador
+rectangle "Sistema de gestion de citas medicas" {
+  usecase "CU09 Gestionar\nEspecialidad" as CU09
+}
+Administrador -- CU09
+@enduml

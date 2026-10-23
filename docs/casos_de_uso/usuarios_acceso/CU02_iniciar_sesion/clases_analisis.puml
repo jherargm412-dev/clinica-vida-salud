@@ -1,0 +1,72 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+skinparam nodesep 60
+skinparam ranksep 110
+hide circle
+title CU02 Iniciar Sesion - Diagrama de clases de analisis
+class UI_Login <<boundary>> {
+  --
+  mostrar formulario
+  ingresar credenciales
+  mostrar mensaje de error
+}
+class UI_Dashboard <<boundary>> {
+  --
+  mostrar menu principal
+  cerrar sesion
+}
+class Ctrl_Login <<control>> {
+  --
+  validar credenciales
+  cargar rol y permisos
+  crear sesion
+  enviar opciones del menu
+  cerrar sesion
+}
+class Bitacora <<entity>> {
+  accion
+  detalle
+  fecha
+  hora
+  ip
+  --
+  registrar accion
+}
+class Usuario <<entity>> {
+  nombre de usuario
+  correo
+  contrasena
+  activo
+  bloqueado
+  intentos fallidos
+  --
+  verificar credenciales
+  verificar estado
+  registrar intento fallido
+  bloquear cuenta
+  reiniciar intentos
+}
+class Rol <<entity>> {
+  nombre
+  descripcion
+  activo
+  --
+  obtener rol
+}
+class Permiso <<entity>> {
+  nombre
+  descripcion
+  --
+  obtener permisos
+}
+UI_Login -- Ctrl_Login
+UI_Dashboard -- Ctrl_Login
+Ctrl_Login -- Bitacora
+Ctrl_Login -- Usuario
+Ctrl_Login -- Rol
+Ctrl_Login -- Permiso
+Usuario "1" -[norank]- "0..*" Bitacora : realiza
+Usuario "*" -[norank]- "1" Rol : tiene
+Rol "*" -[norank]- "*" Permiso : tiene
+@enduml

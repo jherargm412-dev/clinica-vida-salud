@@ -1,0 +1,60 @@
+@startuml
+title CU01 Gestionar Usuarios y Asignar Roles - Diagrama de secuencia (Registrar usuario)
+actor Administrador
+boundary UI_Usuarios
+control Ctrl_Usuarios
+entity Usuario
+entity Rol
+entity Bitacora
+autonumber
+Administrador -> UI_Usuarios : seleccionarGestionarUsuarios()
+activate UI_Usuarios
+UI_Usuarios -> Ctrl_Usuarios : obtenerUsuarios()
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Usuario : listar()
+activate Usuario
+Usuario --> Ctrl_Usuarios : usuarios
+deactivate Usuario
+Ctrl_Usuarios --> UI_Usuarios : usuarios
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarLista(usuarios)
+Administrador -> UI_Usuarios : seleccionarNuevoUsuario()
+UI_Usuarios -> Ctrl_Usuarios : obtenerRoles()
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Rol : listarActivos()
+activate Rol
+Rol --> Ctrl_Usuarios : roles
+deactivate Rol
+Ctrl_Usuarios --> UI_Usuarios : roles
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarFormulario(roles)
+Administrador -> UI_Usuarios : guardar(nombres, apellidos, correo, nombreUsuario, contrasena, rol)
+UI_Usuarios -> Ctrl_Usuarios : registrarUsuario(datos)
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Ctrl_Usuarios : validarCampos(datos)
+alt campos obligatorios vacios
+  Ctrl_Usuarios --> UI_Usuarios : "Complete los campos obligatorios"
+else campos completos
+  Ctrl_Usuarios -> Usuario : existe(nombreUsuario, correo)
+  activate Usuario
+  Usuario --> Ctrl_Usuarios : existe
+  deactivate Usuario
+  alt existe = verdadero
+    Ctrl_Usuarios --> UI_Usuarios : "El nombre de usuario o correo ya esta registrado"
+  else existe = falso
+    Ctrl_Usuarios -> Ctrl_Usuarios : cifrarContrasena(contrasena)
+    Ctrl_Usuarios -> Usuario : guardar(datos, contrasenaCifrada, rol)
+    activate Usuario
+    Usuario --> Ctrl_Usuarios : usuario
+    deactivate Usuario
+    Ctrl_Usuarios -> Bitacora : registrar(administrador, "Registrar usuario", detalle, ip)
+    activate Bitacora
+    Bitacora --> Ctrl_Usuarios : ok
+    deactivate Bitacora
+    Ctrl_Usuarios --> UI_Usuarios : "Usuario registrado"
+  end
+end
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarMensaje(mensaje)
+deactivate UI_Usuarios
+@enduml

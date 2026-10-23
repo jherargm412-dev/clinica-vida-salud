@@ -1,0 +1,21 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU02 Iniciar Sesion - Diagrama de comunicacion
+actor Usuario as Actor
+boundary ":UI_login" as UI_login
+boundary ":UI_Dashboard" as UI_Dashboard
+control ":Ctrl_Login" as Ctrl_Login
+entity ":Usuario" as Usuario
+entity ":Rol" as Rol
+entity ":Permiso" as Permiso
+entity ":Bitacora" as Bitacora
+Actor -- UI_login : "1: ingresar credenciales →"
+Actor -- UI_Dashboard : "← 1.8: mostrar menu principal"
+UI_login -- Ctrl_Login : "1.1: validar credenciales →"
+UI_Dashboard -- Ctrl_Login : "← 1.7: enviar opciones del menu"
+Ctrl_Login -- Usuario : "1.2: verificar credenciales →\n1.3: reiniciar intentos →"
+Ctrl_Login -- Rol : "1.4: obtener rol →"
+Ctrl_Login -- Permiso : "1.5: obtener permisos →"
+Ctrl_Login -- Bitacora : "1.6: registrar inicio de sesion →"
+@enduml

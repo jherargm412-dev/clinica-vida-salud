@@ -1,0 +1,105 @@
+@startuml
+skinparam packageStyle folder
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam package {
+  BackgroundColor #F8ECE6
+  BorderColor #6B6B6B
+  FontSize 12
+}
+skinparam note {
+  BackgroundColor #FFFFFF
+  BorderColor #6B6B6B
+  FontSize 11
+  FontStyle italic
+}
+skinparam ArrowColor #6B6B6B
+skinparam frame {
+  BackgroundColor #FFFFFF
+  BorderColor #555555
+  FontSize 12
+}
+skinparam nodesep 40
+skinparam ranksep 30
+
+frame "pkg Identificar paquetes" {
+
+package "usuarios_acceso" as P1 {
+}
+note as N1
+Módulo responsable de controlar el acceso al sistema y la
+seguridad de la información. Encapsula los procesos de inicio
+de sesión, administración de cuentas de usuario, asignación de
+roles y permisos, gestión del perfil propio y consulta de la
+bitácora de auditoría. Operado principalmente por el actor
+Administrador; todos los usuarios inician sesión y gestionan
+su perfil.
+end note
+P1 .right. N1
+
+package "pacientes" as P2 {
+}
+note as N2
+Módulo responsable de administrar la información de los
+pacientes de la clínica para facilitar su atención y
+seguimiento. Encapsula los procesos de registro, búsqueda,
+modificación y desactivación de pacientes, la gestión de su
+perfil médico y la consulta de su historial de citas.
+Operado principalmente por los actores Recepcionista y Paciente.
+end note
+P2 .right. N2
+
+package "medicos_especialidades" as P3 {
+}
+note as N3
+Módulo responsable de administrar la oferta de atención
+médica de la clínica. Encapsula los procesos de registro de
+especialidades, registro de médicos con sus especialidades y
+definición de sus horarios de atención, a través de los casos
+de uso enfocados en la configuración del personal médico y su
+disponibilidad. Operado principalmente por el actor Administrador.
+end note
+P3 .right. N3
+
+package "citas" as P4 {
+}
+note as N4
+Módulo responsable de coordinar la programación de las citas
+médicas, aprovechando la disponibilidad de los médicos y
+evitando conflictos de horario. Encapsula los procesos de
+consulta de disponibilidad, registro, reprogramación y
+cancelación de citas, y el control de su estado y de la
+asistencia del paciente. Operado principalmente por los actores
+Recepcionista y Paciente.
+end note
+P4 .right. N4
+
+package "agenda_medica" as P5 {
+}
+note as N5
+Módulo responsable de organizar la jornada de atención de los
+médicos. Encapsula los procesos de consulta de la agenda de
+citas por médico y fecha, y el registro de la atención de cada
+cita. Operado principalmente por el actor Médico, con consulta
+del Administrador y la Recepcionista.
+end note
+P5 .right. N5
+
+package "reportes" as P6 {
+}
+note as N6
+Módulo responsable de consolidar la información de las citas
+para apoyar la toma de decisiones administrativas. Encapsula
+los procesos de generación de reportes de citas por fecha,
+médico, especialidad y estado. Operado principalmente por los
+actores Administrador y Recepcionista.
+end note
+P6 .right. N6
+
+P1 -[hidden]down- P2
+P2 -[hidden]down- P3
+P3 -[hidden]down- P4
+P4 -[hidden]down- P5
+P5 -[hidden]down- P6
+}
+@enduml

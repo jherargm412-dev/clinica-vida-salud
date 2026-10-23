@@ -1,0 +1,117 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+skinparam nodesep 50
+skinparam ranksep 110
+skinparam classAttributeIconSize 0
+hide circle
+hide methods
+title Diagrama de clases de la base de datos - Ciclo 1
+
+class Permiso {
+  idPermiso : Integer
+  clave : String
+  nombre : String
+  descripcion : String
+}
+class RolPermiso {
+  idRol : Integer
+  idPermiso : Integer
+}
+class Rol {
+  idRol : Integer
+  nombre : String
+  descripcion : String
+  activo : Boolean
+}
+class Usuario {
+  idUsuario : Integer
+  nombreUsuario : String
+  correo : String
+  contrasena : String
+  nombres : String
+  apellidos : String
+  activo : Boolean
+  bloqueado : Boolean
+  intentosFallidos : Integer
+  fechaRegistro : DateTime
+  idRol : Integer
+}
+class Bitacora {
+  idBitacora : Integer
+  fechaHora : DateTime
+  accion : String
+  tablaAfectada : String
+  detalle : String
+  ip : String
+  idUsuario : Integer
+}
+class Medico {
+  idMedico : Integer
+  codigo : String
+  registroProfesional : String
+  telefono : String
+  activo : Boolean
+  idUsuario : Integer
+}
+class Paciente {
+  idPaciente : Integer
+  codigo : String
+  ci : String
+  fechaNacimiento : Date
+  sexo : String
+  telefono : String
+  direccion : String
+  activo : Boolean
+  idUsuario : Integer
+}
+class MedicoEspecialidad {
+  idMedico : Integer
+  idEspecialidad : Integer
+}
+class Especialidad {
+  idEspecialidad : Integer
+  nombre : String
+  descripcion : String
+  activo : Boolean
+}
+class HorarioAtencion {
+  idHorario : Integer
+  diaSemana : Integer
+  horaInicio : Time
+  horaFin : Time
+  duracionCita : Integer
+  activo : Boolean
+  idMedico : Integer
+}
+class Cita {
+  idCita : Integer
+  codigo : String
+  fecha : Date
+  horaInicio : Time
+  horaFin : Time
+  motivo : String
+  estado : String
+  fechaCreacion : DateTime
+  motivoCancelacion : String
+  fechaCancelacion : DateTime
+  idPaciente : Integer
+  idMedico : Integer
+  idEspecialidad : Integer
+  idUsuarioCancelacion : Integer
+}
+
+Permiso "1" -- "0..*" RolPermiso
+RolPermiso "1..*" -- "1" Rol
+Rol "1" -- "0..*" Usuario : tiene
+Usuario "0..1" -- "0..*" Bitacora : registra
+Usuario "1" -- "0..1" Medico : tiene
+Usuario "1" -- "0..1" Paciente : tiene
+Usuario "0..1" -- "0..*" Cita : cancela
+Medico "1" -- "1..*" MedicoEspecialidad
+MedicoEspecialidad "0..*" -- "1" Especialidad
+Medico "1" *-- "0..*" HorarioAtencion : tiene
+Medico "1" -- "0..*" Cita : atiende
+Paciente "1" -- "0..*" Cita : tiene
+Especialidad "1" -- "0..*" Cita : clasifica
+@enduml

@@ -1,0 +1,42 @@
+@startuml
+title CU01 Gestionar Usuarios y Asignar Roles - Diagrama de secuencia (Desactivar usuario)
+actor Administrador
+boundary UI_Usuarios
+control Ctrl_Usuarios
+entity Usuario
+entity Bitacora
+autonumber
+Administrador -> UI_Usuarios : seleccionarGestionarUsuarios()
+activate UI_Usuarios
+UI_Usuarios -> Ctrl_Usuarios : obtenerUsuarios()
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Usuario : listar()
+activate Usuario
+Usuario --> Ctrl_Usuarios : usuarios
+deactivate Usuario
+Ctrl_Usuarios --> UI_Usuarios : usuarios
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarLista(usuarios)
+Administrador -> UI_Usuarios : seleccionarDesactivar(idUsuario)
+UI_Usuarios -> UI_Usuarios : mostrarConfirmacion()
+Administrador -> UI_Usuarios : confirmar()
+UI_Usuarios -> Ctrl_Usuarios : desactivarUsuario(idUsuario, idAdministrador)
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Ctrl_Usuarios : esPropiaCuenta(idUsuario, idAdministrador)
+alt propia cuenta
+  Ctrl_Usuarios --> UI_Usuarios : "No puede desactivar su propia cuenta"
+else otra cuenta
+  Ctrl_Usuarios -> Usuario : cambiarEstado(idUsuario, "inactivo")
+  activate Usuario
+  Usuario --> Ctrl_Usuarios : ok
+  deactivate Usuario
+  Ctrl_Usuarios -> Bitacora : registrar(administrador, "Desactivar usuario", detalle, ip)
+  activate Bitacora
+  Bitacora --> Ctrl_Usuarios : ok
+  deactivate Bitacora
+  Ctrl_Usuarios --> UI_Usuarios : "Usuario desactivado"
+end
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarMensaje(mensaje)
+deactivate UI_Usuarios
+@enduml

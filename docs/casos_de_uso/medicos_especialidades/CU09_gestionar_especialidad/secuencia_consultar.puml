@@ -1,0 +1,34 @@
+@startuml
+title CU09 Gestionar Especialidad - Diagrama de secuencia (Consultar especialidad)
+actor Administrador
+boundary UI_Especialidades
+control Ctrl_Especialidades
+entity Especialidad
+autonumber
+Administrador -> UI_Especialidades : seleccionarGestionarEspecialidades()
+activate UI_Especialidades
+UI_Especialidades -> Ctrl_Especialidades : obtenerEspecialidades()
+activate Ctrl_Especialidades
+Ctrl_Especialidades -> Especialidad : listar()
+activate Especialidad
+Especialidad --> Ctrl_Especialidades : especialidades
+deactivate Especialidad
+Ctrl_Especialidades --> UI_Especialidades : especialidades
+deactivate Ctrl_Especialidades
+UI_Especialidades -> UI_Especialidades : mostrarLista(especialidades)
+Administrador -> UI_Especialidades : buscar(texto)
+UI_Especialidades -> Ctrl_Especialidades : buscarEspecialidades(texto)
+activate Ctrl_Especialidades
+Ctrl_Especialidades -> Especialidad : buscar(texto)
+activate Especialidad
+Especialidad --> Ctrl_Especialidades : especialidades
+deactivate Especialidad
+alt especialidades vacio
+  Ctrl_Especialidades --> UI_Especialidades : "No se encontraron especialidades"
+else hay especialidades
+  Ctrl_Especialidades --> UI_Especialidades : especialidades
+end
+deactivate Ctrl_Especialidades
+UI_Especialidades -> UI_Especialidades : mostrarResultado(resultado)
+deactivate UI_Especialidades
+@enduml

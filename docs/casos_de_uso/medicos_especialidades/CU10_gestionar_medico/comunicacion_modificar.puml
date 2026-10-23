@@ -1,0 +1,18 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU10 Gestionar Medico - Diagrama de comunicacion (Modificar medico)
+actor Administrador
+boundary UI_Medicos
+control Ctrl_Medicos
+entity Medico
+entity Especialidad
+entity Usuario
+entity Bitacora
+Administrador -- UI_Medicos : "1: solicitar gestion de medicos →\n5: seleccionar medico y editar →\n11: modificar datos y guardar →"
+UI_Medicos -- Ctrl_Medicos : "2: obtener lista de medicos →\n4: mostrar lista de medicos ←\n6: obtener datos del medico →\n10: mostrar datos del medico ←\n12: modificar medico →\n16: mostrar medico actualizado ←"
+Ctrl_Medicos -- Medico : "3: listar medicos →\n7: obtener medico →\n13: verificar registro profesional unico →\n14: actualizar medico →"
+Ctrl_Medicos -- Especialidad : "8: listar especialidades activas →"
+Ctrl_Medicos -- Bitacora : "15: registrar accion →"
+Ctrl_Medicos -- Usuario : "9: listar usuarios medicos sin vincular →"
+@enduml

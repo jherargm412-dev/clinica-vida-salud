@@ -1,0 +1,35 @@
+@startuml
+title CU09 Gestionar Especialidad - Diagrama de secuencia (Activar especialidad)
+actor Administrador
+boundary UI_Especialidades
+control Ctrl_Especialidades
+entity Especialidad
+entity Bitacora
+autonumber
+Administrador -> UI_Especialidades : seleccionarGestionarEspecialidades()
+activate UI_Especialidades
+UI_Especialidades -> Ctrl_Especialidades : obtenerEspecialidades()
+activate Ctrl_Especialidades
+Ctrl_Especialidades -> Especialidad : listar()
+activate Especialidad
+Especialidad --> Ctrl_Especialidades : especialidades
+deactivate Especialidad
+Ctrl_Especialidades --> UI_Especialidades : especialidades
+deactivate Ctrl_Especialidades
+UI_Especialidades -> UI_Especialidades : mostrarLista(especialidades)
+Administrador -> UI_Especialidades : seleccionarActivar(idEspecialidad)
+UI_Especialidades -> Ctrl_Especialidades : activarEspecialidad(idEspecialidad)
+activate Ctrl_Especialidades
+Ctrl_Especialidades -> Especialidad : cambiarEstado(idEspecialidad, "activo")
+activate Especialidad
+Especialidad --> Ctrl_Especialidades : ok
+deactivate Especialidad
+Ctrl_Especialidades -> Bitacora : registrar(administrador, "Activar especialidad", detalle, ip)
+activate Bitacora
+Bitacora --> Ctrl_Especialidades : ok
+deactivate Bitacora
+Ctrl_Especialidades --> UI_Especialidades : "Especialidad activada"
+deactivate Ctrl_Especialidades
+UI_Especialidades -> UI_Especialidades : mostrarMensaje(mensaje)
+deactivate UI_Especialidades
+@enduml

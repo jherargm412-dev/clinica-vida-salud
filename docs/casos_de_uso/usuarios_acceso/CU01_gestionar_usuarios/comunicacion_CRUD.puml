@@ -1,0 +1,27 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+skinparam nodesep 40
+skinparam ranksep 120
+title CU01 Gestionar Usuarios y Asignar Roles - Diagrama de comunicacion (CRUD completo)
+actor Administrador
+boundary UI_Usuarios
+control Ctrl_Usuarios
+entity Rol
+entity Usuario
+entity Bitacora
+Administrador -- UI_Usuarios : "<color:#000000>1: solicitar gestion de usuarios →</color>\n<color:#1F5FBF>2: solicitar nuevo usuario →</color>\n<color:#1F5FBF>2.4: ingresar datos y guardar →</color>\n<color:#D9730D>3: seleccionar usuario y editar →</color>\n<color:#D9730D>3.5: modificar datos y guardar →</color>\n<color:#2E8B57>4: ingresar texto y buscar →</color>\n<color:#C0392B>5: seleccionar usuario y desactivar →</color>\n<color:#C0392B>5.1: confirmar desactivacion →</color>\n<color:#7D3C98>6: seleccionar usuario inactivo y activar →</color>\n<color:#00838F>7: seleccionar usuario bloqueado y desbloquear →</color>"
+UI_Usuarios -- Ctrl_Usuarios : "<color:#000000>1.1: obtener lista de usuarios →</color>\n<color:#000000>1.3: mostrar lista de usuarios ←</color>\n<color:#1F5FBF>2.1: obtener roles →</color>\n<color:#1F5FBF>2.3: mostrar formulario ←</color>\n<color:#1F5FBF>2.5: registrar usuario →</color>\n<color:#1F5FBF>2.9: mostrar usuario registrado ←</color>\n<color:#D9730D>3.1: obtener datos del usuario →</color>\n<color:#D9730D>3.4: mostrar datos del usuario ←</color>\n<color:#D9730D>3.6: modificar usuario →</color>\n<color:#D9730D>3.10: mostrar usuario actualizado ←</color>\n<color:#2E8B57>4.1: buscar usuarios →</color>\n<color:#2E8B57>4.3: mostrar resultados ←</color>\n<color:#C0392B>5.2: desactivar usuario →</color>\n<color:#C0392B>5.5: mostrar usuario desactivado ←</color>\n<color:#7D3C98>6.1: reactivar usuario →</color>\n<color:#7D3C98>6.4: mostrar usuario activado ←</color>\n<color:#00838F>7.1: desbloquear usuario →</color>\n<color:#00838F>7.4: mostrar cuenta desbloqueada ←</color>"
+Ctrl_Usuarios -- Rol : "<color:#1F5FBF>2.2: listar roles activos →</color>\n<color:#D9730D>3.3: listar roles activos →</color>"
+Ctrl_Usuarios -- Usuario : "<color:#000000>1.2: listar usuarios →</color>\n<color:#1F5FBF>2.6: verificar usuario y correo unicos →</color>\n<color:#1F5FBF>2.7: guardar usuario →</color>\n<color:#D9730D>3.2: obtener usuario →</color>\n<color:#D9730D>3.7: verificar usuario y correo unicos →</color>\n<color:#D9730D>3.8: actualizar usuario →</color>\n<color:#2E8B57>4.2: buscar usuarios →</color>\n<color:#C0392B>5.3: cambiar estado →</color>\n<color:#7D3C98>6.2: cambiar estado →</color>\n<color:#00838F>7.2: desbloquear cuenta →</color>"
+Ctrl_Usuarios -- Bitacora : "<color:#1F5FBF>2.8: registrar accion →</color>\n<color:#D9730D>3.9: registrar accion →</color>\n<color:#C0392B>5.4: registrar accion →</color>\n<color:#7D3C98>6.3: registrar accion →</color>\n<color:#00838F>7.3: registrar accion →</color>"
+legend right
+<color:#000000>1: Listar</color>
+<color:#1F5FBF>2: Registrar</color>
+<color:#D9730D>3: Modificar</color>
+<color:#2E8B57>4: Consultar</color>
+<color:#C0392B>5: Desactivar</color>
+<color:#7D3C98>6: Reactivar</color>
+<color:#00838F>7: Desbloquear</color>
+endlegend
+@enduml
