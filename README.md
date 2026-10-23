@@ -26,22 +26,38 @@ Usuario inicial: **admin** / **Admin2026*** (cámbiala después).
 
 > No se usan migraciones de Laravel: la base se crea con el script SQL.
 
-## Dónde está cada cosa (MVC)
+## Organización del código (por paquetes)
 
-| Diagramas | Laravel | Carpeta |
+El código sigue el **diagrama de paquetes**: primero el paquete, luego la capa y luego el caso de uso.
+
+```
+app/Modulos/<paquete>/
+├── controller/<caso_de_uso>/   Controladores (Ctrl_ en los diagramas)
+├── request/<caso_de_uso>/      Validación de formularios
+├── service/                    Lógica compleja (solo si hace falta)
+├── middleware/                 (solo usuarios_acceso: permisos y cuenta activa)
+└── models/                     Modelos Eloquent = entidades (tabla de la BD)
+resources/views/<paquete>/<caso_de_uso>/   Vistas Blade (UI_ en los diagramas)
+resources/views/compartido/                Plantilla base, menú e inicio
+routes/modulos/<paquete>.php               Rutas de cada paquete
+```
+
+| Paquete | Casos de uso | Modelos |
 |---|---|---|
-| `UI_...` (boundary) | Vistas Blade | `resources/views/` |
-| `Ctrl_...` (control) | Controladores | `app/Http/Controllers/` |
-| Entidades | Modelos Eloquent | `app/Models/` |
-| — | Rutas (URL → controlador) | `routes/web.php` |
-| — | Permisos por rol | `app/Http/Middleware/VerificarPermiso.php` + `config/modulos.php` |
+| `usuarios_acceso` | CU01–CU05 | Usuario, Rol, Permiso, Bitacora |
+| `pacientes` | CU06–CU08 | Paciente |
+| `medicos_especialidades` | CU09–CU11 | Especialidad, Medico, HorarioAtencion |
+| `citas` | CU12–CU16 | Cita |
+| `agenda_medica` | CU17–CU18 | — |
+| `reportes` | CU19 | — |
 
-## Cómo agregar un módulo (caso de uso)
+Los nombres de carpetas van en `snake_case` y deben coincidir **exactamente** con el `namespace`
+(por ejemplo `App\Modulos\usuarios_acceso\models\Usuario`), porque en Linux (Railway) importan las mayúsculas.
 
-1. Crea el controlador en `app/Http/Controllers/` (por ejemplo `EspecialidadController.php`).
-2. Crea sus vistas en `resources/views/<modulo>/` usando `@extends('layouts.app')`.
-3. Agrega sus rutas en `routes/web.php` dentro del grupo `auth`, protegidas con
-   `->middleware('permiso:<clave del permiso>')`.
-4. En `config/modulos.php` cambia `'ruta' => null` por el nombre de la ruta principal
-   para que aparezca habilitado en el menú.
+## Cómo agregar un caso de uso
+
+1. Crea el controlador en `app/Modulos/<paquete>/controller/<caso_de_uso>/`.
+2. Crea sus vistas en `resources/views/<paquete>/<caso_de_uso>/` usando `@extends('compartido.app')`.
+3. Agrega sus rutas en `routes/modulos/<paquete>.php`, protegidas con `->middleware('permiso:<clave>')`.
+4. En `config/modulos.php` cambia `'ruta' => null` por el nombre de la ruta principal para habilitarlo en el menú.
 5. Registra las acciones importantes con `Bitacora::registrar('ACCION', 'tabla', 'detalle');`.

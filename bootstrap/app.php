@@ -19,8 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(fn () => route('inicio'));
 
         $middleware->alias([
-            'permiso' => \App\Http\Middleware\VerificarPermiso::class,
-            'cuenta.activa' => \App\Http\Middleware\VerificarCuentaActiva::class,
+            'permiso' => \App\Modulos\usuarios_acceso\middleware\VerificarPermiso::class,
+            'cuenta.activa' => \App\Modulos\usuarios_acceso\middleware\VerificarCuentaActiva::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

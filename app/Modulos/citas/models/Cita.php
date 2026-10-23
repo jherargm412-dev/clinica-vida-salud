@@ -1,7 +1,11 @@
 <?php
 
-namespace App\Models;
+namespace App\Modulos\citas\models;
 
+use App\Modulos\medicos_especialidades\models\Especialidad;
+use App\Modulos\medicos_especialidades\models\Medico;
+use App\Modulos\pacientes\models\Paciente;
+use App\Modulos\usuarios_acceso\models\Usuario;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

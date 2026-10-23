@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Modulos\usuarios_acceso\models;
 
+use App\Modulos\medicos_especialidades\models\Medico;
+use App\Modulos\pacientes\models\Paciente;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;

@@ -1,14 +1,15 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\InicioController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
 | Rutas web
 |--------------------------------------------------------------------------
-| Cada ruta conecta una dirección (URL) con un método de un controlador.
+| Las rutas de cada paquete están en routes/modulos/<paquete>.php
+| (misma organización que el diagrama de paquetes).
+|
+| Middleware que se usan:
 | - guest:          solo sin sesión (login)
 | - auth:           solo con sesión iniciada
 | - cuenta.activa:  cierra la sesión si la cuenta fue desactivada o bloqueada
@@ -17,20 +18,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route(auth()->check() ? 'inicio' : 'login'));
 
-// CU02 Iniciar sesión
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'mostrarLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'iniciarSesion'])
-        ->middleware('throttle:10,1')          // máximo 10 intentos por minuto desde la misma IP
-        ->name('login.intentar');
-});
-
-Route::middleware(['auth', 'cuenta.activa'])->group(function () {
-    Route::post('/logout', [AuthController::class, 'cerrarSesion'])->name('logout');
-    Route::get('/inicio', [InicioController::class, 'index'])->name('inicio');
-
-    // Aquí se agregan los módulos de cada caso de uso, por ejemplo:
-    // Route::middleware('permiso:especialidades.gestionar')->group(function () {
-    //     Route::get('/especialidades', [EspecialidadController::class, 'index'])->name('especialidades.index');
-    // });
-});
+require __DIR__ . '/modulos/usuarios_acceso.php';
+require __DIR__ . '/modulos/pacientes.php';
+require __DIR__ . '/modulos/medicos_especialidades.php';
+require __DIR__ . '/modulos/citas.php';
+require __DIR__ . '/modulos/agenda_medica.php';
+require __DIR__ . '/modulos/reportes.php';

@@ -5,7 +5,7 @@
 | Módulos del menú
 |--------------------------------------------------------------------------
 | Cada módulo aparece en el menú solo si el rol del usuario tiene al menos
-| uno de sus permisos. "ruta" es el nombre de la ruta en routes/web.php;
+| uno de sus permisos. "ruta" es el nombre de la ruta (routes/modulos/<paquete>.php);
 | mientras un módulo no esté implementado se deja en null y se muestra
 | como "Próximamente".
 */

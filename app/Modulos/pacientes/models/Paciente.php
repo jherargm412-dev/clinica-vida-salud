@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Modulos\pacientes\models;
 
+use App\Modulos\citas\models\Cita;
+use App\Modulos\usuarios_acceso\models\Usuario;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;

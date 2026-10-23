@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Modulos\usuarios_acceso\controller\iniciar_sesion;
 
-use App\Models\Bitacora;
-use App\Models\Usuario;
+use App\Http\Controllers\Controller;
+use App\Modulos\usuarios_acceso\models\Bitacora;
+use App\Modulos\usuarios_acceso\models\Usuario;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +14,7 @@ use Illuminate\View\View;
 
 /**
  * CU02 Iniciar Sesión  (Ctrl_Login en los diagramas)
- * Vista: resources/views/auth/login.blade.php  (UI_login)
+ * Vista: resources/views/usuarios_acceso/iniciar_sesion/login.blade.php  (UI_login)
  */
 class AuthController extends Controller
 {
@@ -23,7 +24,7 @@ class AuthController extends Controller
     /** Muestra el formulario de inicio de sesión. */
     public function mostrarLogin(): View
     {
-        return view('auth.login');
+        return view('usuarios_acceso.iniciar_sesion.login');
     }
 
     /** Valida las credenciales e inicia la sesión. */
