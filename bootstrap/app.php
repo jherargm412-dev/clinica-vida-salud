@@ -11,8 +11,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Railway entrega la app detrás de un proxy HTTPS
+        $middleware->trustProxies(at: '*');
+
+        // Sin sesión → al login; con sesión e intentando entrar al login → al inicio
+        $middleware->redirectGuestsTo(fn () => route('login'));
+        $middleware->redirectUsersTo(fn () => route('inicio'));
+
+        $middleware->alias([
+            'permiso' => \App\Http\Middleware\VerificarPermiso::class,
+            'cuenta.activa' => \App\Http\Middleware\VerificarCuentaActiva::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Las páginas de error están en resources/views/errors (403, 404, 419, 500)
     })->create();
