@@ -1,0 +1,34 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam linetype polyline
+skinparam dpi 200
+
+title DIAGRAMA DE COMUNICACIÓN - CU14 Reprogramar Cita
+
+actor "Recepcionista" as R
+boundary "UI_reprogramarCita" as UI
+control "CitaController" as C
+control "DisponibilidadController" as D
+entity "Cita" as CI
+entity "Medico" as M
+entity "HorarioAtencion" as H
+entity "Bitacora" as B
+
+R -- UI : 1: mostrarCitasReprogramables() →\n2: buscarCita() →\n3: seleccionarCita() →\n4: consultarDisponibilidad() →\n5: guardarReprogramacion() →
+
+UI -- C : 1.1: listarCitasReprogramables() →\n2.1: buscarCitasReprogramables(texto, fecha) →\n3.1: obtenerCitaReprogramable(idCita) →\n5.1: reprogramarCita(idCita, nuevaFecha, nuevaHoraInicio) →
+
+UI -- D : 4.1: consultarHorariosDisponibles(idMedico, fecha) →
+
+C -- CI : 1.2: listarReprogramables() →\n2.2: buscarReprogramables(texto, fecha) →\n3.2: obtenerDetallePorId(idCita) →\n5.2: obtenerDetallePorId(idCita) →\n5.5: existeCitaSuperpuesta(idMedico, fecha, horaInicio, horaFin, idCitaExcluida) →\n5.6: actualizarFechaHoraCita(idCita, fecha, horaInicio, horaFin) →
+
+C -- M : 5.3: obtenerPorId(idMedico) →
+
+C -- H : 5.4: listarHorariosActivosPorDia(idMedico, diaSemana) →
+
+C -- B : 5.7: registrarAccion(accion, tablaAfectada, detalle) →
+
+note bottom of D : Reutilizado de CU12\n(«include»)
+@enduml

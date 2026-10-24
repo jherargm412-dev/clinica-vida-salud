@@ -1,0 +1,92 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype polyline
+skinparam dpi 200
+hide circle
+
+skinparam class {
+  BackgroundColor #EEEEEE
+  BorderColor #333333
+}
+
+title DIAGRAMA DE CLASE DE ANÁLISIS - CU11 Gestionar Horario de Atención
+
+class "Administrador" as A <<actor>>
+
+class "UI_horarioAtencion" as UI <<boundary>> {
+  + mostrarMedicos(): void
+  + consultarHorarios(): void
+  + crearHorario(): void
+  + editarHorario(): void
+  + desactivarHorario(): void
+  + activarHorario(): void
+}
+
+class "HorarioAtencionController" as C <<control>> {
+  + listarMedicosActivos(): void
+  + listarHorariosMedico(idMedico, filtros): void
+  + registrarHorario(datos): void
+  + modificarHorario(idHorario, datos): void
+  + desactivarHorario(idHorario): void
+  + activarHorario(idHorario): void
+}
+
+class "Medico" as M <<entity>> {
+  - idMedico: Integer
+  - codigo: String
+  - registroProfesional: String
+  - telefono: String
+  - activo: Boolean
+  + listarActivos(): void
+}
+
+class "HorarioAtencion" as H <<entity>> {
+  - idHorario: Integer
+  - diaSemana: Integer
+  - horaInicio: Time
+  - horaFin: Time
+  - duracionCita: Integer
+  - activo: Boolean
+  + listarPorMedico(idMedico, filtros): void
+  + obtenerPorId(idHorario): void
+  + existeSuperposicion(idMedico, dia, horaInicio, horaFin, idHorarioExcluido): Boolean
+  + insertarHorario(datos): void
+  + actualizarHorario(idHorario, datos): void
+  + cambiarEstadoHorario(idHorario, activo): void
+}
+
+class "Cita" as CI <<entity>> {
+  - idCita: Integer
+  - codigo: String
+  - fecha: Date
+  - horaInicio: Time
+  - horaFin: Time
+  - motivo: String
+  - estado: String
+  - fechaCreacion: DateTime
+  - motivoCancelacion: String
+  - fechaCancelacion: DateTime
+  + existenCitasPendientes(idMedico, dia, horaInicio, horaFin): Boolean
+}
+
+class "Bitacora" as B <<entity>> {
+  - idBitacora: Integer
+  - fechaHora: DateTime
+  - accion: String
+  - tablaAfectada: String
+  - detalle: String
+  - ip: String
+  + registrarAccion(accion, tablaAfectada, detalle): void
+}
+
+A -- UI
+UI -- C
+C -- M
+C -- H
+C -- CI
+C -- B
+M "1" *-- "0..*" H : tiene
+M "1" -- "0..*" CI : atiende
+@enduml

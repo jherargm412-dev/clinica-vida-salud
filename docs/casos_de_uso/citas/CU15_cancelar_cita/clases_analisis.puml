@@ -1,0 +1,62 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam dpi 200
+hide circle
+
+skinparam class {
+  BackgroundColor #EEEEEE
+  BorderColor #333333
+}
+
+title DIAGRAMA DE CLASE DE ANÁLISIS - CU15 Cancelar Cita
+
+class "Recepcionista" as R <<actor>>
+
+class "UI_cancelarCita" as UI <<boundary>> {
+  + mostrarCitasCancelables(): void
+  + buscarCita(): void
+  + seleccionarCita(): void
+  + confirmarCancelacion(): void
+}
+
+class "CitaController" as C <<control>> {
+  + listarCitasCancelables(): void
+  + buscarCitasCancelables(texto, fecha): void
+  + obtenerCitaCancelable(idCita): void
+  + cancelarCita(idCita, motivoCancelacion): void
+}
+
+class "Cita" as CI <<entity>> {
+  - idCita: Integer
+  - codigo: String
+  - fecha: Date
+  - horaInicio: Time
+  - horaFin: Time
+  - motivo: String
+  - estado: String
+  - fechaCreacion: DateTime
+  - motivoCancelacion: String
+  - fechaCancelacion: DateTime
+  + listarCancelables(): void
+  + buscarCancelables(texto, fecha): void
+  + obtenerDetallePorId(idCita): void
+  + marcarCitaCancelada(idCita, motivoCancelacion, idUsuario): Boolean
+}
+
+class "Bitacora" as B <<entity>> {
+  - idBitacora: Integer
+  - fechaHora: DateTime
+  - accion: String
+  - tablaAfectada: String
+  - detalle: String
+  - ip: String
+  + registrarAccion(accion, tablaAfectada, detalle): void
+}
+
+R -- UI
+UI -- C
+C -- CI
+C -- B
+@enduml

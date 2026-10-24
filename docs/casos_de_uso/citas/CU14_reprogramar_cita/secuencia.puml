@@ -1,0 +1,42 @@
+@startuml
+autonumber
+skinparam shadowing false
+skinparam dpi 200
+
+title DIAGRAMA DE SECUENCIA - CU14 Reprogramar Cita
+
+actor "Recepcionista" as R
+boundary "UI_reprogramarCita" as UI
+control "CitaController" as C
+control "DisponibilidadController" as D
+entity "Cita" as CI
+entity "Medico" as M
+entity "HorarioAtencion" as H
+entity "Bitacora" as B
+
+== 1. Mostrar Citas ==
+R -> UI: mostrarCitasReprogramables()
+UI -> C: listarCitasReprogramables()
+C -> CI: listarReprogramables()
+
+== 2. Buscar Cita ==
+R -> UI: buscarCita()
+UI -> C: buscarCitasReprogramables(texto, fecha)
+C -> CI: buscarReprogramables(texto, fecha)
+
+== 3. Seleccionar Cita ==
+R -> UI: seleccionarCita()
+UI -> C: obtenerCitaReprogramable(idCita)
+C -> CI: obtenerDetallePorId(idCita)
+
+== 4. Consultar Disponibilidad (include CU12) ==
+R -> UI: consultarDisponibilidad()
+UI -> D: consultarHorariosDisponibles(idMedico, fecha)
+
+== 5. Guardar Reprogramación ==
+R -> UI: guardarReprogramacion()
+UI -> C: reprogramarCita(idCita, nuevaFecha, nuevaHoraInicio)
+C -> CI: obtenerDetallePorId(idCita)
+C -> M: obtenerPorId(idMedico)
+C -> H: listarHorariosActivosPorDia(idMedico, diaSemana)
+C -> CI:

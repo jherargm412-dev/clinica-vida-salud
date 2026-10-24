@@ -1,0 +1,19 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam dpi 200
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #E8F1FB
+  BorderColor #333333
+}
+
+actor "Recepcionista" as R
+
+rectangle "CU15 Cancelar Cita" {
+  usecase "CU15\nCancelar Cita" as CU15
+}
+
+R --> CU15
+@enduml

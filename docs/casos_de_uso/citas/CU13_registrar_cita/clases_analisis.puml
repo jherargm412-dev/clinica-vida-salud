@@ -1,0 +1,115 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam dpi 200
+skinparam linetype polyline
+hide circle
+
+skinparam class {
+  BackgroundColor #EEEEEE
+  BorderColor #333333
+}
+
+title DIAGRAMA DE CLASE DE ANÁLISIS - CU06 Gestionar Paciente
+
+class "Recepcionista" as R <<actor>>
+
+class "UI_paciente" as UI <<boundary>> {
+  + mostrarPacientes(): void
+  + buscarPaciente(): void
+  + crearPaciente(): void
+  + editarPaciente(): void
+  + desactivarPaciente(): void
+  + activarPaciente(): void
+}
+
+class "PacienteController" as C <<control>> {
+  + listarPacientes(): void
+  + buscarPacientes(texto): void
+  + registrarPaciente(datos): void
+  + modificarPaciente(idPaciente, datos): void
+  + desactivarPaciente(idPaciente): void
+  + activarPaciente(idPaciente): void
+}
+
+class "Paciente" as P <<entity>> {
+  - idPaciente: Integer
+  - codigo: String
+  - ci: String
+  - fechaNacimiento: Date
+  - sexo: String
+  - telefono: String
+  - direccion: String
+  - activo: Boolean
+  + listarTodos(): void
+  + buscarPorTexto(texto): void
+  + obtenerPorId(idPaciente): void
+  + existeCI(ci): Boolean
+  + generarCodigoPaciente(): String
+  + insertarPaciente(datos): void
+  + actualizarPaciente(idPaciente, datos): void
+  + cambiarEstadoPaciente(idPaciente, activo): void
+}
+
+class "Usuario" as U <<entity>> {
+  - idUsuario: Integer
+  - nombreUsuario: String
+  - correo: String
+  - contrasena: String
+  - nombres: String
+  - apellidos: String
+  - activo: Boolean
+  - bloqueado: Boolean
+  - intentosFallidos: Integer
+  - fechaRegistro: DateTime
+  + existeCorreo(correo, idUsuarioExcluido): Boolean
+  + insertarUsuario(datos): void
+  + actualizarDatosUsuario(idUsuario, datos): void
+  + cambiarEstadoUsuario(idUsuario, activo): void
+}
+
+class "Rol" as RO <<entity>> {
+  - idRol: Integer
+  - nombre: String
+  - descripcion: String
+  - activo: Boolean
+  + obtenerPorNombre(nombre): void
+}
+
+class "Cita" as CI <<entity>> {
+  - idCita: Integer
+  - codigo: String
+  - fecha: Date
+  - horaInicio: Time
+  - horaFin: Time
+  - motivo: String
+  - estado: String
+  - fechaCreacion: DateTime
+  - motivoCancelacion: String
+  - fechaCancelacion: DateTime
+  + existenCitasPendientesPaciente(idPaciente): Boolean
+}
+
+class "Bitacora" as B <<entity>> {
+  - idBitacora: Integer
+  - fechaHora: DateTime
+  - accion: String
+  - tablaAfectada: String
+  - detalle: String
+  - ip: String
+  + registrarAccion(accion, tablaAfectada, detalle): void
+}
+
+R -- UI
+UI -- C
+C -- P
+C -- U
+C -- RO
+C -- CI
+C -- B
+U "1" -- "0..1" P : tiene
+RO "1" -- "0..*" U : tiene
+P "1" -- "0..*" CI : tiene
+U "1" -- "0..*" B : registra
+@enduml

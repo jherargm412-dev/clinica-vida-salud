@@ -1,0 +1,32 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam linetype polyline
+skinparam dpi 200
+
+title DIAGRAMA DE COMUNICACIÓN - CU12 Consultar Disponibilidad
+
+actor "Recepcionista" as R
+actor "Paciente" as PA
+boundary "UI_disponibilidad" as UI
+control "DisponibilidadController" as C
+entity "Especialidad" as E
+entity "Medico" as M
+entity "HorarioAtencion" as H
+entity "Cita" as CI
+
+R -- UI : 1: mostrarEspecialidades() →\n2: seleccionarEspecialidad() →\n3: consultarDisponibilidad() →
+
+PA -- UI : 1: mostrarEspecialidades() →\n2: seleccionarEspecialidad() →\n3: consultarDisponibilidad() →
+
+UI -- C : 1.1: listarEspecialidadesActivas() →\n2.1: listarMedicosPorEspecialidad(idEspecialidad) →\n3.1: consultarHorariosDisponibles(idMedico, fecha) →
+
+C -- E : 1.2: listarActivas() →
+
+C -- M : 2.2: listarActivosPorEspecialidad(idEspecialidad) →
+
+C -- H : 3.2: listarHorariosActivosPorDia(idMedico, diaSemana) →
+
+C -- CI : 3.3: listarHorasOcupadas(idMedico, fecha) →
+@enduml

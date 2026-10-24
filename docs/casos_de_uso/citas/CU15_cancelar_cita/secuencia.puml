@@ -1,0 +1,36 @@
+@startuml
+autonumber
+skinparam shadowing false
+skinparam dpi 200
+
+title DIAGRAMA DE SECUENCIA - CU15 Cancelar Cita
+
+actor "Recepcionista" as R
+boundary "UI_cancelarCita" as UI
+control "CitaController" as C
+entity "Cita" as CI
+entity "Bitacora" as B
+
+== 1. Mostrar Citas ==
+R -> UI: mostrarCitasCancelables()
+UI -> C: listarCitasCancelables()
+C -> CI: listarCancelables()
+
+== 2. Buscar Cita ==
+R -> UI: buscarCita()
+UI -> C: buscarCitasCancelables(texto, fecha)
+C -> CI: buscarCancelables(texto, fecha)
+
+== 3. Seleccionar Cita ==
+R -> UI: seleccionarCita()
+UI -> C: obtenerCitaCancelable(idCita)
+C -> CI: obtenerDetallePorId(idCita)
+
+== 4. Confirmar Cancelación ==
+R -> UI: confirmarCancelacion()
+UI -> C: cancelarCita(idCita, motivoCancelacion)
+C -> CI: obtenerDetallePorId(idCita)
+C -> CI: marcarCitaCancelada(idCita, motivoCancelacion, idUsuario) [si la cita sigue Programada o Confirmada]
+C -> B: registrarAccion(accion, tablaAfectada, detalle)
+
+@enduml

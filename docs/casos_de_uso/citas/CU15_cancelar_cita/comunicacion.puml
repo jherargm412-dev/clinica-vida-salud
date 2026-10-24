@@ -1,0 +1,22 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam dpi 200
+
+title DIAGRAMA DE COMUNICACIÓN - CU15 Cancelar Cita
+
+actor "Recepcionista" as R
+boundary "UI_cancelarCita" as UI
+control "CitaController" as C
+entity "Cita" as CI
+entity "Bitacora" as B
+
+R -- UI : 1: mostrarCitasCancelables() →\n2: buscarCita() →\n3: seleccionarCita() →\n4: confirmarCancelacion() →
+
+UI -- C : 1.1: listarCitasCancelables() →\n2.1: buscarCitasCancelables(texto, fecha) →\n3.1: obtenerCitaCancelable(idCita) →\n4.1: cancelarCita(idCita, motivoCancelacion) →
+
+C -- CI : 1.2: listarCancelables() →\n2.2: buscarCancelables(texto, fecha) →\n3.2: obtenerDetallePorId(idCita) →\n4.2: obtenerDetallePorId(idCita) →\n4.3: marcarCitaCancelada(idCita, motivoCancelacion, idUsuario) →
+
+C -- B : 4.4: registrarAccion(accion, tablaAfectada, detalle) →
+@enduml

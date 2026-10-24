@@ -1,0 +1,33 @@
+@startuml
+autonumber
+skinparam shadowing false
+skinparam dpi 200
+
+title DIAGRAMA DE SECUENCIA - CU12 Consultar Disponibilidad
+
+actor "Recepcionista / Paciente" as A
+boundary "UI_disponibilidad" as UI
+control "DisponibilidadController" as C
+entity "Especialidad" as E
+entity "Medico" as M
+entity "HorarioAtencion" as H
+entity "Cita" as CI
+
+== 1. Mostrar Especialidades ==
+A -> UI: mostrarEspecialidades()
+UI -> C: listarEspecialidadesActivas()
+C -> E: listarActivas()
+
+== 2. Seleccionar Especialidad ==
+A -> UI: seleccionarEspecialidad()
+UI -> C: listarMedicosPorEspecialidad(idEspecialidad)
+C -> M: listarActivosPorEspecialidad(idEspecialidad)
+
+== 3. Consultar Disponibilidad ==
+A -> UI: consultarDisponibilidad()
+UI -> C: consultarHorariosDisponibles(idMedico, fecha)
+C -> H: listarHorariosActivosPorDia(idMedico, diaSemana)
+C -> CI: listarHorasOcupadas(idMedico, fecha) [si el médico atiende ese día]
+C --> UI: bloques libres
+
+@enduml

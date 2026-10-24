@@ -1,0 +1,18 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle startuml
+skinparam dpi 200
+skinparam usecase {
+  BackgroundColor #E8F1FB
+  BorderColor #333333
+}
+
+actor "Administrador" as A
+
+rectangle "CU11 Gestionar Horario de Atención" {
+  usecase "CU11\nGestionar Horario\nde Atención" as CU11
+}
+
+A --> CU11
+@enduml
