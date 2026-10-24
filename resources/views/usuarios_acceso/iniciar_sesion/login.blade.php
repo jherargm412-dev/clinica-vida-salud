@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
+    @include('compartido._tema')
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Iniciar sesión · {{ config('app.name') }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
@@ -10,6 +11,11 @@
 </head>
 <body>
 {{-- CU02 Iniciar Sesión — UI_login --}}
+{{-- Modo claro / oscuro (public/js/app.js, punto 6) --}}
+<button type="button" class="btn btn-outline-secondary rounded-circle position-fixed top-0 end-0 m-3" style="z-index: 10"
+        data-cambiar-tema title="Cambiar a modo oscuro / claro" aria-label="Cambiar entre modo claro y oscuro">
+    <i class="bi bi-moon-stars"></i>
+</button>
 <div class="container-fluid cvs-login">
     <div class="row min-vh-100">
         {{-- Panel de la marca (solo en pantallas medianas o grandes) --}}

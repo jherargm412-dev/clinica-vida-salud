@@ -81,4 +81,23 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     });
+
+    // 6. Botón modo claro / oscuro: <button data-cambiar-tema><i class="bi"></i></button>
+    //    El tema inicial lo pone compartido/_tema.blade.php; aquí solo se cambia y se guarda en este navegador.
+    const raiz = document.documentElement;
+    const pintarIconos = () => {
+        const oscuro = raiz.getAttribute('data-bs-theme') === 'dark';
+        document.querySelectorAll('[data-cambiar-tema] i').forEach((icono) => {
+            icono.className = icono.className.replace(/bi-(moon-stars|sun)\b/, oscuro ? 'bi-sun' : 'bi-moon-stars');
+        });
+    };
+    document.querySelectorAll('[data-cambiar-tema]').forEach((boton) => {
+        boton.addEventListener('click', () => {
+            const nuevo = raiz.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+            raiz.setAttribute('data-bs-theme', nuevo);
+            try { localStorage.setItem('cvs-tema', nuevo); } catch (e) {}
+            pintarIconos();
+        });
+    });
+    pintarIconos();
 });

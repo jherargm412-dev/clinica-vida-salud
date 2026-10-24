@@ -38,15 +38,15 @@ body { background: var(--cvs-fondo); }
 .cvs-navbar .navbar-brand { font-weight: 600; }
 
 /* Menú lateral */
-.cvs-sidebar { width: 250px; flex-shrink: 0; min-height: calc(100vh - 56px); background: #fff; border-right: 1px solid #e3e8ea; }
-.cvs-menu .nav-link { color: #334155; border-radius: .5rem; padding: .55rem .75rem; display: flex; align-items: center; gap: .6rem; }
+.cvs-sidebar { width: 250px; flex-shrink: 0; min-height: calc(100vh - 56px); background: var(--bs-body-bg); border-right: 1px solid var(--bs-border-color); }
+.cvs-menu .nav-link { color: var(--bs-body-color); border-radius: .5rem; padding: .55rem .75rem; display: flex; align-items: center; gap: .6rem; }
 .cvs-menu .nav-link:hover { background: #eef6f5; color: var(--cvs-primario); }
 .cvs-menu .nav-link.active { background: var(--cvs-primario); color: #fff; }
 .cvs-menu .nav-link.disabled { color: #94a3b8; }
 .cvs-menu .seccion { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; padding: .75rem .75rem .25rem; }
 
 /* Tarjetas de módulos en el inicio */
-.cvs-modulo { transition: transform .15s, box-shadow .15s; border: 1px solid #e3e8ea; }
+.cvs-modulo { transition: transform .15s, box-shadow .15s; border: 1px solid var(--bs-border-color); }
 .cvs-modulo:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.06); }
 .cvs-modulo .icono { width: 44px; height: 44px; border-radius: .75rem; display: grid; place-items: center; background: #e6f4f2; color: var(--cvs-primario); font-size: 1.35rem; }
 .cvs-modulo.pendiente { opacity: .6; }
@@ -55,3 +55,38 @@ body { background: var(--cvs-fondo); }
 .cvs-login { min-height: 100vh; }
 .cvs-login .panel-marca { background: linear-gradient(160deg, #0f766e, #134e4a); color: #fff; }
 .cvs-login .panel-marca .bi { font-size: 3rem; }
+
+/* ---------------------------------------------------------------
+   Modo oscuro (se activa con <html data-bs-theme="dark">).
+   Bootstrap 5.3 ya cambia casi todo; aquí solo se ajusta lo propio.
+   --------------------------------------------------------------- */
+[data-bs-theme="dark"] {
+    --cvs-fondo: #0d1117;                 /* fondo de la página */
+    --bs-body-bg: #161b22;                /* tarjetas, menú lateral, formularios */
+    --bs-body-bg-rgb: 22, 27, 34;
+    --bs-border-color: #2d333b;
+    --bs-link-color: #2dd4bf;             /* verde azulado más claro para que se lea sobre fondo oscuro */
+    --bs-link-hover-color: #5eead4;
+    --bs-link-color-rgb: 45, 212, 191;
+}
+[data-bs-theme="dark"] .card { --bs-card-bg: var(--bs-body-bg); }
+[data-bs-theme="dark"] .modal-content,
+[data-bs-theme="dark"] .dropdown-menu,
+[data-bs-theme="dark"] .offcanvas { --bs-modal-bg: var(--bs-body-bg); --bs-dropdown-bg: var(--bs-body-bg); --bs-offcanvas-bg: var(--bs-body-bg); }
+[data-bs-theme="dark"] .btn-outline-primary { --bs-btn-color: #2dd4bf; --bs-btn-border-color: #2dd4bf; --bs-btn-hover-color: #fff; }
+[data-bs-theme="dark"] .cvs-navbar { background: #0b3d39; }
+[data-bs-theme="dark"] .cvs-menu .nav-link:hover { background: rgba(45, 212, 191, .12); color: #5eead4; }
+[data-bs-theme="dark"] .cvs-menu .nav-link.active { background: var(--cvs-primario); color: #fff; }
+[data-bs-theme="dark"] .cvs-menu .nav-link.disabled,
+[data-bs-theme="dark"] .cvs-menu .seccion { color: #6e7681; }
+[data-bs-theme="dark"] .cvs-modulo .icono { background: rgba(45, 212, 191, .12); color: #2dd4bf; }
+/* Encabezados de tablas y etiquetas "claras" */
+[data-bs-theme="dark"] .table-light {
+    --bs-table-bg: #1f262e; --bs-table-color: var(--bs-body-color);
+    --bs-table-border-color: var(--bs-border-color); --bs-table-striped-bg: #1f262e; --bs-table-hover-bg: #262e37;
+}
+[data-bs-theme="dark"] .text-bg-light { background-color: #262e37 !important; color: #e6edf3 !important; }
+[data-bs-theme="dark"] .text-primary { color: #2dd4bf !important; }
+[data-bs-theme="dark"] .form-control:focus, [data-bs-theme="dark"] .form-select:focus { border-color: #2dd4bf; }
+[data-bs-theme="dark"] .cvs-login .panel-marca { background: linear-gradient(160deg, #0b3d39, #0d1117); }
+
