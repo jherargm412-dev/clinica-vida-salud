@@ -5,6 +5,7 @@ namespace App\Modulos\usuarios_acceso\models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 /** Entidad Rol (tabla "rol"): Administrador, Recepcionista, Medico, Paciente. */
 class Rol extends Model
@@ -39,5 +40,40 @@ class Rol extends Model
     public function usuarios(): HasMany
     {
         return $this->hasMany(Usuario::class, 'id_rol', 'id_rol');
+    }
+
+    // ---------------------------------------------------------------
+    // CU03 Gestionar roles y permisos
+    // ---------------------------------------------------------------
+
+    /** Roles del sistema: el código los busca por nombre, por eso NO se pueden renombrar. */
+    public const SISTEMA = ['Administrador', 'Recepcionista', 'Medico', 'Paciente'];
+
+    public function esDelSistema(): bool
+    {
+        return in_array($this->getOriginal('nombre') ?? $this->nombre, self::SISTEMA, true);
+    }
+
+    public function esAdministrador(): bool
+    {
+        return ($this->getOriginal('nombre') ?? $this->nombre) === 'Administrador';
+    }
+
+    /** Secuencia "verificar nombre único": sin distinguir mayúsculas, tildes ni espacios. $excepto = id a ignorar. */
+    public static function existeNombre(string $nombre, ?int $excepto = null): bool
+    {
+        $normalizar = fn (string $t) => Str::lower(Str::ascii(trim($t)));
+        $buscado = $normalizar($nombre);
+
+        return self::query()
+            ->when($excepto, fn ($q) => $q->where('id_rol', '<>', $excepto))
+            ->get()
+            ->contains(fn ($r) => $normalizar($r->nombre) === $buscado);
+    }
+
+    /** Secuencia "contar usuarios activos por rol". */
+    public function contarUsuariosActivos(): int
+    {
+        return $this->usuarios()->where('activo', true)->count();
     }
 }

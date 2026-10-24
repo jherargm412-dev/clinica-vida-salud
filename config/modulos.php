@@ -13,7 +13,7 @@
 return [
     // Usuarios y acceso
     ['titulo' => 'Usuarios',            'icono' => 'bi-people',            'cu' => 'CU01', 'permisos' => ['usuarios.gestionar'],       'ruta' => 'usuarios.index'],
-    ['titulo' => 'Roles y permisos',    'icono' => 'bi-shield-lock',       'cu' => 'CU03', 'permisos' => ['roles.gestionar'],          'ruta' => null],
+    ['titulo' => 'Roles y permisos',    'icono' => 'bi-shield-lock',       'cu' => 'CU03', 'permisos' => ['roles.gestionar'],          'ruta' => 'roles.index'],
     ['titulo' => 'Bitácora',            'icono' => 'bi-journal-text',      'cu' => 'CU05', 'permisos' => ['bitacora.consultar'],       'ruta' => null],
 
     // Médicos, especialidades y horarios

@@ -51,3 +51,11 @@
 
 ## Filtros en las listas
 - Especialidades: Estado. Usuarios: Rol (incluye Paciente) y Estado (Activo/Inactivo/Bloqueado). Médicos: Especialidad (incluye inactivas) y Estado. Se combinan con el buscador, se mantienen al paginar y "Limpiar" los quita.
+
+## Roles y permisos (CU03)
+- Los 4 roles del sistema (Administrador, Recepcionista, Medico, Paciente) no se pueden renombrar (el código los busca por nombre); sí su descripción y permisos. Los roles nuevos sí se renombran.
+- El rol Administrador no se puede deshabilitar ni perder el permiso `roles.gestionar` (casilla bloqueada + validación en el servidor).
+- No se deshabilita un rol con usuarios activos ("No se puede deshabilitar un rol con usuarios activos"). Habilitar muestra "Rol habilitado".
+- Los cambios de permisos se aplican de inmediato (se leen en cada petición).
+- Permisos agrupados por paquete en el formulario y en "Ver" (`Permiso::GRUPOS`). Nombre del rol en formato tipo título, único sin distinguir mayúsculas ni tildes.
+
