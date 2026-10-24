@@ -22,7 +22,7 @@ return [
     ['titulo' => 'Horarios de atención','icono' => 'bi-calendar-week',     'cu' => 'CU11', 'permisos' => ['horarios.gestionar'],       'ruta' => null],
 
     // Pacientes
-    ['titulo' => 'Pacientes',           'icono' => 'bi-person-vcard',      'cu' => 'CU06', 'permisos' => ['pacientes.gestionar'],      'ruta' => null],
+    ['titulo' => 'Pacientes',           'icono' => 'bi-person-vcard',      'cu' => 'CU06', 'permisos' => ['pacientes.gestionar'],      'ruta' => 'pacientes.index'],
     ['titulo' => 'Perfil médico',       'icono' => 'bi-heart-pulse',       'cu' => 'CU07', 'permisos' => ['perfil_medico.gestionar'],  'ruta' => null],
     ['titulo' => 'Historial de citas',  'icono' => 'bi-clock-history',     'cu' => 'CU08', 'permisos' => ['historial.consultar'],      'ruta' => null],
 

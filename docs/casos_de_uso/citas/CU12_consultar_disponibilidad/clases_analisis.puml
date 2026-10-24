@@ -1,0 +1,82 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype polyline
+skinparam dpi 200
+hide circle
+
+skinparam class {
+  BackgroundColor #EEEEEE
+  BorderColor #333333
+}
+
+title DIAGRAMA DE CLASE DE ANÁLISIS - CU12 Consultar Disponibilidad
+
+class "Recepcionista" as R <<actor>>
+class "Paciente" as PA <<actor>>
+
+class "UI_disponibilidad" as UI <<boundary>> {
+  + mostrarEspecialidades(): void
+  + seleccionarEspecialidad(): void
+  + consultarDisponibilidad(): void
+}
+
+class "DisponibilidadController" as C <<control>> {
+  + listarEspecialidadesActivas(): void
+  + listarMedicosPorEspecialidad(idEspecialidad): void
+  + consultarHorariosDisponibles(idMedico, fecha): void
+}
+
+class "Especialidad" as E <<entity>> {
+  - idEspecialidad: Integer
+  - nombre: String
+  - descripcion: String
+  - activo: Boolean
+  + listarActivas(): void
+}
+
+class "Medico" as M <<entity>> {
+  - idMedico: Integer
+  - codigo: String
+  - registroProfesional: String
+  - telefono: String
+  - activo: Boolean
+  + listarActivosPorEspecialidad(idEspecialidad): void
+}
+
+class "HorarioAtencion" as H <<entity>> {
+  - idHorario: Integer
+  - diaSemana: Integer
+  - horaInicio: Time
+  - horaFin: Time
+  - duracionCita: Integer
+  - activo: Boolean
+  + listarHorariosActivosPorDia(idMedico, diaSemana): void
+}
+
+class "Cita" as CI <<entity>> {
+  - idCita: Integer
+  - codigo: String
+  - fecha: Date
+  - horaInicio: Time
+  - horaFin: Time
+  - motivo: String
+  - estado: String
+  - fechaCreacion: DateTime
+  - motivoCancelacion: String
+  - fechaCancelacion: DateTime
+  + listarHorasOcupadas(idMedico, fecha): void
+}
+
+R -- UI
+PA -- UI
+UI -- C
+C -- E
+C -- M
+C -- H
+C -- CI
+M "1..*" -- "0..*" E : ejerce
+M "1" *-- "0..*" H : tiene
+M "1" -- "0..*" CI : atiende
+@enduml

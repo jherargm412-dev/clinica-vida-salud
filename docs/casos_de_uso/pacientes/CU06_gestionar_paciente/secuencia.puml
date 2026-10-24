@@ -1,0 +1,64 @@
+@startuml
+autonumber
+skinparam shadowing false
+skinparam dpi 200
+
+title DIAGRAMA DE SECUENCIA - CU06 Gestionar Paciente
+
+actor "Recepcionista" as R
+boundary "UI_paciente" as UI
+control "PacienteController" as C
+entity "Paciente" as P
+entity "Usuario" as U
+entity "Rol" as RO
+entity "Cita" as CI
+entity "Bitacora" as B
+
+== 1. Mostrar Pacientes ==
+R -> UI: mostrarPacientes()
+UI -> C: listarPacientes()
+C -> P: listarTodos()
+
+== 2. Buscar Paciente ==
+R -> UI: buscarPaciente()
+UI -> C: buscarPacientes(texto)
+C -> P: buscarPorTexto(texto)
+
+== 3. Crear Paciente ==
+R -> UI: crearPaciente()
+UI -> C: registrarPaciente(datos)
+C -> P: existeCI(ci)
+C -> U: existeCorreo(correo, null)
+C -> RO: obtenerPorNombre("Paciente") [si el CI y el correo no existen]
+C -> P: generarCodigoPaciente()
+C -> U: insertarUsuario(datos)
+C -> P: insertarPaciente(datos)
+C -> B: registrarAccion(accion, tablaAfectada, detalle)
+
+== 4. Editar Paciente ==
+R -> UI: editarPaciente()
+UI -> C: modificarPaciente(idPaciente, datos)
+C -> P: obtenerPorId(idPaciente)
+C -> U: existeCorreo(correo, idUsuario)
+C -> P: actualizarPaciente(idPaciente, datos) [si el correo está disponible]
+C -> U: actualizarDatosUsuario(idUsuario, datos)
+C -> B: registrarAccion(accion, tablaAfectada, detalle)
+
+== 5. Desactivar Paciente ==
+R -> UI: desactivarPaciente()
+UI -> C: desactivarPaciente(idPaciente)
+C -> P: obtenerPorId(idPaciente)
+C -> CI: existenCitasPendientesPaciente(idPaciente)
+C -> P: cambiarEstadoPaciente(idPaciente, false) [sin citas pendientes]
+C -> U: cambiarEstadoUsuario(idUsuario, false)
+C -> B: registrarAccion(accion, tablaAfectada, detalle)
+
+== 6. Activar Paciente ==
+R -> UI: activarPaciente()
+UI -> C: activarPaciente(idPaciente)
+C -> P: obtenerPorId(idPaciente)
+C -> P: cambiarEstadoPaciente(idPaciente, true)
+C -> U: cambiarEstadoUsuario(idUsuario, true)
+C -> B: registrarAccion(accion, tablaAfectada, detalle)
+
+@enduml
