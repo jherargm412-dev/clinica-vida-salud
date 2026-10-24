@@ -111,13 +111,37 @@ class Usuario extends Authenticatable
             ->exists();
     }
 
-    /** CU04 (secuencia "verificar correo único"): ¿otro usuario ya usa este correo? */
-    public static function existeCorreo(string $correo, int $excepto): bool
+    /** CU04 y CU06 (secuencia "verificar correo único"): ¿otro usuario ya usa este correo? */
+    public static function existeCorreo(string $correo, ?int $excepto = null): bool
     {
         return self::query()
-            ->where('id_usuario', '<>', $excepto)
+            ->when($excepto, fn ($q) => $q->where('id_usuario', '<>', $excepto))
             ->whereRaw('LOWER(correo) = ?', [mb_strtolower(trim($correo))])
             ->exists();
+    }
+
+    /** CU06: ¿ya existe una cuenta con este nombre de usuario? (el paciente usa su CI) */
+    public static function existeNombreUsuario(string $nombreUsuario): bool
+    {
+        return self::query()
+            ->whereRaw('LOWER(nombre_usuario) = ?', [mb_strtolower(trim($nombreUsuario))])
+            ->exists();
+    }
+
+    /** CU06 (secuencia 4): actualiza los datos personales de la cuenta del paciente. */
+    public static function actualizarDatosUsuario(int $idUsuario, array $datos): void
+    {
+        self::query()->whereKey($idUsuario)->update([
+            'nombres' => $datos['nombres'],
+            'apellidos' => $datos['apellidos'],
+            'correo' => $datos['correo'] ?? null,
+        ]);
+    }
+
+    /** CU06 (secuencias 5 y 6): sincroniza el estado de la cuenta del paciente. */
+    public static function cambiarEstadoUsuario(int $idUsuario, bool $activo): void
+    {
+        self::query()->whereKey($idUsuario)->update(['activo' => $activo]);
     }
 
     /** CU04 (secuencia "verificar contraseña actual"): compara con el hash guardado. */

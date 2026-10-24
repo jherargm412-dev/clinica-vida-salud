@@ -49,4 +49,14 @@ class Cita extends Model
     {
         return $this->belongsTo(Usuario::class, 'id_usuario_cancelacion', 'id_usuario');
     }
+
+    /** CU06 (secuencia 5): ¿tiene el paciente citas futuras aún programadas o confirmadas? */
+    public static function existenCitasPendientesPaciente(int $idPaciente): bool
+    {
+        return self::query()
+            ->where('id_paciente', $idPaciente)
+            ->whereDate('fecha', '>=', now()->toDateString())
+            ->whereIn('estado', ['Programada', 'Confirmada'])
+            ->exists();
+    }
 }

@@ -76,4 +76,10 @@ class Rol extends Model
     {
         return $this->usuarios()->where('activo', true)->count();
     }
+
+    /** CU06 (secuencia 3, obtenerPorNombre): busca un rol por su nombre. Ej.: Rol::obtenerPorNombre('Paciente') */
+    public static function obtenerPorNombre(string $nombre): ?self
+    {
+        return self::where('nombre', $nombre)->first();
+    }
 }
