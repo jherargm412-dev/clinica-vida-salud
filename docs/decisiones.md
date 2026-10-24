@@ -20,6 +20,7 @@
 
 ## Médicos, especialidades y horarios
 - Especialidad: nombre único sin distinguir mayúsculas ni espacios (índice `LOWER(TRIM(nombre))`). Una especialidad inactiva no se ofrece para nuevos médicos ni citas.
+- Especialidad: el sistema guarda el nombre en formato tipo título ("peDiaTRía" → "Pediatría"; "de", "del", "y"… en minúscula). Se hace en `EspecialidadRequest::prepareForValidation()`. La validación de duplicados ignora mayúsculas, tildes y espacios.
 - Médico: código generado (`MED-0001`), registro profesional único, al menos una especialidad, cuenta de usuario con rol Médico. Un médico inactivo no recibe nuevas citas pero conserva su historial.
 - Médico ◆— HorarioAtencion es composición (el horario no existe sin su médico).
 - Duración de cita por defecto: 30 minutos.
