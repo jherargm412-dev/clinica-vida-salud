@@ -41,6 +41,19 @@ class Medico extends Model
         return $this->hasMany(Cita::class, 'id_medico', 'id_medico');
     }
 
+    /** CU13 (secuencias 5.3 y 5.5): médico por id y validación de especialidad asignada. */
+    public static function obtenerPorId(int $idMedico): ?self
+    {
+        return self::with('usuario')->find($idMedico);
+    }
+
+    public function tieneEspecialidad(int $idEspecialidad): bool
+    {
+        return $this->especialidades()
+            ->where('especialidad.id_especialidad', $idEspecialidad)
+            ->exists();
+    }
+
     /** Nombre completo del médico (se toma de su cuenta de usuario). Uso: $medico->nombre_completo */
     public function getNombreCompletoAttribute(): string
     {

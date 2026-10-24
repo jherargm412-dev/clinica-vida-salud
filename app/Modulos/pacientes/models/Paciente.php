@@ -4,9 +4,11 @@ namespace App\Modulos\pacientes\models;
 
 use App\Modulos\citas\models\Cita;
 use App\Modulos\usuarios_acceso\models\Usuario;
+use App\Modulos\compartido\Texto;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 
 /** Entidad Paciente (tabla "paciente"). Nombres, apellidos y correo se toman de su Usuario. */
 class Paciente extends Model
@@ -64,6 +66,35 @@ class Paciente extends Model
     public static function obtenerPorId(int $idPaciente): ?self
     {
         return self::with('usuario')->find($idPaciente);
+    }
+
+    /** CU13 (secuencia 1): busca pacientes activos por CI, nombres o apellidos. */
+    public static function buscarPorTexto(string $texto): Builder
+    {
+        $buscado = '%' . Texto::sinTildes(trim($texto)) . '%';
+
+        return self::query()
+            ->with('usuario')
+            ->where('activo', true)
+            ->whereHas('usuario', fn ($usuario) => $usuario
+                ->where('activo', true))
+            ->where(function ($consulta) use ($buscado) {
+                $consulta->where('ci', 'ILIKE', $buscado)
+                    ->orWhereHas('usuario', fn ($usuario) => $usuario->whereRaw(
+                        Texto::sqlSinTildes("nombres || ' ' || apellidos") . ' ILIKE ?',
+                        [$buscado]
+                    ));
+            })
+            ->orderBy('codigo');
+    }
+
+    /** CU13 (secuencia 3): obtiene la ficha asociada a la sesión del paciente. */
+    public static function obtenerPorUsuario(int $idUsuario): ?self
+    {
+        return self::query()
+            ->with('usuario')
+            ->where('id_usuario', $idUsuario)
+            ->first();
     }
 
     /** CU06 (secuencia 4, actualizarPaciente): actualiza los datos propios de la ficha. */

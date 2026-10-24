@@ -53,4 +53,10 @@ class Especialidad extends Model
             ->orderBy('nombre')
             ->get();
     }
+
+    /** CU13 (secuencia 5.4): obtiene una especialidad por identificador. */
+    public static function obtenerPorId(int $idEspecialidad): ?self
+    {
+        return self::find($idEspecialidad);
+    }
 }

@@ -8,6 +8,7 @@ use App\Modulos\pacientes\models\Paciente;
 use App\Modulos\usuarios_acceso\models\Usuario;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 /** Entidad Cita (tabla "cita"). */
 class Cita extends Model
@@ -70,6 +71,57 @@ class Cita extends Model
             ->where('estado', '<>', 'Cancelada')
             ->orderBy('hora_inicio')
             ->get();
+    }
+
+    /** CU13 (secuencia 5.7): ¿el médico ya tiene una cita vigente que se superpone? */
+    public static function existeCitaSuperpuesta(
+        int $idMedico,
+        string $fecha,
+        string $horaInicio,
+        string $horaFin
+    ): bool {
+        return self::query()
+            ->where('id_medico', $idMedico)
+            ->whereDate('fecha', $fecha)
+            ->where('estado', '<>', 'Cancelada')
+            ->where('hora_inicio', '<', $horaFin)
+            ->where('hora_fin', '>', $horaInicio)
+            ->exists();
+    }
+
+    /** CU13 (secuencia 5.8): ¿el paciente ya tiene una cita vigente que se superpone? */
+    public static function existeCitaSuperpuestaPaciente(
+        int $idPaciente,
+        string $fecha,
+        string $horaInicio,
+        string $horaFin
+    ): bool {
+        return self::query()
+            ->where('id_paciente', $idPaciente)
+            ->whereDate('fecha', $fecha)
+            ->where('estado', '<>', 'Cancelada')
+            ->where('hora_inicio', '<', $horaFin)
+            ->where('hora_fin', '>', $horaInicio)
+            ->exists();
+    }
+
+    /** CU13 (secuencia 5.9): siguiente código CIT-000001, CIT-000002, ... */
+    public static function generarCodigoCita(): string
+    {
+        $idCita = (int) DB::scalar("SELECT nextval(pg_get_serial_sequence('cita', 'id_cita'))");
+
+        return sprintf('CIT-%06d', $idCita);
+    }
+
+    /** CU13 (secuencia 5.10): inserta la cita con sus datos ya validados. */
+    public static function insertarCita(array $datos): self
+    {
+        $cita = new self();
+        $cita->setAttribute('id_cita', (int) substr($datos['codigo'], 4));
+        $cita->fill($datos);
+        $cita->save();
+
+        return $cita;
     }
 
     /** CU11 (secuencia 4 y 5): ¿existen citas pendientes que colisionan con este horario del médico? */

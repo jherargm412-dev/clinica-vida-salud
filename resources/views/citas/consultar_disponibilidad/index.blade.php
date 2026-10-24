@@ -13,6 +13,9 @@
         <div class="card-body">
             <h2 class="h5 fw-semibold">1. Seleccionar especialidad</h2>
             <form method="GET" action="{{ route('disponibilidad.medicos') }}" class="row g-3 align-items-end">
+                @if ($idPaciente)
+                    <input type="hidden" name="id_paciente" value="{{ $idPaciente }}">
+                @endif
                 <div class="col-md-8">
                     <label for="id_especialidad" class="form-label">Especialidad</label>
                     <select id="id_especialidad" name="id_especialidad" class="form-select" required>
@@ -42,6 +45,9 @@
                 <p class="text-muted">Especialidad: {{ $especialidadSeleccionada->nombre }}</p>
                 <form method="GET" action="{{ route('disponibilidad.horarios') }}" class="row g-3 align-items-end">
                     <input type="hidden" name="id_especialidad" value="{{ $especialidadSeleccionada->id_especialidad }}">
+                    @if ($idPaciente)
+                        <input type="hidden" name="id_paciente" value="{{ $idPaciente }}">
+                    @endif
                     <div class="col-md-5">
                         <label for="id_medico" class="form-label">Médico</label>
                         <select id="id_medico" name="id_medico" class="form-select" required>
@@ -92,9 +98,18 @@
                         @if ($disponibilidad['bloques'])
                             <div class="d-flex flex-wrap gap-2">
                                 @foreach ($disponibilidad['bloques'] as $bloque)
-                                    <span class="badge text-bg-success fs-6 fw-normal">
+                                    <a href="{{ route('citas.crear', array_filter([
+                                        'id_paciente' => $idPaciente,
+                                        'id_especialidad' => $especialidadSeleccionada->id_especialidad,
+                                        'id_medico' => $medicoSeleccionado->id_medico,
+                                        'fecha' => $fecha,
+                                        'hora_inicio' => $bloque['hora_inicio'],
+                                        'hora_fin' => $bloque['hora_fin'],
+                                    ], fn ($valor) => $valor !== null)) }}"
+                                       class="badge text-bg-success fs-6 fw-normal text-decoration-none">
                                         {{ $bloque['hora_inicio'] }}–{{ $bloque['hora_fin'] }}
-                                    </span>
+                                        <span class="visually-hidden">Elegir este horario</span>
+                                    </a>
                                 @endforeach
                             </div>
                         @else

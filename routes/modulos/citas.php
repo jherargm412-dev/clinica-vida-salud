@@ -6,6 +6,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Modulos\citas\controller\consultar_disponibilidad\DisponibilidadController;
+use App\Modulos\citas\controller\registrar_cita\CitaController;
 
 Route::middleware(['auth', 'cuenta.activa'])->group(function () {
     // CU12 Consultar disponibilidad
@@ -18,7 +19,13 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
             ->name('disponibilidad.horarios');
     });
 
-    // CU13 Registrar cita            -> middleware('permiso:citas.registrar')
+    // CU13 Registrar cita
+    Route::middleware('permiso:citas.registrar')->group(function () {
+        Route::get('/citas/nueva', [CitaController::class, 'mostrarFormularioRegistro'])->name('citas.crear');
+        Route::post('/citas', [CitaController::class, 'registrarCita'])->name('citas.guardar');
+        Route::get('/citas/{cita}/confirmacion', [CitaController::class, 'mostrarConfirmacion'])->name('citas.confirmacion');
+    });
+
     // CU14 Reprogramar cita          -> middleware('permiso:citas.reprogramar')
     // CU15 Cancelar cita             -> middleware('permiso:citas.cancelar')
     // CU16 Controlar estado          -> middleware('permiso:citas.controlar_estado')

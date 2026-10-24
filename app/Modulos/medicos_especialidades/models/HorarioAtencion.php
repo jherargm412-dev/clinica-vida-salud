@@ -4,6 +4,7 @@ namespace App\Modulos\medicos_especialidades\models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Carbon\Carbon;
 
 /** Entidad HorarioAtencion (tabla "horario_atencion"). dia_semana: 1 = lunes ... 7 = domingo. */
 class HorarioAtencion extends Model
@@ -53,6 +54,37 @@ class HorarioAtencion extends Model
             ->where('activo', true)
             ->orderBy('hora_inicio')
             ->get();
+    }
+
+    /** CU13 (secuencia 5.6): verifica que un bloque pertenezca a un horario activo. */
+    public static function obtenerHorarioActivoParaBloque(
+        int $idMedico,
+        string $fecha,
+        string $horaInicio,
+        string $horaFin
+    ): ?self {
+        $diaSemana = Carbon::parse($fecha)->dayOfWeekIso;
+        $inicioCita = Carbon::parse($fecha . ' ' . $horaInicio);
+        $finCita = Carbon::parse($fecha . ' ' . $horaFin);
+
+        foreach (self::listarHorariosActivosPorDia($idMedico, $diaSemana) as $horario) {
+            $inicioHorario = Carbon::parse($fecha . ' ' . $horario->hora_inicio);
+            $finHorario = Carbon::parse($fecha . ' ' . $horario->hora_fin);
+            $duracionSegundos = $horario->duracion_cita * 60;
+            $desplazamiento = $inicioCita->getTimestamp() - $inicioHorario->getTimestamp();
+
+            if (
+                $duracionSegundos > 0
+                && $inicioCita->greaterThanOrEqualTo($inicioHorario)
+                && $finCita->lessThanOrEqualTo($finHorario)
+                && $finCita->getTimestamp() - $inicioCita->getTimestamp() === $duracionSegundos
+                && $desplazamiento % $duracionSegundos === 0
+            ) {
+                return $horario;
+            }
+        }
+
+        return null;
     }
 
     /** CU11 (secuencia 3 y 6): ¿el horario se superpone con otro del mismo médico? */

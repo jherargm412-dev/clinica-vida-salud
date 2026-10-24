@@ -28,8 +28,9 @@ return [
 
     // Citas
     ['titulo' => 'Disponibilidad',      'icono' => 'bi-calendar-check',    'cu' => 'CU12', 'permisos' => ['disponibilidad.consultar'], 'ruta' => 'disponibilidad.index'],
-    ['titulo' => 'Citas',               'icono' => 'bi-calendar-plus',     'cu' => 'CU13-16',
-        'permisos' => ['citas.registrar', 'citas.reprogramar', 'citas.cancelar', 'citas.controlar_estado'], 'ruta' => null],
+    ['titulo' => 'Registrar cita',      'icono' => 'bi-calendar-plus',     'cu' => 'CU13', 'permisos' => ['citas.registrar'], 'ruta' => 'citas.crear'],
+    ['titulo' => 'Gestión de citas',    'icono' => 'bi-calendar2-check',   'cu' => 'CU14-16',
+        'permisos' => ['citas.reprogramar', 'citas.cancelar', 'citas.controlar_estado'], 'ruta' => null],
 
     // Agenda y reportes
     ['titulo' => 'Agenda médica',       'icono' => 'bi-calendar3',         'cu' => 'CU17-18',
