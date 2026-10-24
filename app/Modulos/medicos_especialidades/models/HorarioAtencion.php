@@ -44,6 +44,17 @@ class HorarioAtencion extends Model
             ->get();
     }
 
+    /** CU12 (secuencia 3): horarios activos de un médico para el día consultado. */
+    public static function listarHorariosActivosPorDia(int $idMedico, int $diaSemana): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->where('id_medico', $idMedico)
+            ->where('dia_semana', $diaSemana)
+            ->where('activo', true)
+            ->orderBy('hora_inicio')
+            ->get();
+    }
+
     /** CU11 (secuencia 3 y 6): ¿el horario se superpone con otro del mismo médico? */
     public static function existeSuperposicion(int $idMedico, int $diaSemana, string $horaInicio, string $horaFin, ?int $idHorarioExcluido = null): bool
     {
