@@ -27,7 +27,7 @@ return [
     ['titulo' => 'Historial de citas',  'icono' => 'bi-clock-history',     'cu' => 'CU08', 'permisos' => ['historial.consultar'],      'ruta' => null],
 
     // Citas
-    ['titulo' => 'Disponibilidad',      'icono' => 'bi-calendar-check',    'cu' => 'CU12', 'permisos' => ['disponibilidad.consultar'], 'ruta' => null],
+    ['titulo' => 'Disponibilidad',      'icono' => 'bi-calendar-check',    'cu' => 'CU12', 'permisos' => ['disponibilidad.consultar'], 'ruta' => 'disponibilidad.index'],
     ['titulo' => 'Citas',               'icono' => 'bi-calendar-plus',     'cu' => 'CU13-16',
         'permisos' => ['citas.registrar', 'citas.reprogramar', 'citas.cancelar', 'citas.controlar_estado'], 'ruta' => null],
 

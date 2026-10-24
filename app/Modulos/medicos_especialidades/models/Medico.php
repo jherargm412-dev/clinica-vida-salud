@@ -57,6 +57,19 @@ class Medico extends Model
             ->get();
     }
 
+    /** CU12 (secuencia 2): médicos activos que atienden una especialidad activa. */
+    public static function listarActivosPorEspecialidad(int $idEspecialidad): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->where('activo', true)
+            ->whereHas('especialidades', fn ($q) => $q
+                ->where('especialidad.id_especialidad', $idEspecialidad)
+                ->where('especialidad.activo', true))
+            ->with('usuario')
+            ->orderBy('codigo')
+            ->get();
+    }
+
     /**
      * CU10 (secuencia 2.7 existeRegistro / 3.x existeRegistroEnOtro):
      * ¿Ya existe OTRO médico con ese número de registro profesional? (sin distinguir mayúsculas ni espacios)

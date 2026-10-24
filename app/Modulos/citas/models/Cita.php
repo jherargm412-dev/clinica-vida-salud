@@ -60,6 +60,18 @@ class Cita extends Model
             ->exists();
     }
 
+    /** CU12 (secuencia 3): intervalos ocupados por citas no canceladas en una fecha. */
+    public static function listarHorasOcupadas(int $idMedico, string $fecha): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->select(['hora_inicio', 'hora_fin'])
+            ->where('id_medico', $idMedico)
+            ->whereDate('fecha', $fecha)
+            ->where('estado', '<>', 'Cancelada')
+            ->orderBy('hora_inicio')
+            ->get();
+    }
+
     /** CU11 (secuencia 4 y 5): ¿existen citas pendientes que colisionan con este horario del médico? */
     public static function existenCitasPendientes(int $idMedico, int $diaSemana, string $horaInicio, string $horaFin, ?int $idHorarioExcluido = null): bool
     {
