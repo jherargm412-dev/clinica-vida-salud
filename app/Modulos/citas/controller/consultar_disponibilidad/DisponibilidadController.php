@@ -7,6 +7,7 @@ use App\Modulos\citas\models\Cita;
 use App\Modulos\medicos_especialidades\models\Especialidad;
 use App\Modulos\medicos_especialidades\models\HorarioAtencion;
 use App\Modulos\medicos_especialidades\models\Medico;
+use App\Modulos\pacientes\models\Paciente;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -15,16 +16,20 @@ use Illuminate\View\View;
 /** CU12 Consultar Disponibilidad */
 class DisponibilidadController extends Controller
 {
-    public function listarEspecialidadesActivas(): View
+    public function listarEspecialidadesActivas(Request $request): View
     {
-        return $this->vistaDisponibilidad();
+        $this->validarPacienteContexto($request);
+
+        return $this->vistaDisponibilidad(idPaciente: $this->idPacienteContexto($request));
     }
 
     public function listarMedicosPorEspecialidad(Request $request): View
     {
         $datos = $request->validate([
             'id_especialidad' => ['required', 'integer', 'exists:especialidad,id_especialidad'],
+            'id_paciente' => ['nullable', 'integer', 'exists:paciente,id_paciente'],
         ]);
+        $idPaciente = $this->idPacienteContexto($request);
 
         $especialidad = Especialidad::query()
             ->where('id_especialidad', $datos['id_especialidad'])
@@ -33,7 +38,8 @@ class DisponibilidadController extends Controller
 
         return $this->vistaDisponibilidad(
             especialidad: $especialidad,
-            medicos: Medico::listarActivosPorEspecialidad($especialidad->id_especialidad)
+            medicos: Medico::listarActivosPorEspecialidad($especialidad->id_especialidad),
+            idPaciente: $idPaciente
         );
     }
 
@@ -43,7 +49,9 @@ class DisponibilidadController extends Controller
             'id_especialidad' => ['required', 'integer', 'exists:especialidad,id_especialidad'],
             'id_medico' => ['required', 'integer', 'exists:medico,id_medico'],
             'fecha' => ['required', 'date', 'after_or_equal:today'],
+            'id_paciente' => ['nullable', 'integer', 'exists:paciente,id_paciente'],
         ]);
+        $idPaciente = $this->idPacienteContexto($request);
 
         $especialidad = Especialidad::query()
             ->where('id_especialidad', $datos['id_especialidad'])
@@ -96,8 +104,38 @@ class DisponibilidadController extends Controller
             medicos: $medicos,
             medico: $medico,
             fecha: $fecha->toDateString(),
-            horariosDisponibles: $horariosDisponibles
+            horariosDisponibles: $horariosDisponibles,
+            idPaciente: $idPaciente
         );
+    }
+
+    private function validarPacienteContexto(Request $request): void
+    {
+        $request->validate([
+            'id_paciente' => ['nullable', 'integer', 'exists:paciente,id_paciente'],
+        ]);
+    }
+
+    private function idPacienteContexto(Request $request): ?int
+    {
+        if ($request->user()->rol?->nombre === 'Paciente') {
+            $paciente = Paciente::obtenerPorUsuario($request->user()->id_usuario);
+            abort_unless($paciente && $paciente->activo && $paciente->usuario?->activo, 403, 'El paciente no está activo.');
+
+            return $paciente->id_paciente;
+        }
+
+        $idPaciente = $request->query('id_paciente');
+        if (! $idPaciente) {
+            return null;
+        }
+
+        $paciente = Paciente::obtenerPorId((int) $idPaciente);
+        if (! $paciente || ! $paciente->activo || ! $paciente->usuario?->activo) {
+            abort(404, 'El paciente seleccionado no existe o está inactivo.');
+        }
+
+        return $paciente->id_paciente;
     }
 
     private function vistaDisponibilidad(
@@ -105,7 +143,8 @@ class DisponibilidadController extends Controller
         ?\Illuminate\Database\Eloquent\Collection $medicos = null,
         ?Medico $medico = null,
         ?string $fecha = null,
-        ?\Illuminate\Support\Collection $horariosDisponibles = null
+        ?\Illuminate\Support\Collection $horariosDisponibles = null,
+        ?int $idPaciente = null
     ): View {
         return view('citas.consultar_disponibilidad.index', [
             'especialidades' => Especialidad::listarActivas(),
@@ -115,6 +154,7 @@ class DisponibilidadController extends Controller
             'fecha' => $fecha,
             'horariosDisponibles' => $horariosDisponibles,
             'diaConsultado' => $fecha ? Carbon::parse($fecha)->dayOfWeekIso : null,
+            'idPaciente' => $idPaciente,
         ]);
     }
 }
