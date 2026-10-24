@@ -5,6 +5,7 @@ namespace App\Modulos\citas\models;
 use App\Modulos\medicos_especialidades\models\Especialidad;
 use App\Modulos\medicos_especialidades\models\Medico;
 use App\Modulos\pacientes\models\Paciente;
+use App\Modulos\compartido\Texto;
 use App\Modulos\usuarios_acceso\models\Usuario;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -62,15 +63,76 @@ class Cita extends Model
     }
 
     /** CU12 (secuencia 3): intervalos ocupados por citas no canceladas en una fecha. */
-    public static function listarHorasOcupadas(int $idMedico, string $fecha): \Illuminate\Database\Eloquent\Collection
+    public static function listarHorasOcupadas(
+        int $idMedico,
+        string $fecha,
+        ?int $idCitaExcluida = null
+    ): \Illuminate\Database\Eloquent\Collection
     {
         return self::query()
             ->select(['hora_inicio', 'hora_fin'])
             ->where('id_medico', $idMedico)
             ->whereDate('fecha', $fecha)
             ->where('estado', '<>', 'Cancelada')
+            ->when($idCitaExcluida, fn ($q) => $q->where('id_cita', '<>', $idCitaExcluida))
             ->orderBy('hora_inicio')
             ->get();
+    }
+
+    /** CU14 (secuencia 1): citas futuras Programadas o Confirmadas. */
+    public static function listarReprogramables(): \Illuminate\Database\Eloquent\Builder
+    {
+        return self::query()
+            ->with(['paciente.usuario', 'medico.usuario', 'especialidad'])
+            ->whereIn('estado', ['Programada', 'Confirmada'])
+            ->where(function ($q) {
+                $q->whereDate('fecha', '>', now()->toDateString())
+                    ->orWhere(function ($hoy) {
+                        $hoy->whereDate('fecha', now()->toDateString())
+                            ->where('hora_inicio', '>', now()->format('H:i:s'));
+                    });
+            })
+            ->orderBy('fecha')
+            ->orderBy('hora_inicio');
+    }
+
+    /** CU14 (secuencia 2): búsqueda por código, CI, nombre o apellido y fecha. */
+    public static function buscarReprogramables(?string $texto = null, ?string $fecha = null): \Illuminate\Database\Eloquent\Builder
+    {
+        $consulta = self::listarReprogramables();
+
+        if ($texto !== null && trim($texto) !== '') {
+            $buscado = '%' . Texto::sinTildes(trim($texto)) . '%';
+            $consulta->where(function ($q) use ($buscado) {
+                $q->where('codigo', 'ILIKE', $buscado)
+                    ->orWhereHas('paciente', fn ($paciente) => $paciente
+                        ->where('ci', 'ILIKE', $buscado)
+                        ->orWhereHas('usuario', fn ($usuario) => $usuario->whereRaw(
+                            Texto::sqlSinTildes("nombres || ' ' || apellidos") . ' ILIKE ?',
+                            [$buscado]
+                        )));
+            });
+        }
+
+        return $consulta->when($fecha, fn ($q) => $q->whereDate('fecha', $fecha));
+    }
+
+    /** CU14 (secuencia 3): detalle de la cita y sus relaciones. */
+    public static function obtenerDetallePorId(int $idCita): ?self
+    {
+        return self::query()
+            ->with(['paciente.usuario', 'medico.usuario', 'especialidad'])
+            ->find($idCita);
+    }
+
+    /** CU14 (secuencia 5.6): cambia únicamente la fecha y las horas. */
+    public function actualizarFechaHoraCita(string $fecha, string $horaInicio, string $horaFin): void
+    {
+        $this->update([
+            'fecha' => $fecha,
+            'hora_inicio' => $horaInicio,
+            'hora_fin' => $horaFin,
+        ]);
     }
 
     /** CU13 (secuencia 5.7): ¿el médico ya tiene una cita vigente que se superpone? */
@@ -78,7 +140,8 @@ class Cita extends Model
         int $idMedico,
         string $fecha,
         string $horaInicio,
-        string $horaFin
+        string $horaFin,
+        ?int $idCitaExcluida = null
     ): bool {
         return self::query()
             ->where('id_medico', $idMedico)
@@ -86,6 +149,7 @@ class Cita extends Model
             ->where('estado', '<>', 'Cancelada')
             ->where('hora_inicio', '<', $horaFin)
             ->where('hora_fin', '>', $horaInicio)
+            ->when($idCitaExcluida, fn ($q) => $q->where('id_cita', '<>', $idCitaExcluida))
             ->exists();
     }
 
