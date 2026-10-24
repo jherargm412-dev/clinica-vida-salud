@@ -59,3 +59,11 @@
 - Los cambios de permisos se aplican de inmediato (se leen en cada petición).
 - Permisos agrupados por paquete en el formulario y en "Ver" (`Permiso::GRUPOS`). Nombre del rol en formato tipo título, único sin distinguir mayúsculas ni tildes.
 
+## Bitácora (CU05)
+- Solo lectura: una sola ruta GET; el modelo `Bitacora` cancela cualquier update/delete.
+- Filtros: Desde, Hasta (4a: "La fecha final no puede ser anterior a la fecha inicial"), Usuario (incluye "Desconocido" = intentos con usuario inexistente), Acción y Tabla afectada. 20 registros por página, del más reciente al más antiguo.
+- Al abrir la bitácora, Desde y Hasta vienen con la fecha de hoy; "Limpiar filtros" muestra todos los registros. La IP se ve en la lista.
+- Zona horaria America/La_Paz en Laravel (`config/app.php`) y en la sesión de PostgreSQL (`config/database.php`), para que "hoy" y `fecha_hora` coincidan también en Railway.
+- Ver detalle en un modal (fecha y hora, usuario y correo, acción, detalle, tabla afectada, IP).
+- Ciclo 2: "Datos anteriores / Datos nuevos" (ver ideas del Ciclo 2).
+

@@ -8,6 +8,7 @@ use App\Modulos\usuarios_acceso\controller\iniciar_sesion\AuthController;
 use App\Modulos\usuarios_acceso\controller\iniciar_sesion\InicioController;
 use App\Modulos\usuarios_acceso\controller\gestionar_usuarios\UsuarioController;
 use App\Modulos\usuarios_acceso\controller\gestionar_roles\RolController;
+use App\Modulos\usuarios_acceso\controller\consultar_bitacora\BitacoraController;
 use Illuminate\Support\Facades\Route;
 
 // CU02 Iniciar sesión
@@ -48,5 +49,8 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
     });
 
     // CU04 Gestionar perfil        -> (todos los usuarios con sesión)
-    // CU05 Consultar bitácora      -> middleware('permiso:bitacora.consultar')
+    // CU05 Consultar bitácora (solo lectura: una sola ruta GET; el detalle se ve en un modal)
+    Route::get('/bitacora', [BitacoraController::class, 'index'])
+        ->middleware('permiso:bitacora.consultar')
+        ->name('bitacora.index');
 });
