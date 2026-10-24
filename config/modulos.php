@@ -19,7 +19,7 @@ return [
     // Médicos, especialidades y horarios
     ['titulo' => 'Especialidades',      'icono' => 'bi-clipboard2-pulse',  'cu' => 'CU09', 'permisos' => ['especialidades.gestionar'], 'ruta' => 'especialidades.index'],
     ['titulo' => 'Médicos',             'icono' => 'bi-person-badge',      'cu' => 'CU10', 'permisos' => ['medicos.gestionar'],        'ruta' => 'medicos.index'],
-    ['titulo' => 'Horarios de atención','icono' => 'bi-calendar-week',     'cu' => 'CU11', 'permisos' => ['horarios.gestionar'],       'ruta' => null],
+    ['titulo' => 'Horarios de atención','icono' => 'bi-calendar-week',     'cu' => 'CU11', 'permisos' => ['horarios.gestionar'],       'ruta' => 'horarios.index'],
 
     // Pacientes
     ['titulo' => 'Pacientes',           'icono' => 'bi-person-vcard',      'cu' => 'CU06', 'permisos' => ['pacientes.gestionar'],      'ruta' => 'pacientes.index'],

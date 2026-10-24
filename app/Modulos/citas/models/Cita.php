@@ -59,4 +59,19 @@ class Cita extends Model
             ->whereIn('estado', ['Programada', 'Confirmada'])
             ->exists();
     }
+
+    /** CU11 (secuencia 4 y 5): ¿existen citas pendientes que colisionan con este horario del médico? */
+    public static function existenCitasPendientes(int $idMedico, int $diaSemana, string $horaInicio, string $horaFin, ?int $idHorarioExcluido = null): bool
+    {
+        $diaPg = $diaSemana % 7;
+
+        return self::query()
+            ->where('id_medico', $idMedico)
+            ->whereIn('estado', ['Programada', 'Confirmada'])
+            ->whereRaw('EXTRACT(DOW FROM fecha) = ?', [$diaPg])
+            ->whereRaw('hora_inicio < ?', [$horaFin])
+            ->whereRaw('hora_fin > ?', [$horaInicio])
+            ->when($idHorarioExcluido, fn ($q) => $q->where('id_cita', '<>', $idHorarioExcluido))
+            ->exists();
+    }
 }

@@ -31,4 +31,29 @@ class HorarioAtencion extends Model
     {
         return $this->belongsTo(Medico::class, 'id_medico', 'id_medico');
     }
+
+    /** CU11 (secuencia 2): horarios según médico y filtros. */
+    public static function listarPorMedico(int $idMedico, array $filtros = []): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->where('id_medico', $idMedico)
+            ->when(isset($filtros['dia']) && $filtros['dia'] !== null, fn ($q) => $q->where('dia_semana', $filtros['dia']))
+            ->when(isset($filtros['estado']) && $filtros['estado'] !== null, fn ($q) => $q->where('activo', $filtros['estado'] === 'activo'))
+            ->orderBy('dia_semana')
+            ->orderBy('hora_inicio')
+            ->get();
+    }
+
+    /** CU11 (secuencia 3 y 6): ¿el horario se superpone con otro del mismo médico? */
+    public static function existeSuperposicion(int $idMedico, int $diaSemana, string $horaInicio, string $horaFin, ?int $idHorarioExcluido = null): bool
+    {
+        return self::query()
+            ->where('id_medico', $idMedico)
+            ->where('dia_semana', $diaSemana)
+            ->where('activo', true)
+            ->when($idHorarioExcluido, fn ($q) => $q->where('id_horario', '<>', $idHorarioExcluido))
+            ->whereRaw('hora_inicio < ?', [$horaFin])
+            ->whereRaw('hora_fin > ?', [$horaInicio])
+            ->exists();
+    }
 }
