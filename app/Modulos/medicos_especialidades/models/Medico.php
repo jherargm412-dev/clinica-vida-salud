@@ -47,6 +47,16 @@ class Medico extends Model
         return $this->usuario?->nombre_completo ?? '';
     }
 
+    /** CU11 (secuencia 1): médicos activos para asignar o visualizar horarios. */
+    public static function listarActivos()
+    {
+        return self::query()
+            ->where('activo', true)
+            ->with(['usuario', 'especialidades'])
+            ->orderBy('codigo')
+            ->get();
+    }
+
     /**
      * CU10 (secuencia 2.7 existeRegistro / 3.x existeRegistroEnOtro):
      * ¿Ya existe OTRO médico con ese número de registro profesional? (sin distinguir mayúsculas ni espacios)
