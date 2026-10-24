@@ -33,4 +33,15 @@ class Especialidad extends Model
             ->get()
             ->contains(fn ($e) => self::normalizar($e->nombre) === $buscado);
     }
+
+    // CU10 (secuencia "listarActivas"): especialidades que se pueden marcar para un médico.
+    // $incluir: ids que deben aparecer aunque estén inactivas (las que el médico ya tiene), para no quitárselas sin querer.
+    public static function paraAsignar(array $incluir = [])
+    {
+        return self::query()
+            ->where('activo', true)
+            ->when($incluir, fn ($q) => $q->orWhereIn('id_especialidad', $incluir))
+            ->orderBy('nombre')
+            ->get();
+    }
 }

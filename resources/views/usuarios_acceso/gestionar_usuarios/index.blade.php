@@ -21,16 +21,34 @@
 
             {{-- 2. Buscador (Consultar) --}}
             <form method="GET" action="{{ route('usuarios.index') }}" class="row g-2 mb-3">
-                <div class="col-sm-8 col-md-6">
+                <div class="col-12 col-lg-5">
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
                         <input type="text" name="buscar" value="{{ $texto }}" class="form-control"
                                placeholder="Buscar por nombre, usuario o correo">
                     </div>
                 </div>
+                {{-- Filtro: Rol --}}
+                <div class="col-sm-6 col-lg-2">
+                    <select name="rol" class="form-select" aria-label="Rol">
+                        <option value="">Rol: Todos</option>
+                        @foreach ($roles as $rol)
+                            <option value="{{ $rol->id_rol }}" @selected($idRol === $rol->id_rol)>{{ $rol->nombre }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                {{-- Filtro: Estado --}}
+                <div class="col-sm-6 col-lg-2">
+                    <select name="estado" class="form-select" aria-label="Estado">
+                        <option value="">Estado: Todos</option>
+                        <option value="activo" @selected($estado === 'activo')>Activo</option>
+                        <option value="inactivo" @selected($estado === 'inactivo')>Inactivo</option>
+                        <option value="bloqueado" @selected($estado === 'bloqueado')>Bloqueado</option>
+                    </select>
+                </div>
                 <div class="col-auto">
                     <button type="submit" class="btn btn-outline-primary">Buscar</button>
-                    @if ($texto)
+                    @if ($texto || $idRol || $estado)
                         <a href="{{ route('usuarios.index') }}" class="btn btn-link">Limpiar</a>
                     @endif
                 </div>

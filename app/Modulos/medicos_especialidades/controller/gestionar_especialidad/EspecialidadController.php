@@ -16,15 +16,19 @@ class EspecialidadController extends Controller
     public function index(Request $request): View
     {
         $texto = $request->query('buscar');
+        // Filtro Estado: 'activo' | 'inactivo' | null (Todos). Si llega otro valor, se ignora.
+        $estado = in_array($request->query('estado'), ['activo', 'inactivo'], true) ? $request->query('estado') : null;
 
         $especialidades = Especialidad::query()
             ->when($texto, fn ($q) => $q->where('nombre', 'ILIKE', "%{$texto}%"))
+            ->when($estado, fn ($q) => $q->where('activo', $estado === 'activo'))
             ->orderBy('nombre')
             ->get();
 
         return view('medicos_especialidades.gestionar_especialidad.index', [
             'especialidades' => $especialidades,
             'texto' => $texto,
+            'estado' => $estado,
         ]);
     }
 

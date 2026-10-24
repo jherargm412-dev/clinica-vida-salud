@@ -41,3 +41,13 @@
 - Política de contraseñas (CU01, CU04, CU06): mínimo 8 caracteres con al menos 1 mayúscula, 1 minúscula, 1 número y 1 carácter especial (ej.: `Clave123!`). Se pide confirmar la contraseña (campo `contrasena_confirmation`). Centralizada en `app/Modulos/compartido/Contrasena.php`.
 - Nombre de usuario y correo se guardan en minúsculas; el login no distingue mayúsculas. Nombres y apellidos en formato tipo título (`app/Modulos/compartido/Texto.php`, compartido con especialidades y pacientes).
 - El administrador no puede desactivar su propia cuenta.
+
+## Médicos (CU10)
+- La cuenta del médico se elige entre cuentas **activas** con rol Medico sin vincular (al editar se incluye la actual). Nombre y correo se muestran de la cuenta, sin editarse.
+- Al editar se muestran las especialidades activas y además las que el médico ya tiene aunque estén inactivas ("(inactiva)"), para no quitárselas sin querer. Se guardan con `sync()` en `medico_especialidad`.
+- Código `MED-0001` generado con el mayor número existente + 1. Registro profesional en mayúsculas y único (sin distinguir mayúsculas). Teléfono: números, espacios, + o -; 7 a 20 caracteres.
+- Desactivar médico (CU10) no desactiva su cuenta: puede seguir entrando a ver su agenda e historial, pero no recibe nuevas citas.
+- Desactivar la cuenta (CU01) de un médico también lo desactiva como médico. Reactivar la cuenta NO reactiva al médico. No se puede activar un médico cuya cuenta está desactivada ("Active primero la cuenta de usuario del médico").
+
+## Filtros en las listas
+- Especialidades: Estado. Usuarios: Rol (incluye Paciente) y Estado (Activo/Inactivo/Bloqueado). Médicos: Especialidad (incluye inactivas) y Estado. Se combinan con el buscador, se mantienen al paginar y "Limpiar" los quita.

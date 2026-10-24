@@ -24,6 +24,9 @@ class UsuarioController extends Controller
     public function index(Request $request): View
     {
         $texto = $request->query('buscar');
+        // Filtros: Rol (id) y Estado ('activo' | 'inactivo' | 'bloqueado'); vacío = Todos
+        $idRol = $request->integer('rol') ?: null;
+        $estado = in_array($request->query('estado'), ['activo', 'inactivo', 'bloqueado'], true) ? $request->query('estado') : null;
 
         $usuarios = Usuario::with('rol')
             ->when($texto, function ($q) use ($texto) {
@@ -35,6 +38,10 @@ class UsuarioController extends Controller
                       ->orWhere('correo', 'ILIKE', $buscado);
                 });
             })
+            ->when($idRol, fn ($q) => $q->where('id_rol', $idRol))
+            ->when($estado === 'activo', fn ($q) => $q->where('activo', true))
+            ->when($estado === 'inactivo', fn ($q) => $q->where('activo', false))
+            ->when($estado === 'bloqueado', fn ($q) => $q->where('bloqueado', true))
             ->orderBy('apellidos')
             ->orderBy('nombres')
             ->paginate(15)
@@ -43,6 +50,9 @@ class UsuarioController extends Controller
         return view('usuarios_acceso.gestionar_usuarios.index', [
             'usuarios' => $usuarios,
             'texto' => $texto,
+            'roles' => Rol::orderBy('id_rol')->get(),   // lista del filtro (incluye Paciente)
+            'idRol' => $idRol,
+            'estado' => $estado,
         ]);
     }
 
@@ -118,8 +128,17 @@ class UsuarioController extends Controller
         }
 
         $usuario->update(['activo' => false]);
-
         Bitacora::registrar('DESACTIVAR_USUARIO', 'usuario', 'Usuario: ' . $usuario->nombre_usuario);
+
+        // Si la cuenta es de un médico activo, también se desactiva como médico (no recibe nuevas citas).
+        // Al reactivar la cuenta NO se reactiva el médico: eso se hace a propósito en el CU10.
+        $medico = $usuario->medico;
+        if ($medico && $medico->activo) {
+            $medico->update(['activo' => false]);
+            Bitacora::registrar('DESACTIVAR_MEDICO', 'medico', 'Médico: ' . $medico->codigo . ' (por desactivación de su cuenta)');
+
+            return redirect()->route('usuarios.index')->with('ok', 'Usuario desactivado. También se desactivó como médico');
+        }
 
         return redirect()->route('usuarios.index')->with('ok', 'Usuario desactivado');
     }

@@ -111,6 +111,24 @@ class Usuario extends Authenticatable
             ->exists();
     }
 
+    /**
+     * CU10 (secuencia "listarMedicosSinVincular"): cuentas ACTIVAS con rol Medico
+     * que todavía no tienen ficha de médico. $incluir: la cuenta actual del médico que se edita.
+     */
+    public static function medicosSinVincular(?int $incluir = null)
+    {
+        return self::query()
+            ->where(function ($q) {
+                $q->where('activo', true)
+                  ->whereHas('rol', fn ($r) => $r->where('nombre', 'Medico'))
+                  ->whereDoesntHave('medico');
+            })
+            ->when($incluir, fn ($q) => $q->orWhere('id_usuario', $incluir))
+            ->orderBy('apellidos')
+            ->orderBy('nombres')
+            ->get();
+    }
+
     /** Devuelve las claves de permiso del rol del usuario, p. ej. "usuarios.gestionar". */
     public function clavesPermiso(): array
     {

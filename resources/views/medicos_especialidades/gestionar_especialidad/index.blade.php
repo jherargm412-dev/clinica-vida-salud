@@ -28,9 +28,17 @@
                                placeholder="Buscar por nombre">
                     </div>
                 </div>
+                {{-- Filtro: Estado --}}
+                <div class="col-sm-4 col-md-3">
+                    <select name="estado" class="form-select" aria-label="Estado">
+                        <option value="">Estado: Todos</option>
+                        <option value="activo" @selected($estado === 'activo')>Activo</option>
+                        <option value="inactivo" @selected($estado === 'inactivo')>Inactivo</option>
+                    </select>
+                </div>
                 <div class="col-auto">
                     <button type="submit" class="btn btn-outline-primary">Buscar</button>
-                    @if ($texto)
+                    @if ($texto || $estado)
                         <a href="{{ route('especialidades.index') }}" class="btn btn-link">Limpiar</a>
                     @endif
                 </div>
