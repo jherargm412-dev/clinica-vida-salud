@@ -47,4 +47,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // 4. Requisitos de contraseña que se marcan en verde mientras se escribe:
+    //    <ul data-requisitos-contrasena="idDelCampo"> <li data-regla="largo"><i class="bi bi-circle"></i> ...</li> </ul>
+    //    (misma política que app/Modulos/compartido/Contrasena.php)
+    const reglasContrasena = {
+        largo:     (v) => v.length >= 8,
+        mayuscula: (v) => /[A-Z]/.test(v),
+        minuscula: (v) => /[a-z]/.test(v),
+        numero:    (v) => /\d/.test(v),
+        especial:  (v) => /[^A-Za-z0-9]/.test(v),
+    };
+    document.querySelectorAll('[data-requisitos-contrasena]').forEach((lista) => {
+        const campo = document.getElementById(lista.dataset.requisitosContrasena);
+        const actualizar = () => {
+            lista.querySelectorAll('[data-regla]').forEach((item) => {
+                const cumple = reglasContrasena[item.dataset.regla](campo.value);
+                item.classList.toggle('text-success', cumple);
+                item.querySelector('i').className = cumple ? 'bi bi-check-circle-fill' : 'bi bi-circle';
+            });
+        };
+        campo.addEventListener('input', actualizar);
+        actualizar();
+    });
 });

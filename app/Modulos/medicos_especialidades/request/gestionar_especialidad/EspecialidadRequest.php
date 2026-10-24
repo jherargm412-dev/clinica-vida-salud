@@ -1,5 +1,6 @@
 <?php
 namespace App\Modulos\medicos_especialidades\request\gestionar_especialidad;
+use App\Modulos\compartido\Texto;
 use Illuminate\Foundation\Http\FormRequest;
 
 class EspecialidadRequest extends FormRequest
@@ -13,28 +14,12 @@ class EspecialidadRequest extends FormRequest
 
     // Se ejecuta ANTES de validar: limpia el nombre para que todas las especialidades
     // tengan el mismo formato ("tipo título").   "  peDiaTRía  " -> "Pediatría"
+    // La función está en app/Modulos/compartido/Texto.php (se reutiliza en usuarios y pacientes).
     protected function prepareForValidation(): void
     {
         if (is_string($this->nombre)) {
-            $this->merge(['nombre' => self::formatearNombre($this->nombre)]);
+            $this->merge(['nombre' => Texto::formatoTitulo($this->nombre)]);
         }
-    }
-
-    // Primera letra de cada palabra en mayúscula (conserva tildes);
-    // "de", "del", "y"... quedan en minúscula: "medicina DE familia" -> "Medicina de Familia"
-    private static function formatearNombre(string $nombre): string
-    {
-        $menores = ['de', 'del', 'y', 'e', 'la', 'las', 'el', 'los'];
-        $palabras = preg_split('/\s+/', trim($nombre), -1, PREG_SPLIT_NO_EMPTY);
-
-        foreach ($palabras as $i => $palabra) {
-            $palabra = mb_strtolower($palabra);
-            $palabras[$i] = ($i > 0 && in_array($palabra, $menores))
-                ? $palabra
-                : mb_convert_case($palabra, MB_CASE_TITLE);
-        }
-
-        return implode(' ', $palabras);
     }
 
     // Las reglas de cada campo

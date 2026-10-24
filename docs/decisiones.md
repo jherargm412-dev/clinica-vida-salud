@@ -34,3 +34,10 @@
 - Laravel monolítico con Blade, sin API (indicado por el auxiliar).
 - Código organizado por paquetes (`app/Modulos/<paquete>`), igual que el diagrama de paquetes.
 - Base de datos creada con el script SQL; no se usan migraciones de Laravel.
+
+## Usuarios (CU01)
+- En CU01 solo se asignan roles activos **excepto Paciente** (las cuentas de pacientes se crean en el CU06 junto con su ficha). Al editar una cuenta se muestra también su rol actual.
+- Correo opcional; si se ingresa, debe ser único. Contraseña obligatoria al registrar; al modificar, si se deja vacía se mantiene.
+- Política de contraseñas (CU01, CU04, CU06): mínimo 8 caracteres con al menos 1 mayúscula, 1 minúscula, 1 número y 1 carácter especial (ej.: `Clave123!`). Se pide confirmar la contraseña (campo `contrasena_confirmation`). Centralizada en `app/Modulos/compartido/Contrasena.php`.
+- Nombre de usuario y correo se guardan en minúsculas; el login no distingue mayúsculas. Nombres y apellidos en formato tipo título (`app/Modulos/compartido/Texto.php`, compartido con especialidades y pacientes).
+- El administrador no puede desactivar su propia cuenta.

@@ -22,6 +22,20 @@ class Rol extends Model
         return $this->belongsToMany(Permiso::class, 'rol_permiso', 'id_rol', 'id_permiso');
     }
 
+    /**
+     * CU01 (secuencia "listar roles activos"): roles que se pueden asignar a una cuenta.
+     * Se excluye Paciente: esas cuentas se crean en el CU06 junto con la ficha del paciente.
+     * $incluir: id de un rol que debe aparecer igual (el rol actual del usuario que se edita).
+     */
+    public static function paraAsignar(?int $incluir = null)
+    {
+        return self::query()
+            ->where(fn ($q) => $q->where('activo', true)->where('nombre', '<>', 'Paciente'))
+            ->when($incluir, fn ($q) => $q->orWhere('id_rol', $incluir))
+            ->orderBy('id_rol')
+            ->get();
+    }
+
     public function usuarios(): HasMany
     {
         return $this->hasMany(Usuario::class, 'id_rol', 'id_rol');
