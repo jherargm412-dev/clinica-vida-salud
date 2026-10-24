@@ -4,7 +4,7 @@ namespace App\Modulos\compartido;
 
 /**
  * Política de contraseñas del sistema (una sola para todos los CU que crean o cambian contraseñas:
- * CU01 Gestionar usuarios, CU04 Gestionar perfil, CU06 Registrar paciente).
+ * CU01 Gestionar usuarios, CU04 Configurar perfil, CU06 Registrar paciente).
  * Mínimo 8 caracteres, con al menos 1 mayúscula, 1 minúscula, 1 número y 1 carácter especial. Ej.: Clave123!
  */
 class Contrasena

@@ -34,7 +34,7 @@ Los casos de uso con un solo escenario tienen `comunicacion.puml` y `secuencia.p
 | usuarios_acceso | CU01 Gestionar Usuarios y Asignar Roles | Jherar |
 | usuarios_acceso | CU02 Iniciar Sesión | Jherar |
 | usuarios_acceso | CU03 Gestionar Roles y Permisos | Jherar |
-| usuarios_acceso | CU04 Gestionar Perfil de Usuario | Jherar |
+| usuarios_acceso | CU04 Configurar Perfil de Usuario | Jherar |
 | usuarios_acceso | CU05 Consultar Bitácora | Jherar |
 | medicos_especialidades | CU09 Gestionar Especialidad | Jherar |
 | medicos_especialidades | CU10 Gestionar Médico | Jherar |

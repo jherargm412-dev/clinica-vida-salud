@@ -70,4 +70,15 @@ document.addEventListener('DOMContentLoaded', () => {
         campo.addEventListener('input', actualizar);
         actualizar();
     });
+
+    // 5. Casilla que muestra u oculta varias contraseñas a la vez:
+    //    <input type="checkbox" data-mostrar-contrasenas="campo1,campo2,campo3">
+    document.querySelectorAll('[data-mostrar-contrasenas]').forEach((casilla) => {
+        casilla.addEventListener('change', () => {
+            casilla.dataset.mostrarContrasenas.split(',').forEach((id) => {
+                const campo = document.getElementById(id.trim());
+                if (campo) campo.type = casilla.checked ? 'text' : 'password';
+            });
+        });
+    });
 });

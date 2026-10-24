@@ -9,6 +9,7 @@ use App\Modulos\usuarios_acceso\controller\iniciar_sesion\InicioController;
 use App\Modulos\usuarios_acceso\controller\gestionar_usuarios\UsuarioController;
 use App\Modulos\usuarios_acceso\controller\gestionar_roles\RolController;
 use App\Modulos\usuarios_acceso\controller\consultar_bitacora\BitacoraController;
+use App\Modulos\usuarios_acceso\controller\configurar_perfil\PerfilController;
 use Illuminate\Support\Facades\Route;
 
 // CU02 Iniciar sesión
@@ -48,7 +49,11 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
         Route::post('/roles/{rol}/habilitar', [RolController::class, 'habilitar'])->name('roles.habilitar');
     });
 
-    // CU04 Gestionar perfil        -> (todos los usuarios con sesión)
+    // CU04 Configurar perfil de usuario: cualquier usuario con sesión (sin permiso especial)
+    // Una sola pantalla con los datos personales y el cambio de contraseña
+    Route::get('/perfil', [PerfilController::class, 'ver'])->name('perfil.ver');
+    Route::post('/perfil', [PerfilController::class, 'actualizar'])->name('perfil.actualizar');
+    Route::post('/perfil/contrasena', [PerfilController::class, 'cambiarContrasena'])->name('perfil.cambiar_contrasena');
     // CU05 Consultar bitácora (solo lectura: una sola ruta GET; el detalle se ve en un modal)
     Route::get('/bitacora', [BitacoraController::class, 'index'])
         ->middleware('permiso:bitacora.consultar')

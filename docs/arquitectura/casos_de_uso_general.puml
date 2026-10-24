@@ -22,7 +22,7 @@ rectangle "Sistema de gestion de citas medicas" {
     usecase "CU01 Gestionar Usuarios\ny Asignar Roles" as CU01
     usecase "CU02 Iniciar Sesion" as CU02
     usecase "CU03 Gestionar Roles\ny Permisos" as CU03
-    usecase "CU04 Gestionar Perfil\nde Usuario" as CU04
+    usecase "CU04 Configurar Perfil\nde Usuario" as CU04
     usecase "CU05 Consultar Bitacora" as CU05
   }
   package "Medicos, Especialidades y Horarios" {

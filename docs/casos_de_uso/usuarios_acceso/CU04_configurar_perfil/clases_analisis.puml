@@ -4,7 +4,7 @@ skinparam linetype polyline
 skinparam nodesep 60
 skinparam ranksep 110
 hide circle
-title CU04 Gestionar Perfil de Usuario - Diagrama de clases de analisis
+title CU04 Configurar Perfil de Usuario - Diagrama de clases de analisis
 class UI_Perfil <<boundary>> {
   --
   mostrar datos del perfil

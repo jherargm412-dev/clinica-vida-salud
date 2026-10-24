@@ -1,7 +1,7 @@
 # Decisiones de diseño vigentes
 
 ## Actores y roles
-- Roles: Administrador, Recepcionista, Médico y Paciente. Todos heredan del actor Usuario (CU02 Iniciar sesión y CU04 Gestionar perfil los usa cualquier usuario).
+- Roles: Administrador, Recepcionista, Médico y Paciente. Todos heredan del actor Usuario (CU02 Iniciar sesión y CU04 Configurar perfil los usa cualquier usuario).
 - Los permisos son fijos por rol (tabla `rol_permiso`); hay un permiso por caso de uso, con una clave (`usuarios.gestionar`, `especialidades.gestionar`, `medicos.gestionar`, `citas.registrar`, etc.).
 - El rol Administrador no se puede deshabilitar ni perder el permiso de gestionar roles. Un rol con usuarios activos no se puede deshabilitar.
 
@@ -66,4 +66,12 @@
 - Zona horaria America/La_Paz en Laravel (`config/app.php`) y en la sesión de PostgreSQL (`config/database.php`), para que "hoy" y `fecha_hora` coincidan también en Railway.
 - Ver detalle en un modal (fecha y hora, usuario y correo, acción, detalle, tabla afectada, IP).
 - Ciclo 2: "Datos anteriores / Datos nuevos" (ver ideas del Ciclo 2).
+
+## Configurar perfil de usuario (CU04)
+- Renombrado de "Gestionar Perfil de Usuario" a "Configurar Perfil de Usuario" (24/10). Acceso desde el panel izquierdo ("Mi perfil", para todos) y desde el menú del nombre de usuario.
+- Una sola pantalla: encabezado (iniciales, nombre, correo, rol), Datos personales y Cambiar contraseña lado a lado ("Mostrar contraseñas"), Información de la cuenta (usuario, rol, estado, registro; si es médico: código, registro profesional, teléfono y especialidades) e Inicios de sesión recientes (últimos 5 de la bitácora). Teléfono y fecha de nacimiento NO se agregan a Usuario (no están en la BD).
+- Sin permiso especial: cualquier usuario con sesión; siempre trabaja con su propia cuenta. Usuario y rol solo lectura.
+- Correo opcional y único (4b "El correo ya está registrado"). Nombres/apellidos tipo título.
+- Nueva contraseña con la misma política del CU01 (Contrasena::reglas, con confirmación y checklist verde) y distinta de la actual ("La nueva contraseña debe ser diferente de la actual").
+- Bitácora: ACTUALIZAR_PERFIL y CAMBIAR_CONTRASENA.
 

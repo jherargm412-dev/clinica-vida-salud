@@ -25,7 +25,7 @@ frame "uc Paquete1 usuarios_acceso" {
   package usuarios_acceso {
   }
   usecase "CU05 Consultar Bitacora" as CU05
-  usecase "CU04 Gestionar Perfil\nde Usuario" as CU04
+  usecase "CU04 Configurar Perfil\nde Usuario" as CU04
   usecase "CU03 Gestionar Roles\ny Permisos" as CU03
   usecase "CU02 Iniciar Sesion" as CU02
   usecase "CU01 Gestionar Usuarios\ny Asignar Roles" as CU01

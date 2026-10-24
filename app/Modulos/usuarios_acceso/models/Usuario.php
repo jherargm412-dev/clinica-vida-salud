@@ -111,6 +111,21 @@ class Usuario extends Authenticatable
             ->exists();
     }
 
+    /** CU04 (secuencia "verificar correo único"): ¿otro usuario ya usa este correo? */
+    public static function existeCorreo(string $correo, int $excepto): bool
+    {
+        return self::query()
+            ->where('id_usuario', '<>', $excepto)
+            ->whereRaw('LOWER(correo) = ?', [mb_strtolower(trim($correo))])
+            ->exists();
+    }
+
+    /** CU04 (secuencia "verificar contraseña actual"): compara con el hash guardado. */
+    public function verificarContrasena(string $contrasena): bool
+    {
+        return \Illuminate\Support\Facades\Hash::check($contrasena, $this->contrasena);
+    }
+
     /**
      * CU10 (secuencia "listarMedicosSinVincular"): cuentas ACTIVAS con rol Medico
      * que todavía no tienen ficha de médico. $incluir: la cuenta actual del médico que se edita.

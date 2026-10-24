@@ -35,7 +35,9 @@
                         <small class="text-muted">{{ auth()->user()->rol->nombre ?? '' }} · {{ auth()->user()->nombre_usuario }}</small>
                     </li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><span class="dropdown-item disabled"><i class="bi bi-person me-2"></i>Mi perfil <small>(próximamente)</small></span></li>
+                    {{-- CU04 Configurar perfil de usuario --}}
+                    <li><a class="dropdown-item" href="{{ route('perfil.ver') }}"><i class="bi bi-person me-2"></i>Mi perfil</a></li>
+                    <li><a class="dropdown-item" href="{{ route('perfil.ver') }}#cambiar-contrasena"><i class="bi bi-key me-2"></i>Cambiar contraseña</a></li>
                     <li>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf

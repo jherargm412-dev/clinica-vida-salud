@@ -1,7 +1,7 @@
 @startuml
 left to right direction
 skinparam linetype polyline
-title CU04 Gestionar Perfil de Usuario - Diagrama de comunicacion (Actualizar datos personales)
+title CU04 Configurar Perfil de Usuario - Diagrama de comunicacion (Actualizar datos personales)
 actor Usuario as Actor
 boundary UI_Perfil
 control Ctrl_Perfil

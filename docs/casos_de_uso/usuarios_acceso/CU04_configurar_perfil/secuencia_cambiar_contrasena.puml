@@ -1,5 +1,5 @@
 @startuml
-title CU04 Gestionar Perfil de Usuario - Diagrama de secuencia (Cambiar contrasena)
+title CU04 Configurar Perfil de Usuario - Diagrama de secuencia (Cambiar contrasena)
 actor Usuario as Actor
 boundary UI_Perfil
 control Ctrl_Perfil

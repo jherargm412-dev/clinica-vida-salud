@@ -1,8 +1,8 @@
-# CU04 Gestionar Perfil de Usuario
+# CU04 Configurar Perfil de Usuario
 
 | Campo | Contenido |
 |---|---|
-| Caso de uso | CU04 Gestionar Perfil de Usuario |
+| Caso de uso | CU04 Configurar Perfil de Usuario |
 | Paquete | usuarios_acceso |
 | Permiso | — (cualquier usuario con sesión iniciada) |
 | Actores | Administrador, Recepcionista, Médico, Paciente |
