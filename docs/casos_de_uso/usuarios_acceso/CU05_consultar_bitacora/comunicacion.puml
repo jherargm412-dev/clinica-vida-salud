@@ -1,0 +1,14 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU05 Consultar Bitacora - Diagrama de comunicacion (Buscar con filtros)
+actor Administrador
+boundary UI_Bitacora
+control Ctrl_Bitacora
+entity Bitacora
+entity Usuario
+Administrador -- UI_Bitacora : "1: solicitar bitacora →\n6: ingresar filtros y buscar →"
+UI_Bitacora -- Ctrl_Bitacora : "2: obtener registros →\n5: mostrar registros ←\n7: buscar registros →\n9: mostrar resultados ←"
+Ctrl_Bitacora -- Bitacora : "3: listar registros recientes →\n8: filtrar registros →"
+Ctrl_Bitacora -- Usuario : "4: listar usuarios →"
+@enduml

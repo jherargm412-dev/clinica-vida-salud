@@ -1,0 +1,65 @@
+@startuml
+title CU03 Gestionar Roles y Permisos - Diagrama de secuencia (Modificar rol)
+actor Administrador
+boundary UI_Roles
+control Ctrl_Roles
+entity Rol
+entity Permiso
+entity Bitacora
+autonumber
+Administrador -> UI_Roles : seleccionarGestionarRoles()
+activate UI_Roles
+UI_Roles -> Ctrl_Roles : obtenerRoles()
+activate Ctrl_Roles
+Ctrl_Roles -> Rol : listar()
+activate Rol
+Rol --> Ctrl_Roles : roles
+deactivate Rol
+Ctrl_Roles --> UI_Roles : roles
+deactivate Ctrl_Roles
+UI_Roles -> UI_Roles : mostrarLista(roles)
+Administrador -> UI_Roles : seleccionarEditar(idRol)
+UI_Roles -> Ctrl_Roles : obtenerRol(idRol)
+activate Ctrl_Roles
+Ctrl_Roles -> Rol : buscarConPermisos(idRol)
+activate Rol
+Rol --> Ctrl_Roles : rol
+deactivate Rol
+Ctrl_Roles -> Permiso : listar()
+activate Permiso
+Permiso --> Ctrl_Roles : permisos
+deactivate Permiso
+Ctrl_Roles --> UI_Roles : rol, permisos
+deactivate Ctrl_Roles
+UI_Roles -> UI_Roles : mostrarFormulario(rol, permisos)
+Administrador -> UI_Roles : guardar(nombre, descripcion, permisosMarcados)
+UI_Roles -> Ctrl_Roles : modificarRol(idRol, nombre, descripcion, permisosMarcados)
+activate Ctrl_Roles
+Ctrl_Roles -> Ctrl_Roles : validarDatos(nombre, permisosMarcados)
+alt nombre vacio
+  Ctrl_Roles --> UI_Roles : "Ingrese el nombre del rol"
+else ningun permiso marcado
+  Ctrl_Roles --> UI_Roles : "Seleccione al menos un permiso"
+else datos completos
+  Ctrl_Roles -> Rol : existeNombreEnOtro(nombre, idRol)
+  activate Rol
+  Rol --> Ctrl_Roles : existe
+  deactivate Rol
+  alt existe = verdadero
+    Ctrl_Roles --> UI_Roles : "Ya existe un rol con ese nombre"
+  else existe = falso
+    Ctrl_Roles -> Rol : actualizar(idRol, nombre, descripcion, permisosMarcados)
+    activate Rol
+    Rol --> Ctrl_Roles : ok
+    deactivate Rol
+    Ctrl_Roles -> Bitacora : registrar(administrador, "Modificar rol", detalle, ip)
+    activate Bitacora
+    Bitacora --> Ctrl_Roles : ok
+    deactivate Bitacora
+    Ctrl_Roles --> UI_Roles : "Rol actualizado"
+  end
+end
+deactivate Ctrl_Roles
+UI_Roles -> UI_Roles : mostrarMensaje(mensaje)
+deactivate UI_Roles
+@enduml

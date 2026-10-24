@@ -1,0 +1,37 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam packageStyle folder
+skinparam ArrowColor #6B6B6B
+skinparam frame {
+  BackgroundColor #FFFFFF
+  BorderColor #555555
+}
+skinparam package {
+  BackgroundColor #F8ECE6
+  BorderColor #6B6B6B
+}
+skinparam usecase {
+  BackgroundColor #DCEBFA
+  BorderColor #4A6FA5
+  FontSize 11
+}
+skinparam actor {
+  BackgroundColor #FBE7C6
+  BorderColor #6B6B6B
+}
+frame "pkg pacientes" {
+  actor Recepcionista
+  actor Paciente
+  package pacientes {
+    usecase "CU06 Gestionar Paciente" as CU06
+    usecase "CU07 Gestionar\nPerfil Medico" as CU07
+    usecase "CU08 Consultar Historial\nde Citas" as CU08
+  }
+  Recepcionista -- CU06
+  Recepcionista -- CU08
+  CU07 -- Paciente
+  CU08 -- Paciente
+}
+@enduml

@@ -1,0 +1,48 @@
+@startuml
+title CU04 Configurar Perfil de Usuario - Diagrama de secuencia (Actualizar datos personales)
+actor Usuario as Actor
+boundary UI_Perfil
+control Ctrl_Perfil
+entity Usuario
+entity Rol
+autonumber
+Actor -> UI_Perfil : seleccionarMiPerfil()
+activate UI_Perfil
+UI_Perfil -> Ctrl_Perfil : obtenerPerfil(idUsuarioSesion)
+activate Ctrl_Perfil
+Ctrl_Perfil -> Usuario : buscarPorId(idUsuarioSesion)
+activate Usuario
+Usuario --> Ctrl_Perfil : usuario
+deactivate Usuario
+Ctrl_Perfil -> Rol : obtenerNombre(idRol)
+activate Rol
+Rol --> Ctrl_Perfil : nombreRol
+deactivate Rol
+Ctrl_Perfil --> UI_Perfil : perfil
+deactivate Ctrl_Perfil
+UI_Perfil -> UI_Perfil : mostrarPerfil(perfil)
+Actor -> UI_Perfil : editar(nombres, apellidos, correo)
+UI_Perfil -> Ctrl_Perfil : actualizarPerfil(idUsuarioSesion, nombres, apellidos, correo)
+activate Ctrl_Perfil
+Ctrl_Perfil -> Ctrl_Perfil : validarCampos(nombres, apellidos, correo)
+alt campos obligatorios vacios
+  Ctrl_Perfil --> UI_Perfil : "Complete los campos obligatorios"
+else campos completos
+  Ctrl_Perfil -> Usuario : correoRegistradoPorOtro(correo, idUsuarioSesion)
+  activate Usuario
+  Usuario --> Ctrl_Perfil : registrado
+  deactivate Usuario
+  alt registrado = verdadero
+    Ctrl_Perfil --> UI_Perfil : "El correo ya esta registrado"
+  else registrado = falso
+    Ctrl_Perfil -> Usuario : actualizarDatos(idUsuarioSesion, nombres, apellidos, correo)
+    activate Usuario
+    Usuario --> Ctrl_Perfil : ok
+    deactivate Usuario
+    Ctrl_Perfil --> UI_Perfil : "Perfil actualizado"
+  end
+end
+deactivate Ctrl_Perfil
+UI_Perfil -> UI_Perfil : mostrarMensaje(mensaje)
+deactivate UI_Perfil
+@enduml

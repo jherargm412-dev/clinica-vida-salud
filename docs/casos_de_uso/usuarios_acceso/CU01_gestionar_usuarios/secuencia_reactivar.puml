@@ -1,0 +1,35 @@
+@startuml
+title CU01 Gestionar Usuarios y Asignar Roles - Diagrama de secuencia (Reactivar usuario)
+actor Administrador
+boundary UI_Usuarios
+control Ctrl_Usuarios
+entity Usuario
+entity Bitacora
+autonumber
+Administrador -> UI_Usuarios : seleccionarGestionarUsuarios()
+activate UI_Usuarios
+UI_Usuarios -> Ctrl_Usuarios : obtenerUsuarios()
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Usuario : listar()
+activate Usuario
+Usuario --> Ctrl_Usuarios : usuarios
+deactivate Usuario
+Ctrl_Usuarios --> UI_Usuarios : usuarios
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarLista(usuarios)
+Administrador -> UI_Usuarios : seleccionarActivar(idUsuario)
+UI_Usuarios -> Ctrl_Usuarios : reactivarUsuario(idUsuario)
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Usuario : cambiarEstado(idUsuario, "activo")
+activate Usuario
+Usuario --> Ctrl_Usuarios : ok
+deactivate Usuario
+Ctrl_Usuarios -> Bitacora : registrar(administrador, "Reactivar usuario", detalle, ip)
+activate Bitacora
+Bitacora --> Ctrl_Usuarios : ok
+deactivate Bitacora
+Ctrl_Usuarios --> UI_Usuarios : "Usuario activado"
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarMensaje(mensaje)
+deactivate UI_Usuarios
+@enduml

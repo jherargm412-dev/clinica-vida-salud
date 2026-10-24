@@ -1,0 +1,14 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU04 Configurar Perfil de Usuario - Diagrama de comunicacion (Actualizar datos personales)
+actor Usuario as Actor
+boundary UI_Perfil
+control Ctrl_Perfil
+entity Usuario
+entity Rol
+Actor -- UI_Perfil : "1: solicitar mi perfil →\n6: editar datos y guardar →"
+UI_Perfil -- Ctrl_Perfil : "2: obtener perfil →\n5: mostrar datos del perfil ←\n7: actualizar perfil →\n10: mostrar perfil actualizado ←"
+Ctrl_Perfil -- Usuario : "3: obtener datos del usuario →\n8: verificar correo unico →\n9: actualizar datos personales →"
+Ctrl_Perfil -- Rol : "4: obtener nombre del rol →"
+@enduml

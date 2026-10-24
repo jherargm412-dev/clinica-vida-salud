@@ -1,0 +1,16 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU03 Gestionar Roles y Permisos - Diagrama de comunicacion (Modificar rol)
+actor Administrador
+boundary UI_Roles
+control Ctrl_Roles
+entity Rol
+entity Permiso
+entity Bitacora
+Administrador -- UI_Roles : "1: solicitar gestion de roles →\n5: seleccionar rol y editar →\n10: modificar datos, permisos y guardar →"
+UI_Roles -- Ctrl_Roles : "2: obtener lista de roles →\n4: mostrar lista de roles ←\n6: obtener datos del rol →\n9: mostrar datos del rol ←\n11: modificar rol →\n15: mostrar rol actualizado ←"
+Ctrl_Roles -- Rol : "3: listar roles →\n7: obtener rol con permisos →\n12: verificar nombre unico →\n13: actualizar rol →"
+Ctrl_Roles -- Permiso : "8: listar permisos →"
+Ctrl_Roles -- Bitacora : "14: registrar accion →"
+@enduml

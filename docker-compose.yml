@@ -1,0 +1,56 @@
+# =====================================================================
+# Solo para PROBAR EN LA MAC con Docker Desktop:
+#   docker compose up --build      → http://localhost:8080
+#   docker compose down            → apagar (los datos quedan guardados)
+#   docker compose down -v         → apagar y BORRAR la base (se vuelve a cargar el script)
+# En Railway no se usa este archivo: allá se usa solo el Dockerfile.
+# =====================================================================
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: clinica_vida_salud
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: America/La_Paz
+    volumes:
+      - datos_bd:/var/lib/postgresql/data
+      # La PRIMERA vez que se crea la base, PostgreSQL ejecuta este script (tablas + datos iniciales)
+      - ./database/sql/clinica_vida_salud.sql:/docker-entrypoint-initdb.d/01_clinica_vida_salud.sql:ro
+    ports:
+      - "5433:5432"   # 5433 en la Mac para no chocar con tu PostgreSQL 17 local (5432)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d clinica_vida_salud"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      APP_NAME: "Clinica Vida Salud"
+      APP_ENV: local            # local: sin forzar https (en Railway va production)
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080
+      APP_KEY: ${APP_KEY}       # se toma del archivo .env de tu Mac
+      APP_LOCALE: es
+      APP_TIMEZONE: America/La_Paz
+      DB_CONNECTION: pgsql
+      DB_HOST: db               # nombre del servicio de arriba
+      DB_PORT: 5432
+      DB_DATABASE: clinica_vida_salud
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+      LOG_CHANNEL: stderr
+      PORT: 8080
+
+volumes:
+  datos_bd:

@@ -1,0 +1,36 @@
+@startuml
+title CU01 Gestionar Usuarios y Asignar Roles - Diagrama de secuencia (Desbloquear cuenta)
+actor Administrador
+boundary UI_Usuarios
+control Ctrl_Usuarios
+entity Usuario
+entity Bitacora
+autonumber
+Administrador -> UI_Usuarios : seleccionarGestionarUsuarios()
+activate UI_Usuarios
+UI_Usuarios -> Ctrl_Usuarios : obtenerUsuarios()
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Usuario : listar()
+activate Usuario
+Usuario --> Ctrl_Usuarios : usuarios
+deactivate Usuario
+Ctrl_Usuarios --> UI_Usuarios : usuarios
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarLista(usuarios)
+Administrador -> UI_Usuarios : seleccionarDesbloquear(idUsuario)
+UI_Usuarios -> Ctrl_Usuarios : desbloquearUsuario(idUsuario)
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Usuario : desbloquear(idUsuario)
+activate Usuario
+Usuario --> Ctrl_Usuarios : ok
+deactivate Usuario
+note right of Usuario : quita el bloqueo y\nreinicia intentosFallidos a 0
+Ctrl_Usuarios -> Bitacora : registrar(administrador, "Desbloquear cuenta", detalle, ip)
+activate Bitacora
+Bitacora --> Ctrl_Usuarios : ok
+deactivate Bitacora
+Ctrl_Usuarios --> UI_Usuarios : "Cuenta desbloqueada"
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarMensaje(mensaje)
+deactivate UI_Usuarios
+@enduml

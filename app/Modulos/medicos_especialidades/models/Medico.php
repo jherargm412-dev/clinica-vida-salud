@@ -40,4 +40,32 @@ class Medico extends Model
     {
         return $this->hasMany(Cita::class, 'id_medico', 'id_medico');
     }
+
+    /** Nombre completo del médico (se toma de su cuenta de usuario). Uso: $medico->nombre_completo */
+    public function getNombreCompletoAttribute(): string
+    {
+        return $this->usuario?->nombre_completo ?? '';
+    }
+
+    /**
+     * CU10 (secuencia 2.7 existeRegistro / 3.x existeRegistroEnOtro):
+     * ¿Ya existe OTRO médico con ese número de registro profesional? (sin distinguir mayúsculas ni espacios)
+     */
+    public static function existeRegistro(string $registro, ?int $excepto = null): bool
+    {
+        return self::query()
+            ->when($excepto, fn ($q) => $q->where('id_medico', '<>', $excepto))
+            ->whereRaw('UPPER(TRIM(registro_profesional)) = ?', [mb_strtoupper(trim($registro))])
+            ->exists();
+    }
+
+    /** CU10 (secuencia 2.8 generarCodigo): siguiente código MED-0001, MED-0002, ... */
+    public static function generarCodigo(): string
+    {
+        $ultimo = (int) self::query()
+            ->selectRaw('COALESCE(MAX(CAST(SUBSTRING(codigo FROM 5) AS INTEGER)), 0) AS n')
+            ->value('n');
+
+        return sprintf('MED-%04d', $ultimo + 1);
+    }
 }

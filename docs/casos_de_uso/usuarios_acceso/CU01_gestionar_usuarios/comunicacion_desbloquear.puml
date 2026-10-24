@@ -1,0 +1,14 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU01 Gestionar Usuarios y Asignar Roles - Diagrama de comunicacion (Desbloquear cuenta)
+actor Administrador
+boundary UI_Usuarios
+control Ctrl_Usuarios
+entity Usuario
+entity Bitacora
+Administrador -- UI_Usuarios : "1: solicitar gestion de usuarios →\n5: seleccionar usuario bloqueado y desbloquear →"
+UI_Usuarios -- Ctrl_Usuarios : "2: obtener lista de usuarios →\n4: mostrar lista de usuarios ←\n6: desbloquear usuario →\n9: mostrar cuenta desbloqueada ←"
+Ctrl_Usuarios -- Usuario : "3: listar usuarios →\n7: desbloquear cuenta →"
+Ctrl_Usuarios -- Bitacora : "8: registrar accion →"
+@enduml

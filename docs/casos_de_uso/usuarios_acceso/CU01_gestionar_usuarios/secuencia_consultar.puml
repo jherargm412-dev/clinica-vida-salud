@@ -1,0 +1,34 @@
+@startuml
+title CU01 Gestionar Usuarios y Asignar Roles - Diagrama de secuencia (Consultar usuario)
+actor Administrador
+boundary UI_Usuarios
+control Ctrl_Usuarios
+entity Usuario
+autonumber
+Administrador -> UI_Usuarios : seleccionarGestionarUsuarios()
+activate UI_Usuarios
+UI_Usuarios -> Ctrl_Usuarios : obtenerUsuarios()
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Usuario : listar()
+activate Usuario
+Usuario --> Ctrl_Usuarios : usuarios
+deactivate Usuario
+Ctrl_Usuarios --> UI_Usuarios : usuarios
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarLista(usuarios)
+Administrador -> UI_Usuarios : buscar(texto)
+UI_Usuarios -> Ctrl_Usuarios : buscarUsuarios(texto)
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Usuario : buscar(texto)
+activate Usuario
+Usuario --> Ctrl_Usuarios : usuarios
+deactivate Usuario
+alt usuarios vacio
+  Ctrl_Usuarios --> UI_Usuarios : "No se encontraron usuarios"
+else hay usuarios
+  Ctrl_Usuarios --> UI_Usuarios : usuarios
+end
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarResultado(resultado)
+deactivate UI_Usuarios
+@enduml

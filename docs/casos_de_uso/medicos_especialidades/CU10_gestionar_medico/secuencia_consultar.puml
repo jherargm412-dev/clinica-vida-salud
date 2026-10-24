@@ -1,0 +1,34 @@
+@startuml
+title CU10 Gestionar Medico - Diagrama de secuencia (Consultar medico)
+actor Administrador
+boundary UI_Medicos
+control Ctrl_Medicos
+entity Medico
+autonumber
+Administrador -> UI_Medicos : seleccionarGestionarMedicos()
+activate UI_Medicos
+UI_Medicos -> Ctrl_Medicos : obtenerMedicos()
+activate Ctrl_Medicos
+Ctrl_Medicos -> Medico : listar()
+activate Medico
+Medico --> Ctrl_Medicos : medicos
+deactivate Medico
+Ctrl_Medicos --> UI_Medicos : medicos
+deactivate Ctrl_Medicos
+UI_Medicos -> UI_Medicos : mostrarLista(medicos)
+Administrador -> UI_Medicos : buscar(texto)
+UI_Medicos -> Ctrl_Medicos : buscarMedicos(texto)
+activate Ctrl_Medicos
+Ctrl_Medicos -> Medico : buscarPorNombreOEspecialidad(texto)
+activate Medico
+Medico --> Ctrl_Medicos : medicos
+deactivate Medico
+alt medicos vacio
+  Ctrl_Medicos --> UI_Medicos : "No se encontraron medicos"
+else hay medicos
+  Ctrl_Medicos --> UI_Medicos : medicos
+end
+deactivate Ctrl_Medicos
+UI_Medicos -> UI_Medicos : mostrarResultado(resultado)
+deactivate UI_Medicos
+@enduml

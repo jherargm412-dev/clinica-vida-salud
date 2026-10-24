@@ -1,0 +1,12 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU10 Gestionar Medico - Diagrama de comunicacion (Consultar medico)
+actor Administrador
+boundary UI_Medicos
+control Ctrl_Medicos
+entity Medico
+Administrador -- UI_Medicos : "1: solicitar gestion de medicos →\n5: ingresar nombre o especialidad y buscar →"
+UI_Medicos -- Ctrl_Medicos : "2: obtener lista de medicos →\n4: mostrar lista de medicos ←\n6: buscar medicos →\n8: mostrar resultados ←"
+Ctrl_Medicos -- Medico : "3: listar medicos →\n7: buscar medicos →"
+@enduml

@@ -1,0 +1,71 @@
+@startuml
+title CU02 Iniciar Sesion - Diagrama de secuencia
+actor Usuario as Actor
+participant ":UI_login" as UI_login
+participant ":UI_Dashboard" as UI_Dashboard
+participant ":Ctrl_Login" as Ctrl_Login
+participant ":Usuario" as Usuario
+participant ":Rol" as Rol
+participant ":Permiso" as Permiso
+participant ":Bitacora" as Bitacora
+Actor -> UI_login : ingresarCredenciales(correoOUsuario, contrasena)
+activate UI_login
+UI_login -> Ctrl_Login : validarCredenciales(correoOUsuario, contrasena)
+activate Ctrl_Login
+Ctrl_Login -> Usuario : buscar(correoOUsuario)
+activate Usuario
+Usuario --> Ctrl_Login : usuario
+deactivate Usuario
+Ctrl_Login -> Usuario : validarContrasena(contrasena)
+activate Usuario
+Usuario --> Ctrl_Login : contrasenaValida
+deactivate Usuario
+Ctrl_Login -> Usuario : verificarEstado()
+activate Usuario
+Usuario --> Ctrl_Login : estado
+deactivate Usuario
+alt contrasenaValida, activo y no bloqueado
+  Ctrl_Login -> Usuario : reiniciarIntentos()
+  activate Usuario
+  deactivate Usuario
+  Ctrl_Login -> Rol : obtenerRol(idRol)
+  activate Rol
+  Rol --> Ctrl_Login : rol
+  deactivate Rol
+  Ctrl_Login -> Permiso : obtenerPermisos(idRol)
+  activate Permiso
+  Permiso --> Ctrl_Login : permisos
+  deactivate Permiso
+  Ctrl_Login -> Ctrl_Login : crearSesion(usuario, permisos)
+  Ctrl_Login -> Bitacora : registrarAccion(usuario, "INICIO_SESION", fechaHora, ip)
+  activate Bitacora
+  deactivate Bitacora
+  Ctrl_Login -> UI_Dashboard : mostrarMenuPrincipal(opcionesMenu)
+  activate UI_Dashboard
+  UI_Dashboard --> Actor : menuPrincipal
+  deactivate UI_Dashboard
+else contrasena incorrecta
+  Ctrl_Login -> Usuario : registrarIntentoFallido()
+  activate Usuario
+  Usuario --> Ctrl_Login : intentosFallidos
+  deactivate Usuario
+  Ctrl_Login -> Bitacora : registrarAccion(usuario, "INTENTO_FALLIDO", fechaHora, ip)
+  activate Bitacora
+  deactivate Bitacora
+  opt intentosFallidos = 3
+    Ctrl_Login -> Usuario : bloquearCuenta()
+    activate Usuario
+    deactivate Usuario
+    Ctrl_Login -> Bitacora : registrarAccion(usuario, "BLOQUEO_CUENTA", fechaHora, ip)
+    activate Bitacora
+    deactivate Bitacora
+  end
+  Ctrl_Login --> UI_login : mensajeError
+  UI_login --> Actor : mostrarMensajeError(mensajeError)
+else usuario no encontrado, cuenta inactiva o bloqueada
+  Ctrl_Login --> UI_login : mensajeError
+  UI_login --> Actor : mostrarMensajeError(mensajeError)
+end
+deactivate Ctrl_Login
+deactivate UI_login
+@enduml

@@ -1,0 +1,12 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU01 Gestionar Usuarios y Asignar Roles - Diagrama de comunicacion (Consultar usuario)
+actor Administrador
+boundary UI_Usuarios
+control Ctrl_Usuarios
+entity Usuario
+Administrador -- UI_Usuarios : "1: solicitar gestion de usuarios →\n5: ingresar texto y buscar →"
+UI_Usuarios -- Ctrl_Usuarios : "2: obtener lista de usuarios →\n4: mostrar lista de usuarios ←\n6: buscar usuarios →\n8: mostrar resultados ←"
+Ctrl_Usuarios -- Usuario : "3: listar usuarios →\n7: buscar usuarios →"
+@enduml

@@ -87,9 +87,61 @@ class Usuario extends Authenticatable
     {
         $credencial = trim($credencial);
 
-        return self::where('nombre_usuario', $credencial)
+        // Sin distinguir mayúsculas: "Admin" y "admin" son el mismo usuario (CU01 los guarda en minúscula)
+        return self::whereRaw('LOWER(nombre_usuario) = ?', [mb_strtolower($credencial)])
             ->orWhereRaw('LOWER(correo) = ?', [mb_strtolower($credencial)])
             ->first();
+    }
+
+    /**
+     * CU01 (secuencia "verificar usuario y correo únicos"):
+     * ¿Ya existe OTRO usuario con ese nombre de usuario o ese correo?
+     * $excepto: id a ignorar (en Modificar, para no compararse consigo mismo).
+     */
+    public static function existeUsuarioOCorreo(string $nombreUsuario, ?string $correo, ?int $excepto = null): bool
+    {
+        return self::query()
+            ->when($excepto, fn ($q) => $q->where('id_usuario', '<>', $excepto))
+            ->where(function ($q) use ($nombreUsuario, $correo) {
+                $q->whereRaw('LOWER(nombre_usuario) = ?', [mb_strtolower($nombreUsuario)]);
+                if ($correo) {
+                    $q->orWhereRaw('LOWER(correo) = ?', [mb_strtolower($correo)]);
+                }
+            })
+            ->exists();
+    }
+
+    /** CU04 (secuencia "verificar correo único"): ¿otro usuario ya usa este correo? */
+    public static function existeCorreo(string $correo, int $excepto): bool
+    {
+        return self::query()
+            ->where('id_usuario', '<>', $excepto)
+            ->whereRaw('LOWER(correo) = ?', [mb_strtolower(trim($correo))])
+            ->exists();
+    }
+
+    /** CU04 (secuencia "verificar contraseña actual"): compara con el hash guardado. */
+    public function verificarContrasena(string $contrasena): bool
+    {
+        return \Illuminate\Support\Facades\Hash::check($contrasena, $this->contrasena);
+    }
+
+    /**
+     * CU10 (secuencia "listarMedicosSinVincular"): cuentas ACTIVAS con rol Medico
+     * que todavía no tienen ficha de médico. $incluir: la cuenta actual del médico que se edita.
+     */
+    public static function medicosSinVincular(?int $incluir = null)
+    {
+        return self::query()
+            ->where(function ($q) {
+                $q->where('activo', true)
+                  ->whereHas('rol', fn ($r) => $r->where('nombre', 'Medico'))
+                  ->whereDoesntHave('medico');
+            })
+            ->when($incluir, fn ($q) => $q->orWhere('id_usuario', $incluir))
+            ->orderBy('apellidos')
+            ->orderBy('nombres')
+            ->get();
     }
 
     /** Devuelve las claves de permiso del rol del usuario, p. ej. "usuarios.gestionar". */

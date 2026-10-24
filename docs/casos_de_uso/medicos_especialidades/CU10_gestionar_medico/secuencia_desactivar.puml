@@ -1,0 +1,38 @@
+@startuml
+title CU10 Gestionar Medico - Diagrama de secuencia (Desactivar medico)
+actor Administrador
+boundary UI_Medicos
+control Ctrl_Medicos
+entity Medico
+entity Bitacora
+autonumber
+Administrador -> UI_Medicos : seleccionarGestionarMedicos()
+activate UI_Medicos
+UI_Medicos -> Ctrl_Medicos : obtenerMedicos()
+activate Ctrl_Medicos
+Ctrl_Medicos -> Medico : listar()
+activate Medico
+Medico --> Ctrl_Medicos : medicos
+deactivate Medico
+Ctrl_Medicos --> UI_Medicos : medicos
+deactivate Ctrl_Medicos
+UI_Medicos -> UI_Medicos : mostrarLista(medicos)
+Administrador -> UI_Medicos : seleccionarDesactivar(idMedico)
+UI_Medicos -> UI_Medicos : mostrarConfirmacion()
+Administrador -> UI_Medicos : confirmar()
+UI_Medicos -> Ctrl_Medicos : desactivarMedico(idMedico)
+activate Ctrl_Medicos
+Ctrl_Medicos -> Medico : cambiarEstado(idMedico, "inactivo")
+activate Medico
+Medico --> Ctrl_Medicos : ok
+deactivate Medico
+note right of Medico : no recibe nuevas citas;\nsu historial se conserva
+Ctrl_Medicos -> Bitacora : registrar(administrador, "Desactivar medico", detalle, ip)
+activate Bitacora
+Bitacora --> Ctrl_Medicos : ok
+deactivate Bitacora
+Ctrl_Medicos --> UI_Medicos : "Medico desactivado"
+deactivate Ctrl_Medicos
+UI_Medicos -> UI_Medicos : mostrarMensaje(mensaje)
+deactivate UI_Medicos
+@enduml

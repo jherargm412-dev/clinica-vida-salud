@@ -1,0 +1,66 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+skinparam nodesep 60
+skinparam ranksep 110
+hide circle
+title CU01 Gestionar Usuarios y Asignar Roles - Diagrama de clases de analisis
+class UI_Usuarios <<boundary>> {
+  --
+  mostrar lista de usuarios
+  mostrar formulario
+  mostrar confirmacion
+  mostrar mensaje
+}
+class Ctrl_Usuarios <<control>> {
+  --
+  obtener lista de usuarios
+  obtener roles
+  registrar usuario
+  obtener datos del usuario
+  modificar usuario
+  buscar usuarios
+  desactivar usuario
+  reactivar usuario
+  desbloquear usuario
+}
+class Rol <<entity>> {
+  nombre
+  descripcion
+  estado
+  --
+  listar roles activos
+}
+class Usuario <<entity>> {
+  nombres
+  apellidos
+  correo
+  nombreUsuario
+  contrasena
+  estado
+  intentosFallidos
+  --
+  listar usuarios
+  obtener usuario
+  verificar usuario y correo unicos
+  guardar usuario
+  actualizar usuario
+  buscar usuarios
+  cambiar estado
+  desbloquear cuenta
+}
+class Bitacora <<entity>> {
+  fechaHora
+  accion
+  detalle
+  ip
+  --
+  registrar accion
+}
+UI_Usuarios -- Ctrl_Usuarios
+Ctrl_Usuarios -- Rol
+Ctrl_Usuarios -- Usuario
+Ctrl_Usuarios -- Bitacora
+Rol "1" -[norank]- "*" Usuario
+Usuario "1" -[norank]- "*" Bitacora
+@enduml

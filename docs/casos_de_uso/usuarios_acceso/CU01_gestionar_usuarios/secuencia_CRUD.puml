@@ -1,0 +1,175 @@
+@startuml
+title CU01 Gestionar Usuarios y Asignar Roles - Diagrama de secuencia (CRUD completo)
+skinparam sequenceMessageAlign left
+actor Administrador
+boundary UI_Usuarios
+control Ctrl_Usuarios
+entity Usuario
+entity Rol
+entity Bitacora
+== 1. Listar ==
+Administrador -[#000000]> UI_Usuarios : <color:#000000><b>1</b> seleccionarGestionarUsuarios()</color>
+activate UI_Usuarios
+UI_Usuarios -[#000000]> Ctrl_Usuarios : <color:#000000><b>1.1</b> obtenerUsuarios()</color>
+activate Ctrl_Usuarios
+Ctrl_Usuarios -[#000000]> Usuario : <color:#000000><b>1.2</b> listar()</color>
+activate Usuario
+Usuario -[#000000]-> Ctrl_Usuarios : <color:#000000><b>1.3</b> usuarios</color>
+deactivate Usuario
+Ctrl_Usuarios -[#000000]-> UI_Usuarios : <color:#000000><b>1.4</b> usuarios</color>
+deactivate Ctrl_Usuarios
+UI_Usuarios -[#000000]> UI_Usuarios : <color:#000000><b>1.5</b> mostrarLista(usuarios)</color>
+== 2. Registrar usuario ==
+Administrador -[#1F5FBF]> UI_Usuarios : <color:#1F5FBF><b>2</b> seleccionarNuevoUsuario()</color>
+UI_Usuarios -[#1F5FBF]> Ctrl_Usuarios : <color:#1F5FBF><b>2.1</b> obtenerRoles()</color>
+activate Ctrl_Usuarios
+Ctrl_Usuarios -[#1F5FBF]> Rol : <color:#1F5FBF><b>2.2</b> listarActivos()</color>
+activate Rol
+Rol -[#1F5FBF]-> Ctrl_Usuarios : <color:#1F5FBF><b>2.3</b> roles</color>
+deactivate Rol
+Ctrl_Usuarios -[#1F5FBF]-> UI_Usuarios : <color:#1F5FBF><b>2.4</b> roles</color>
+deactivate Ctrl_Usuarios
+UI_Usuarios -[#1F5FBF]> UI_Usuarios : <color:#1F5FBF><b>2.5</b> mostrarFormulario(roles)</color>
+Administrador -[#1F5FBF]> UI_Usuarios : <color:#1F5FBF><b>2.6</b> guardar(nombres, apellidos, correo, nombreUsuario, contrasena, rol)</color>
+UI_Usuarios -[#1F5FBF]> Ctrl_Usuarios : <color:#1F5FBF><b>2.7</b> registrarUsuario(datos)</color>
+activate Ctrl_Usuarios
+Ctrl_Usuarios -[#1F5FBF]> Ctrl_Usuarios : <color:#1F5FBF><b>2.8</b> validarCampos(datos)</color>
+alt campos obligatorios vacios
+  Ctrl_Usuarios -[#1F5FBF]-> UI_Usuarios : <color:#1F5FBF><b>2.9</b> "Complete los campos obligatorios"</color>
+else campos completos
+  Ctrl_Usuarios -[#1F5FBF]> Usuario : <color:#1F5FBF><b>2.10</b> existe(nombreUsuario, correo)</color>
+  activate Usuario
+  Usuario -[#1F5FBF]-> Ctrl_Usuarios : <color:#1F5FBF><b>2.11</b> existe</color>
+  deactivate Usuario
+  alt existe = verdadero
+    Ctrl_Usuarios -[#1F5FBF]-> UI_Usuarios : <color:#1F5FBF><b>2.12</b> "El nombre de usuario o correo ya esta registrado"</color>
+  else existe = falso
+    Ctrl_Usuarios -[#1F5FBF]> Ctrl_Usuarios : <color:#1F5FBF><b>2.13</b> cifrarContrasena(contrasena)</color>
+    Ctrl_Usuarios -[#1F5FBF]> Usuario : <color:#1F5FBF><b>2.14</b> guardar(datos, contrasenaCifrada, rol)</color>
+    activate Usuario
+    Usuario -[#1F5FBF]-> Ctrl_Usuarios : <color:#1F5FBF><b>2.15</b> usuario</color>
+    deactivate Usuario
+    Ctrl_Usuarios -[#1F5FBF]> Bitacora : <color:#1F5FBF><b>2.16</b> registrar(administrador, "Registrar usuario", detalle, ip)</color>
+    activate Bitacora
+    Bitacora -[#1F5FBF]-> Ctrl_Usuarios : <color:#1F5FBF><b>2.17</b> ok</color>
+    deactivate Bitacora
+    Ctrl_Usuarios -[#1F5FBF]-> UI_Usuarios : <color:#1F5FBF><b>2.18</b> "Usuario registrado"</color>
+  end
+end
+deactivate Ctrl_Usuarios
+UI_Usuarios -[#1F5FBF]> UI_Usuarios : <color:#1F5FBF><b>2.19</b> mostrarMensaje(mensaje)</color>
+== 3. Modificar usuario ==
+Administrador -[#D9730D]> UI_Usuarios : <color:#D9730D><b>3</b> seleccionarEditar(idUsuario)</color>
+UI_Usuarios -[#D9730D]> Ctrl_Usuarios : <color:#D9730D><b>3.1</b> obtenerUsuario(idUsuario)</color>
+activate Ctrl_Usuarios
+Ctrl_Usuarios -[#D9730D]> Usuario : <color:#D9730D><b>3.2</b> buscarPorId(idUsuario)</color>
+activate Usuario
+Usuario -[#D9730D]-> Ctrl_Usuarios : <color:#D9730D><b>3.3</b> usuario</color>
+deactivate Usuario
+Ctrl_Usuarios -[#D9730D]> Rol : <color:#D9730D><b>3.4</b> listarActivos()</color>
+activate Rol
+Rol -[#D9730D]-> Ctrl_Usuarios : <color:#D9730D><b>3.5</b> roles</color>
+deactivate Rol
+Ctrl_Usuarios -[#D9730D]-> UI_Usuarios : <color:#D9730D><b>3.6</b> usuario, roles</color>
+deactivate Ctrl_Usuarios
+UI_Usuarios -[#D9730D]> UI_Usuarios : <color:#D9730D><b>3.7</b> mostrarFormulario(usuario, roles)</color>
+Administrador -[#D9730D]> UI_Usuarios : <color:#D9730D><b>3.8</b> guardar(nombres, apellidos, correo, nombreUsuario, contrasena, rol)</color>
+UI_Usuarios -[#D9730D]> Ctrl_Usuarios : <color:#D9730D><b>3.9</b> modificarUsuario(idUsuario, datos)</color>
+activate Ctrl_Usuarios
+Ctrl_Usuarios -[#D9730D]> Ctrl_Usuarios : <color:#D9730D><b>3.10</b> validarCampos(datos)</color>
+alt campos obligatorios vacios
+  Ctrl_Usuarios -[#D9730D]-> UI_Usuarios : <color:#D9730D><b>3.11</b> "Complete los campos obligatorios"</color>
+else campos completos
+  Ctrl_Usuarios -[#D9730D]> Usuario : <color:#D9730D><b>3.12</b> existeEnOtro(nombreUsuario, correo, idUsuario)</color>
+  activate Usuario
+  Usuario -[#D9730D]-> Ctrl_Usuarios : <color:#D9730D><b>3.13</b> existe</color>
+  deactivate Usuario
+  alt existe = verdadero
+    Ctrl_Usuarios -[#D9730D]-> UI_Usuarios : <color:#D9730D><b>3.14</b> "El nombre de usuario o correo ya esta registrado"</color>
+  else existe = falso
+    opt contrasena no vacia
+      Ctrl_Usuarios -[#D9730D]> Ctrl_Usuarios : <color:#D9730D><b>3.15</b> cifrarContrasena(contrasena)</color>
+    end
+    Ctrl_Usuarios -[#D9730D]> Usuario : <color:#D9730D><b>3.16</b> actualizar(idUsuario, datos, rol)</color>
+    activate Usuario
+    Usuario -[#D9730D]-> Ctrl_Usuarios : <color:#D9730D><b>3.17</b> ok</color>
+    deactivate Usuario
+    Ctrl_Usuarios -[#D9730D]> Bitacora : <color:#D9730D><b>3.18</b> registrar(administrador, "Modificar usuario", detalle, ip)</color>
+    activate Bitacora
+    Bitacora -[#D9730D]-> Ctrl_Usuarios : <color:#D9730D><b>3.19</b> ok</color>
+    deactivate Bitacora
+    Ctrl_Usuarios -[#D9730D]-> UI_Usuarios : <color:#D9730D><b>3.20</b> "Usuario actualizado"</color>
+  end
+end
+deactivate Ctrl_Usuarios
+UI_Usuarios -[#D9730D]> UI_Usuarios : <color:#D9730D><b>3.21</b> mostrarMensaje(mensaje)</color>
+== 4. Consultar usuario ==
+Administrador -[#2E8B57]> UI_Usuarios : <color:#2E8B57><b>4</b> buscar(texto)</color>
+UI_Usuarios -[#2E8B57]> Ctrl_Usuarios : <color:#2E8B57><b>4.1</b> buscarUsuarios(texto)</color>
+activate Ctrl_Usuarios
+Ctrl_Usuarios -[#2E8B57]> Usuario : <color:#2E8B57><b>4.2</b> buscar(texto)</color>
+activate Usuario
+Usuario -[#2E8B57]-> Ctrl_Usuarios : <color:#2E8B57><b>4.3</b> usuarios</color>
+deactivate Usuario
+alt usuarios vacio
+  Ctrl_Usuarios -[#2E8B57]-> UI_Usuarios : <color:#2E8B57><b>4.4</b> "No se encontraron usuarios"</color>
+else hay usuarios
+  Ctrl_Usuarios -[#2E8B57]-> UI_Usuarios : <color:#2E8B57><b>4.5</b> usuarios</color>
+end
+deactivate Ctrl_Usuarios
+UI_Usuarios -[#2E8B57]> UI_Usuarios : <color:#2E8B57><b>4.6</b> mostrarResultado(resultado)</color>
+== 5. Desactivar usuario ==
+Administrador -[#C0392B]> UI_Usuarios : <color:#C0392B><b>5</b> seleccionarDesactivar(idUsuario)</color>
+UI_Usuarios -[#C0392B]> UI_Usuarios : <color:#C0392B><b>5.1</b> mostrarConfirmacion()</color>
+Administrador -[#C0392B]> UI_Usuarios : <color:#C0392B><b>5.2</b> confirmar()</color>
+UI_Usuarios -[#C0392B]> Ctrl_Usuarios : <color:#C0392B><b>5.3</b> desactivarUsuario(idUsuario, idAdministrador)</color>
+activate Ctrl_Usuarios
+Ctrl_Usuarios -[#C0392B]> Ctrl_Usuarios : <color:#C0392B><b>5.4</b> esPropiaCuenta(idUsuario, idAdministrador)</color>
+alt propia cuenta
+  Ctrl_Usuarios -[#C0392B]-> UI_Usuarios : <color:#C0392B><b>5.5</b> "No puede desactivar su propia cuenta"</color>
+else otra cuenta
+  Ctrl_Usuarios -[#C0392B]> Usuario : <color:#C0392B><b>5.6</b> cambiarEstado(idUsuario, "inactivo")</color>
+  activate Usuario
+  Usuario -[#C0392B]-> Ctrl_Usuarios : <color:#C0392B><b>5.7</b> ok</color>
+  deactivate Usuario
+  Ctrl_Usuarios -[#C0392B]> Bitacora : <color:#C0392B><b>5.8</b> registrar(administrador, "Desactivar usuario", detalle, ip)</color>
+  activate Bitacora
+  Bitacora -[#C0392B]-> Ctrl_Usuarios : <color:#C0392B><b>5.9</b> ok</color>
+  deactivate Bitacora
+  Ctrl_Usuarios -[#C0392B]-> UI_Usuarios : <color:#C0392B><b>5.10</b> "Usuario desactivado"</color>
+end
+deactivate Ctrl_Usuarios
+UI_Usuarios -[#C0392B]> UI_Usuarios : <color:#C0392B><b>5.11</b> mostrarMensaje(mensaje)</color>
+== 6. Reactivar usuario ==
+Administrador -[#7D3C98]> UI_Usuarios : <color:#7D3C98><b>6</b> seleccionarActivar(idUsuario)</color>
+UI_Usuarios -[#7D3C98]> Ctrl_Usuarios : <color:#7D3C98><b>6.1</b> reactivarUsuario(idUsuario)</color>
+activate Ctrl_Usuarios
+Ctrl_Usuarios -[#7D3C98]> Usuario : <color:#7D3C98><b>6.2</b> cambiarEstado(idUsuario, "activo")</color>
+activate Usuario
+Usuario -[#7D3C98]-> Ctrl_Usuarios : <color:#7D3C98><b>6.3</b> ok</color>
+deactivate Usuario
+Ctrl_Usuarios -[#7D3C98]> Bitacora : <color:#7D3C98><b>6.4</b> registrar(administrador, "Reactivar usuario", detalle, ip)</color>
+activate Bitacora
+Bitacora -[#7D3C98]-> Ctrl_Usuarios : <color:#7D3C98><b>6.5</b> ok</color>
+deactivate Bitacora
+Ctrl_Usuarios -[#7D3C98]-> UI_Usuarios : <color:#7D3C98><b>6.6</b> "Usuario activado"</color>
+deactivate Ctrl_Usuarios
+UI_Usuarios -[#7D3C98]> UI_Usuarios : <color:#7D3C98><b>6.7</b> mostrarMensaje(mensaje)</color>
+== 7. Desbloquear cuenta ==
+Administrador -[#00838F]> UI_Usuarios : <color:#00838F><b>7</b> seleccionarDesbloquear(idUsuario)</color>
+UI_Usuarios -[#00838F]> Ctrl_Usuarios : <color:#00838F><b>7.1</b> desbloquearUsuario(idUsuario)</color>
+activate Ctrl_Usuarios
+Ctrl_Usuarios -[#00838F]> Usuario : <color:#00838F><b>7.2</b> desbloquear(idUsuario)</color>
+activate Usuario
+Usuario -[#00838F]-> Ctrl_Usuarios : <color:#00838F><b>7.3</b> ok</color>
+deactivate Usuario
+note right of Usuario : quita el bloqueo y\nreinicia intentosFallidos a 0
+Ctrl_Usuarios -[#00838F]> Bitacora : <color:#00838F><b>7.4</b> registrar(administrador, "Desbloquear cuenta", detalle, ip)</color>
+activate Bitacora
+Bitacora -[#00838F]-> Ctrl_Usuarios : <color:#00838F><b>7.5</b> ok</color>
+deactivate Bitacora
+Ctrl_Usuarios -[#00838F]-> UI_Usuarios : <color:#00838F><b>7.6</b> "Cuenta desbloqueada"</color>
+deactivate Ctrl_Usuarios
+UI_Usuarios -[#00838F]> UI_Usuarios : <color:#00838F><b>7.7</b> mostrarMensaje(mensaje)</color>
+deactivate UI_Usuarios
+@enduml

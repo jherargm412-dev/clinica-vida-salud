@@ -1,0 +1,66 @@
+@startuml
+title CU01 Gestionar Usuarios y Asignar Roles - Diagrama de secuencia (Modificar usuario)
+actor Administrador
+boundary UI_Usuarios
+control Ctrl_Usuarios
+entity Usuario
+entity Rol
+entity Bitacora
+autonumber
+Administrador -> UI_Usuarios : seleccionarGestionarUsuarios()
+activate UI_Usuarios
+UI_Usuarios -> Ctrl_Usuarios : obtenerUsuarios()
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Usuario : listar()
+activate Usuario
+Usuario --> Ctrl_Usuarios : usuarios
+deactivate Usuario
+Ctrl_Usuarios --> UI_Usuarios : usuarios
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarLista(usuarios)
+Administrador -> UI_Usuarios : seleccionarEditar(idUsuario)
+UI_Usuarios -> Ctrl_Usuarios : obtenerUsuario(idUsuario)
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Usuario : buscarPorId(idUsuario)
+activate Usuario
+Usuario --> Ctrl_Usuarios : usuario
+deactivate Usuario
+Ctrl_Usuarios -> Rol : listarActivos()
+activate Rol
+Rol --> Ctrl_Usuarios : roles
+deactivate Rol
+Ctrl_Usuarios --> UI_Usuarios : usuario, roles
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarFormulario(usuario, roles)
+Administrador -> UI_Usuarios : guardar(nombres, apellidos, correo, nombreUsuario, contrasena, rol)
+UI_Usuarios -> Ctrl_Usuarios : modificarUsuario(idUsuario, datos)
+activate Ctrl_Usuarios
+Ctrl_Usuarios -> Ctrl_Usuarios : validarCampos(datos)
+alt campos obligatorios vacios
+  Ctrl_Usuarios --> UI_Usuarios : "Complete los campos obligatorios"
+else campos completos
+  Ctrl_Usuarios -> Usuario : existeEnOtro(nombreUsuario, correo, idUsuario)
+  activate Usuario
+  Usuario --> Ctrl_Usuarios : existe
+  deactivate Usuario
+  alt existe = verdadero
+    Ctrl_Usuarios --> UI_Usuarios : "El nombre de usuario o correo ya esta registrado"
+  else existe = falso
+    opt contrasena no vacia
+      Ctrl_Usuarios -> Ctrl_Usuarios : cifrarContrasena(contrasena)
+    end
+    Ctrl_Usuarios -> Usuario : actualizar(idUsuario, datos, rol)
+    activate Usuario
+    Usuario --> Ctrl_Usuarios : ok
+    deactivate Usuario
+    Ctrl_Usuarios -> Bitacora : registrar(administrador, "Modificar usuario", detalle, ip)
+    activate Bitacora
+    Bitacora --> Ctrl_Usuarios : ok
+    deactivate Bitacora
+    Ctrl_Usuarios --> UI_Usuarios : "Usuario actualizado"
+  end
+end
+deactivate Ctrl_Usuarios
+UI_Usuarios -> UI_Usuarios : mostrarMensaje(mensaje)
+deactivate UI_Usuarios
+@enduml

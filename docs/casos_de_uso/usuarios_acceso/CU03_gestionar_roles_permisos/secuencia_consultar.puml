@@ -1,0 +1,30 @@
+@startuml
+title CU03 Gestionar Roles y Permisos - Diagrama de secuencia (Consultar rol)
+actor Administrador
+boundary UI_Roles
+control Ctrl_Roles
+entity Rol
+autonumber
+Administrador -> UI_Roles : seleccionarGestionarRoles()
+activate UI_Roles
+UI_Roles -> Ctrl_Roles : obtenerRoles()
+activate Ctrl_Roles
+Ctrl_Roles -> Rol : listar()
+activate Rol
+Rol --> Ctrl_Roles : roles
+deactivate Rol
+Ctrl_Roles --> UI_Roles : roles
+deactivate Ctrl_Roles
+UI_Roles -> UI_Roles : mostrarLista(roles)
+Administrador -> UI_Roles : seleccionarVer(idRol)
+UI_Roles -> Ctrl_Roles : obtenerRol(idRol)
+activate Ctrl_Roles
+Ctrl_Roles -> Rol : buscarConPermisos(idRol)
+activate Rol
+Rol --> Ctrl_Roles : rol
+deactivate Rol
+Ctrl_Roles --> UI_Roles : rol
+deactivate Ctrl_Roles
+UI_Roles -> UI_Roles : mostrarDetalle(rol)
+deactivate UI_Roles
+@enduml

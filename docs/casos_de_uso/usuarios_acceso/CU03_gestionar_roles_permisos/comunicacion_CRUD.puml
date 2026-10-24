@@ -1,0 +1,27 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+skinparam nodesep 40
+skinparam ranksep 120
+title CU03 Gestionar Roles y Permisos - Diagrama de comunicacion (CRUD completo)
+actor Administrador
+boundary UI_Roles
+control Ctrl_Roles
+entity Permiso
+entity Rol
+entity Usuario
+entity Bitacora
+Administrador -- UI_Roles : "<color:#000000>1: solicitar gestion de roles →</color>\n<color:#1F5FBF>2: solicitar nuevo rol →</color>\n<color:#1F5FBF>2.4: ingresar datos, marcar permisos y guardar →</color>\n<color:#D9730D>3: seleccionar rol y editar →</color>\n<color:#D9730D>3.5: modificar datos, permisos y guardar →</color>\n<color:#2E8B57>4: seleccionar rol y ver →</color>\n<color:#C0392B>5: seleccionar rol y deshabilitar →</color>\n<color:#C0392B>5.1: confirmar deshabilitacion →</color>"
+UI_Roles -- Ctrl_Roles : "<color:#000000>1.1: obtener lista de roles →</color>\n<color:#000000>1.3: mostrar lista de roles ←</color>\n<color:#1F5FBF>2.1: obtener permisos →</color>\n<color:#1F5FBF>2.3: mostrar formulario ←</color>\n<color:#1F5FBF>2.5: registrar rol →</color>\n<color:#1F5FBF>2.9: mostrar rol registrado ←</color>\n<color:#D9730D>3.1: obtener datos del rol →</color>\n<color:#D9730D>3.4: mostrar datos del rol ←</color>\n<color:#D9730D>3.6: modificar rol →</color>\n<color:#D9730D>3.10: mostrar rol actualizado ←</color>\n<color:#2E8B57>4.1: obtener datos del rol →</color>\n<color:#2E8B57>4.3: mostrar datos del rol ←</color>\n<color:#C0392B>5.2: deshabilitar rol →</color>\n<color:#C0392B>5.6: mostrar rol deshabilitado ←</color>"
+Ctrl_Roles -- Permiso : "<color:#1F5FBF>2.2: listar permisos →</color>\n<color:#D9730D>3.3: listar permisos →</color>"
+Ctrl_Roles -- Rol : "<color:#000000>1.2: listar roles →</color>\n<color:#1F5FBF>2.6: verificar nombre unico →</color>\n<color:#1F5FBF>2.7: guardar rol con permisos →</color>\n<color:#D9730D>3.2: obtener rol con permisos →</color>\n<color:#D9730D>3.7: verificar nombre unico →</color>\n<color:#D9730D>3.8: actualizar rol →</color>\n<color:#2E8B57>4.2: obtener rol con permisos →</color>\n<color:#C0392B>5.4: cambiar estado →</color>"
+Ctrl_Roles -- Usuario : "<color:#C0392B>5.3: contar usuarios activos por rol →</color>"
+Ctrl_Roles -- Bitacora : "<color:#1F5FBF>2.8: registrar accion →</color>\n<color:#D9730D>3.9: registrar accion →</color>\n<color:#C0392B>5.5: registrar accion →</color>"
+legend right
+<color:#000000>1: Listar</color>
+<color:#1F5FBF>2: Registrar</color>
+<color:#D9730D>3: Modificar</color>
+<color:#2E8B57>4: Consultar</color>
+<color:#C0392B>5: Deshabilitar</color>
+endlegend
+@enduml

@@ -1,0 +1,12 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU03 Gestionar Roles y Permisos - Diagrama de comunicacion (Consultar rol)
+actor Administrador
+boundary UI_Roles
+control Ctrl_Roles
+entity Rol
+Administrador -- UI_Roles : "1: solicitar gestion de roles →\n5: seleccionar rol y ver →"
+UI_Roles -- Ctrl_Roles : "2: obtener lista de roles →\n4: mostrar lista de roles ←\n6: obtener datos del rol →\n8: mostrar datos del rol ←"
+Ctrl_Roles -- Rol : "3: listar roles →\n7: obtener rol con permisos →"
+@enduml

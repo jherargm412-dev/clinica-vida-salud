@@ -1,0 +1,28 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+skinparam nodesep 40
+skinparam ranksep 120
+title CU10 Gestionar Medico - Diagrama de comunicacion (CRUD completo)
+actor Administrador
+boundary UI_Medicos
+control Ctrl_Medicos
+entity Especialidad
+entity Medico
+entity Usuario
+entity Bitacora
+Administrador -- UI_Medicos : "<color:#000000>1: solicitar gestion de medicos →</color>\n<color:#1F5FBF>2: solicitar nuevo medico →</color>\n<color:#1F5FBF>2.5: ingresar datos, marcar especialidades, elegir cuenta y guardar →</color>\n<color:#D9730D>3: seleccionar medico y editar →</color>\n<color:#D9730D>3.6: modificar datos y guardar →</color>\n<color:#2E8B57>4: ingresar nombre o especialidad y buscar →</color>\n<color:#C0392B>5: seleccionar medico y desactivar →</color>\n<color:#C0392B>5.1: confirmar desactivacion →</color>\n<color:#7D3C98>6: seleccionar medico inactivo y activar →</color>"
+UI_Medicos -- Ctrl_Medicos : "<color:#000000>1.1: obtener lista de medicos →</color>\n<color:#000000>1.3: mostrar lista de medicos ←</color>\n<color:#1F5FBF>2.1: obtener especialidades y cuentas →</color>\n<color:#1F5FBF>2.4: mostrar formulario ←</color>\n<color:#1F5FBF>2.6: registrar medico →</color>\n<color:#1F5FBF>2.11: mostrar medico registrado ←</color>\n<color:#D9730D>3.1: obtener datos del medico →</color>\n<color:#D9730D>3.5: mostrar datos del medico ←</color>\n<color:#D9730D>3.7: modificar medico →</color>\n<color:#D9730D>3.11: mostrar medico actualizado ←</color>\n<color:#2E8B57>4.1: buscar medicos →</color>\n<color:#2E8B57>4.3: mostrar resultados ←</color>\n<color:#C0392B>5.2: desactivar medico →</color>\n<color:#C0392B>5.5: mostrar medico desactivado ←</color>\n<color:#7D3C98>6.1: activar medico →</color>\n<color:#7D3C98>6.4: mostrar medico activado ←</color>"
+Ctrl_Medicos -- Especialidad : "<color:#1F5FBF>2.2: listar especialidades activas →</color>\n<color:#D9730D>3.3: listar especialidades activas →</color>"
+Ctrl_Medicos -- Medico : "<color:#000000>1.2: listar medicos →</color>\n<color:#1F5FBF>2.7: verificar registro profesional unico →</color>\n<color:#1F5FBF>2.8: generar codigo →</color>\n<color:#1F5FBF>2.9: guardar medico →</color>\n<color:#D9730D>3.2: obtener medico →</color>\n<color:#D9730D>3.8: verificar registro profesional unico →</color>\n<color:#D9730D>3.9: actualizar medico →</color>\n<color:#2E8B57>4.2: buscar medicos →</color>\n<color:#C0392B>5.3: cambiar estado →</color>\n<color:#7D3C98>6.2: cambiar estado →</color>"
+Ctrl_Medicos -- Usuario : "<color:#1F5FBF>2.3: listar usuarios medicos sin vincular →</color>\n<color:#D9730D>3.4: listar usuarios medicos sin vincular →</color>"
+Ctrl_Medicos -- Bitacora : "<color:#1F5FBF>2.10: registrar accion →</color>\n<color:#D9730D>3.10: registrar accion →</color>\n<color:#C0392B>5.4: registrar accion →</color>\n<color:#7D3C98>6.3: registrar accion →</color>"
+legend right
+<color:#000000>1: Listar</color>
+<color:#1F5FBF>2: Registrar</color>
+<color:#D9730D>3: Modificar</color>
+<color:#2E8B57>4: Consultar</color>
+<color:#C0392B>5: Desactivar</color>
+<color:#7D3C98>6: Activar</color>
+endlegend
+@enduml

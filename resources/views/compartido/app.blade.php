@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
+    @include('compartido._tema')
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('titulo', 'Inicio') · {{ config('app.name') }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
@@ -23,6 +24,12 @@
                 </a>
             </div>
 
+            <div class="d-flex align-items-center gap-1">
+            {{-- Modo claro / oscuro (public/js/app.js, punto 6) --}}
+            <button type="button" class="btn btn-link text-white px-2" data-cambiar-tema
+                    title="Cambiar a modo oscuro / claro" aria-label="Cambiar entre modo claro y oscuro">
+                <i class="bi bi-moon-stars fs-5"></i>
+            </button>
             <div class="dropdown">
                 <button class="btn btn-link text-white text-decoration-none dropdown-toggle d-flex align-items-center gap-2"
                         data-bs-toggle="dropdown" aria-expanded="false">
@@ -35,7 +42,9 @@
                         <small class="text-muted">{{ auth()->user()->rol->nombre ?? '' }} · {{ auth()->user()->nombre_usuario }}</small>
                     </li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><span class="dropdown-item disabled"><i class="bi bi-person me-2"></i>Mi perfil <small>(próximamente)</small></span></li>
+                    {{-- CU04 Configurar perfil de usuario --}}
+                    <li><a class="dropdown-item" href="{{ route('perfil.ver') }}"><i class="bi bi-person me-2"></i>Mi perfil</a></li>
+                    <li><a class="dropdown-item" href="{{ route('perfil.ver') }}#cambiar-contrasena"><i class="bi bi-key me-2"></i>Cambiar contraseña</a></li>
                     <li>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -43,6 +52,7 @@
                         </form>
                     </li>
                 </ul>
+            </div>
             </div>
         </div>
     </nav>

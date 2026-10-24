@@ -1,0 +1,61 @@
+@startuml
+title CU03 Gestionar Roles y Permisos - Diagrama de secuencia (Registrar rol)
+actor Administrador
+boundary UI_Roles
+control Ctrl_Roles
+entity Rol
+entity Permiso
+entity Bitacora
+autonumber
+Administrador -> UI_Roles : seleccionarGestionarRoles()
+activate UI_Roles
+UI_Roles -> Ctrl_Roles : obtenerRoles()
+activate Ctrl_Roles
+Ctrl_Roles -> Rol : listar()
+activate Rol
+Rol --> Ctrl_Roles : roles
+deactivate Rol
+Ctrl_Roles --> UI_Roles : roles
+deactivate Ctrl_Roles
+UI_Roles -> UI_Roles : mostrarLista(roles)
+Administrador -> UI_Roles : seleccionarNuevoRol()
+UI_Roles -> Ctrl_Roles : obtenerPermisos()
+activate Ctrl_Roles
+Ctrl_Roles -> Permiso : listar()
+activate Permiso
+Permiso --> Ctrl_Roles : permisos
+deactivate Permiso
+Ctrl_Roles --> UI_Roles : permisos
+deactivate Ctrl_Roles
+UI_Roles -> UI_Roles : mostrarFormulario(permisos)
+Administrador -> UI_Roles : guardar(nombre, descripcion, permisosMarcados)
+UI_Roles -> Ctrl_Roles : registrarRol(nombre, descripcion, permisosMarcados)
+activate Ctrl_Roles
+Ctrl_Roles -> Ctrl_Roles : validarDatos(nombre, permisosMarcados)
+alt nombre vacio
+  Ctrl_Roles --> UI_Roles : "Ingrese el nombre del rol"
+else ningun permiso marcado
+  Ctrl_Roles --> UI_Roles : "Seleccione al menos un permiso"
+else datos completos
+  Ctrl_Roles -> Rol : existeNombre(nombre)
+  activate Rol
+  Rol --> Ctrl_Roles : existe
+  deactivate Rol
+  alt existe = verdadero
+    Ctrl_Roles --> UI_Roles : "Ya existe un rol con ese nombre"
+  else existe = falso
+    Ctrl_Roles -> Rol : guardar(nombre, descripcion, permisosMarcados)
+    activate Rol
+    Rol --> Ctrl_Roles : rol
+    deactivate Rol
+    Ctrl_Roles -> Bitacora : registrar(administrador, "Registrar rol", detalle, ip)
+    activate Bitacora
+    Bitacora --> Ctrl_Roles : ok
+    deactivate Bitacora
+    Ctrl_Roles --> UI_Roles : "Rol registrado"
+  end
+end
+deactivate Ctrl_Roles
+UI_Roles -> UI_Roles : mostrarMensaje(mensaje)
+deactivate UI_Roles
+@enduml

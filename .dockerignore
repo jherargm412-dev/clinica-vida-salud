@@ -1,0 +1,26 @@
+# Archivos que NO se copian a la imagen de Docker
+.git
+.github
+.env
+.env.*
+!.env.example
+vendor
+node_modules
+Claude outputs
+CLAUDE.md
+docs
+tests
+.DS_Store
+.vscode
+.idea
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Caché y archivos generados en la Mac (se generan de nuevo dentro del contenedor)
+bootstrap/cache/*.php
+storage/logs/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/cache/*
+storage/framework/testing/*

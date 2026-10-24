@@ -1,0 +1,44 @@
+@startuml
+title CU05 Consultar Bitacora - Diagrama de secuencia (Buscar con filtros)
+actor Administrador
+boundary UI_Bitacora
+control Ctrl_Bitacora
+entity Bitacora
+entity Usuario
+autonumber
+Administrador -> UI_Bitacora : seleccionarBitacora()
+activate UI_Bitacora
+UI_Bitacora -> Ctrl_Bitacora : obtenerRegistros()
+activate Ctrl_Bitacora
+Ctrl_Bitacora -> Bitacora : listarRecientes()
+activate Bitacora
+Bitacora --> Ctrl_Bitacora : registros
+deactivate Bitacora
+Ctrl_Bitacora -> Usuario : listar()
+activate Usuario
+Usuario --> Ctrl_Bitacora : usuarios
+deactivate Usuario
+Ctrl_Bitacora --> UI_Bitacora : registros, usuarios
+deactivate Ctrl_Bitacora
+UI_Bitacora -> UI_Bitacora : mostrarRegistros(registros, usuarios)
+Administrador -> UI_Bitacora : buscar(usuario, fechaInicial, fechaFinal, tipoAccion)
+UI_Bitacora -> Ctrl_Bitacora : buscarRegistros(usuario, fechaInicial, fechaFinal, tipoAccion)
+activate Ctrl_Bitacora
+Ctrl_Bitacora -> Ctrl_Bitacora : validarRangoFechas(fechaInicial, fechaFinal)
+alt fechaFinal < fechaInicial
+  Ctrl_Bitacora --> UI_Bitacora : "La fecha final no puede ser anterior a la fecha inicial"
+else rango valido
+  Ctrl_Bitacora -> Bitacora : filtrar(usuario, fechaInicial, fechaFinal, tipoAccion)
+  activate Bitacora
+  Bitacora --> Ctrl_Bitacora : registros
+  deactivate Bitacora
+  alt registros vacio
+    Ctrl_Bitacora --> UI_Bitacora : "No se encontraron registros"
+  else hay registros
+    Ctrl_Bitacora --> UI_Bitacora : registros
+  end
+end
+deactivate Ctrl_Bitacora
+UI_Bitacora -> UI_Bitacora : mostrarResultado(resultado)
+deactivate UI_Bitacora
+@enduml

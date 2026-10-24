@@ -1,0 +1,70 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+skinparam nodesep 60
+skinparam ranksep 110
+hide circle
+title CU10 Gestionar Medico - Diagrama de clases de analisis
+class UI_Medicos <<boundary>> {
+  --
+  mostrar lista de medicos
+  mostrar formulario
+  mostrar confirmacion
+  mostrar mensaje
+}
+class Ctrl_Medicos <<control>> {
+  --
+  obtener lista de medicos
+  obtener especialidades y cuentas
+  registrar medico
+  obtener datos del medico
+  modificar medico
+  buscar medicos
+  desactivar medico
+  activar medico
+}
+class Especialidad <<entity>> {
+  nombre
+  estado
+  --
+  listar especialidades activas
+}
+class Medico <<entity>> {
+  codigo
+  registroProfesional
+  telefono
+  estado
+  --
+  listar medicos
+  verificar registro profesional unico
+  generar codigo
+  guardar medico
+  obtener medico
+  actualizar medico
+  buscar medicos
+  cambiar estado
+}
+class Usuario <<entity>> {
+  nombreUsuario
+  nombres
+  apellidos
+  correo
+  --
+  listar usuarios medicos sin vincular
+}
+class Bitacora <<entity>> {
+  fechaHora
+  accion
+  detalle
+  ip
+  --
+  registrar accion
+}
+UI_Medicos -- Ctrl_Medicos
+Ctrl_Medicos -- Especialidad
+Ctrl_Medicos -- Medico
+Ctrl_Medicos -- Usuario
+Ctrl_Medicos -- Bitacora
+Especialidad "1..*" -[norank]- "*" Medico
+Medico "0..1" -[norank]- "1" Usuario
+@enduml

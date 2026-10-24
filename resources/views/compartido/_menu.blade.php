@@ -3,6 +3,10 @@
     <a class="nav-link {{ request()->routeIs('inicio') ? 'active' : '' }}" href="{{ route('inicio') }}">
         <i class="bi bi-house"></i> Inicio
     </a>
+    {{-- CU04 Configurar perfil de usuario: visible para todos (no depende de permisos) --}}
+    <a class="nav-link {{ request()->routeIs('perfil.*') ? 'active' : '' }}" href="{{ route('perfil.ver') }}">
+        <i class="bi bi-person-gear"></i> Mi perfil
+    </a>
 
     <div class="seccion">Módulos</div>
     @foreach (auth()->user()->modulosPermitidos() as $modulo)

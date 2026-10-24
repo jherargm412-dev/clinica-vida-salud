@@ -1,0 +1,16 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU01 Gestionar Usuarios y Asignar Roles - Diagrama de comunicacion (Registrar usuario)
+actor Administrador
+boundary UI_Usuarios
+control Ctrl_Usuarios
+entity Usuario
+entity Rol
+entity Bitacora
+Administrador -- UI_Usuarios : "1: solicitar gestion de usuarios →\n5: solicitar nuevo usuario →\n9: ingresar datos y guardar →"
+UI_Usuarios -- Ctrl_Usuarios : "2: obtener lista de usuarios →\n4: mostrar lista de usuarios ←\n6: obtener roles →\n8: mostrar formulario ←\n10: registrar usuario →\n14: mostrar usuario registrado ←"
+Ctrl_Usuarios -- Usuario : "3: listar usuarios →\n11: verificar usuario y correo unicos →\n12: guardar usuario →"
+Ctrl_Usuarios -- Rol : "7: listar roles activos →"
+Ctrl_Usuarios -- Bitacora : "13: registrar accion →"
+@enduml

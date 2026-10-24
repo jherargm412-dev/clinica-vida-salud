@@ -1,0 +1,40 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam packageStyle folder
+skinparam ArrowColor #6B6B6B
+skinparam frame {
+  BackgroundColor #FFFFFF
+  BorderColor #555555
+}
+skinparam package {
+  BackgroundColor #F8ECE6
+  BorderColor #6B6B6B
+}
+skinparam usecase {
+  BackgroundColor #DCEBFA
+  BorderColor #4A6FA5
+  FontSize 11
+}
+skinparam actor {
+  BackgroundColor #FBE7C6
+  BorderColor #6B6B6B
+}
+frame "uc Paquete4 citas" {
+  package citas {
+  }
+  usecase "CU16 Controlar Estado y\nAsistencia de Cita" as CU16
+  usecase "CU15 Cancelar Cita" as CU15
+  usecase "CU14 Reprogramar Cita" as CU14
+  usecase "CU13 Registrar Cita" as CU13
+  usecase "CU12 Consultar\nDisponibilidad" as CU12
+  citas ..> CU16 : <<trace>>
+  citas ..> CU15 : <<trace>>
+  citas ..> CU14 : <<trace>>
+  citas ..> CU13 : <<trace>>
+  citas ..> CU12 : <<trace>>
+  CU13 ..> CU12 : <<include>>
+  CU14 ..> CU12 : <<include>>
+}
+@enduml

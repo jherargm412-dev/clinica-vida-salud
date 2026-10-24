@@ -1,0 +1,16 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU03 Gestionar Roles y Permisos - Diagrama de comunicacion (Deshabilitar rol)
+actor Administrador
+boundary UI_Roles
+control Ctrl_Roles
+entity Rol
+entity Usuario
+entity Bitacora
+Administrador -- UI_Roles : "1: solicitar gestion de roles →\n5: seleccionar rol y deshabilitar →\n6: confirmar deshabilitacion →"
+UI_Roles -- Ctrl_Roles : "2: obtener lista de roles →\n4: mostrar lista de roles ←\n7: deshabilitar rol →\n11: mostrar rol deshabilitado ←"
+Ctrl_Roles -- Rol : "3: listar roles →\n9: cambiar estado →"
+Ctrl_Roles -- Usuario : "8: contar usuarios activos por rol →"
+Ctrl_Roles -- Bitacora : "10: registrar accion →"
+@enduml

@@ -1,0 +1,51 @@
+@startuml
+title CU03 Gestionar Roles y Permisos - Diagrama de secuencia (Deshabilitar rol)
+actor Administrador
+boundary UI_Roles
+control Ctrl_Roles
+entity Rol
+entity Usuario
+entity Bitacora
+autonumber
+Administrador -> UI_Roles : seleccionarGestionarRoles()
+activate UI_Roles
+UI_Roles -> Ctrl_Roles : obtenerRoles()
+activate Ctrl_Roles
+Ctrl_Roles -> Rol : listar()
+activate Rol
+Rol --> Ctrl_Roles : roles
+deactivate Rol
+Ctrl_Roles --> UI_Roles : roles
+deactivate Ctrl_Roles
+UI_Roles -> UI_Roles : mostrarLista(roles)
+Administrador -> UI_Roles : seleccionarDeshabilitar(idRol)
+UI_Roles -> UI_Roles : mostrarConfirmacion()
+Administrador -> UI_Roles : confirmar()
+UI_Roles -> Ctrl_Roles : deshabilitarRol(idRol)
+activate Ctrl_Roles
+Ctrl_Roles -> Ctrl_Roles : esRolAdministrador(idRol)
+alt es rol Administrador
+  Ctrl_Roles --> UI_Roles : "El rol Administrador no se puede deshabilitar"
+else otro rol
+  Ctrl_Roles -> Usuario : contarActivosPorRol(idRol)
+  activate Usuario
+  Usuario --> Ctrl_Roles : cantidad
+  deactivate Usuario
+  alt cantidad > 0
+    Ctrl_Roles --> UI_Roles : "El rol tiene usuarios activos asignados"
+  else cantidad = 0
+    Ctrl_Roles -> Rol : cambiarEstado(idRol, "inactivo")
+    activate Rol
+    Rol --> Ctrl_Roles : ok
+    deactivate Rol
+    Ctrl_Roles -> Bitacora : registrar(administrador, "Deshabilitar rol", detalle, ip)
+    activate Bitacora
+    Bitacora --> Ctrl_Roles : ok
+    deactivate Bitacora
+    Ctrl_Roles --> UI_Roles : "Rol deshabilitado"
+  end
+end
+deactivate Ctrl_Roles
+UI_Roles -> UI_Roles : mostrarMensaje(mensaje)
+deactivate UI_Roles
+@enduml

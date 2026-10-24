@@ -1,0 +1,14 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+title CU09 Gestionar Especialidad - Diagrama de comunicacion (Registrar especialidad)
+actor Administrador
+boundary UI_Especialidades
+control Ctrl_Especialidades
+entity Especialidad
+entity Bitacora
+Administrador -- UI_Especialidades : "1: solicitar gestion de especialidades →\n5: solicitar nueva especialidad →\n6: ingresar datos y guardar →"
+UI_Especialidades -- Ctrl_Especialidades : "2: obtener lista de especialidades →\n4: mostrar lista de especialidades ←\n7: registrar especialidad →\n11: mostrar especialidad registrada ←"
+Ctrl_Especialidades -- Especialidad : "3: listar especialidades →\n8: verificar nombre unico →\n9: guardar especialidad →"
+Ctrl_Especialidades -- Bitacora : "10: registrar accion →"
+@enduml

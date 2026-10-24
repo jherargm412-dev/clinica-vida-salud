@@ -1,0 +1,16 @@
+@startuml
+left to right direction
+actor Administrador
+actor Recepcionista
+actor "Médico" as Medico
+actor Paciente
+actor Usuario
+Administrador --|> Usuario
+Recepcionista --|> Usuario
+Medico --|> Usuario
+Paciente --|> Usuario
+rectangle "Sistema de gestión de citas médicas" {
+  usecase "CU02 Iniciar Sesión" as CU02
+}
+Usuario -- CU02
+@enduml

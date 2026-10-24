@@ -96,6 +96,7 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
+            'timezone' => env('DB_TIMEZONE', 'America/La_Paz'),   // CURRENT_TIMESTAMP en hora de Bolivia (también en Railway)
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
