@@ -5,28 +5,42 @@
 
 @section('contenido')
     <div class="mb-3">
-        <h1 class="h3 fw-semibold mb-1">Consultar disponibilidad</h1>
+        <h1 class="h3 fw-semibold mb-1">{{ $idCitaExcluir ? 'Seleccionar nuevo horario' : 'Consultar disponibilidad' }}</h1>
         <p class="text-muted mb-0">Consulta los horarios libres por especialidad, médico y fecha.</p>
     </div>
+
+    @if ($horariosDisponibles !== null && $horariosDisponibles->isNotEmpty()
+        && $horariosDisponibles->every(fn ($disponibilidad) => empty($disponibilidad['bloques'])))
+        <div class="alert alert-info">No hay horarios disponibles para esta fecha.</div>
+    @endif
 
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
             <h2 class="h5 fw-semibold">1. Seleccionar especialidad</h2>
             <form method="GET" action="{{ route('disponibilidad.medicos') }}" class="row g-3 align-items-end">
+                @if ($idCitaExcluir)
+                    <input type="hidden" name="id_cita" value="{{ $idCitaExcluir }}">
+                    <input type="hidden" name="id_medico" value="{{ $medicoSeleccionado?->id_medico }}">
+                @endif
                 @if ($idPaciente)
                     <input type="hidden" name="id_paciente" value="{{ $idPaciente }}">
                 @endif
                 <div class="col-md-8">
                     <label for="id_especialidad" class="form-label">Especialidad</label>
-                    <select id="id_especialidad" name="id_especialidad" class="form-select" required>
-                        <option value="">Seleccione una especialidad</option>
-                        @foreach ($especialidades as $especialidad)
-                            <option value="{{ $especialidad->id_especialidad }}"
-                                @selected((int) ($especialidadSeleccionada?->id_especialidad ?? 0) === (int) $especialidad->id_especialidad)>
-                                {{ $especialidad->nombre }}
-                            </option>
-                        @endforeach
-                    </select>
+                    @if ($idCitaExcluir)
+                        <input type="hidden" name="id_especialidad" value="{{ $especialidadSeleccionada->id_especialidad }}">
+                        <div class="form-control bg-body-secondary">{{ $especialidadSeleccionada->nombre }}</div>
+                    @else
+                        <select id="id_especialidad" name="id_especialidad" class="form-select" required>
+                            <option value="">Seleccione una especialidad</option>
+                            @foreach ($especialidades as $especialidad)
+                                <option value="{{ $especialidad->id_especialidad }}"
+                                    @selected((int) ($especialidadSeleccionada?->id_especialidad ?? 0) === (int) $especialidad->id_especialidad)>
+                                    {{ $especialidad->nombre }}
+                                </option>
+                            @endforeach
+                        </select>
+                    @endif
                     @error('id_especialidad') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                 </div>
                 <div class="col-md-4">
@@ -45,20 +59,28 @@
                 <p class="text-muted">Especialidad: {{ $especialidadSeleccionada->nombre }}</p>
                 <form method="GET" action="{{ route('disponibilidad.horarios') }}" class="row g-3 align-items-end">
                     <input type="hidden" name="id_especialidad" value="{{ $especialidadSeleccionada->id_especialidad }}">
+                    @if ($idCitaExcluir)
+                        <input type="hidden" name="id_cita" value="{{ $idCitaExcluir }}">
+                    @endif
                     @if ($idPaciente)
                         <input type="hidden" name="id_paciente" value="{{ $idPaciente }}">
                     @endif
                     <div class="col-md-5">
                         <label for="id_medico" class="form-label">Médico</label>
-                        <select id="id_medico" name="id_medico" class="form-select" required>
-                            <option value="">Seleccione un médico</option>
-                            @foreach ($medicos ?? [] as $medico)
-                                <option value="{{ $medico->id_medico }}"
-                                    @selected((int) ($medicoSeleccionado?->id_medico ?? 0) === (int) $medico->id_medico)>
-                                    {{ $medico->nombre_completo }} ({{ $medico->codigo }})
-                                </option>
-                            @endforeach
-                        </select>
+                        @if ($idCitaExcluir)
+                            <input type="hidden" name="id_medico" value="{{ $medicoSeleccionado->id_medico }}">
+                            <div class="form-control bg-body-secondary">{{ $medicoSeleccionado->nombre_completo }} ({{ $medicoSeleccionado->codigo }})</div>
+                        @else
+                            <select id="id_medico" name="id_medico" class="form-select" required>
+                                <option value="">Seleccione un médico</option>
+                                @foreach ($medicos ?? [] as $medico)
+                                    <option value="{{ $medico->id_medico }}"
+                                        @selected((int) ($medicoSeleccionado?->id_medico ?? 0) === (int) $medico->id_medico)>
+                                        {{ $medico->nombre_completo }} ({{ $medico->codigo }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        @endif
                         @error('id_medico') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                     </div>
                     <div class="col-md-4">
@@ -98,14 +120,23 @@
                         @if ($disponibilidad['bloques'])
                             <div class="d-flex flex-wrap gap-2">
                                 @foreach ($disponibilidad['bloques'] as $bloque)
-                                    <a href="{{ route('citas.crear', array_filter([
-                                        'id_paciente' => $idPaciente,
-                                        'id_especialidad' => $especialidadSeleccionada->id_especialidad,
-                                        'id_medico' => $medicoSeleccionado->id_medico,
-                                        'fecha' => $fecha,
-                                        'hora_inicio' => $bloque['hora_inicio'],
-                                        'hora_fin' => $bloque['hora_fin'],
-                                    ], fn ($valor) => $valor !== null)) }}"
+                                    <a href="{{ $idCitaExcluir
+                                        ? route('citas.reprogramar.editar', array_merge(
+                                            ['cita' => $idCitaExcluir],
+                                            [
+                                                'nueva_fecha' => $fecha,
+                                                'nueva_hora_inicio' => $bloque['hora_inicio'],
+                                                'nueva_hora_fin' => $bloque['hora_fin'],
+                                            ]
+                                        ))
+                                        : route('citas.crear', array_filter([
+                                            'id_paciente' => $idPaciente,
+                                            'id_especialidad' => $especialidadSeleccionada->id_especialidad,
+                                            'id_medico' => $medicoSeleccionado->id_medico,
+                                            'fecha' => $fecha,
+                                            'hora_inicio' => $bloque['hora_inicio'],
+                                            'hora_fin' => $bloque['hora_fin'],
+                                        ], fn ($valor) => $valor !== null)) }}"
                                        class="badge text-bg-success fs-6 fw-normal text-decoration-none">
                                         {{ $bloque['hora_inicio'] }}–{{ $bloque['hora_fin'] }}
                                         <span class="visually-hidden">Elegir este horario</span>

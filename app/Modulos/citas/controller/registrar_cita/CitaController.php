@@ -5,12 +5,14 @@ namespace App\Modulos\citas\controller\registrar_cita;
 use App\Http\Controllers\Controller;
 use App\Modulos\citas\models\Cita;
 use App\Modulos\citas\request\registrar_cita\RegistrarCitaRequest;
+use App\Modulos\citas\request\registrar_cita\ReprogramarCitaRequest;
 use App\Modulos\medicos_especialidades\models\Especialidad;
 use App\Modulos\medicos_especialidades\models\HorarioAtencion;
 use App\Modulos\medicos_especialidades\models\Medico;
 use App\Modulos\pacientes\models\Paciente;
 use App\Modulos\usuarios_acceso\models\Bitacora;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\View as ViewContract;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -213,6 +215,182 @@ class CitaController extends Controller
 
         return redirect()->route('citas.confirmacion', $resultado['id_cita'])
             ->with('ok', 'Cita registrada');
+    }
+
+    public function listarCitasReprogramables(): View
+    {
+        return $this->vistaCitasReprogramables('', '');
+    }
+
+    public function buscarCitasReprogramables(Request $request): View
+    {
+        $filtros = $request->validate([
+            'texto' => ['nullable', 'string', 'max:100'],
+            'fecha' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+
+        return $this->vistaCitasReprogramables(
+            $filtros['texto'] ?? '',
+            $filtros['fecha'] ?? ''
+        );
+    }
+
+    private function vistaCitasReprogramables(string $texto, string $fecha): View
+    {
+        $citas = Cita::buscarReprogramables($texto ?: null, $fecha ?: null)
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('citas.reprogramar_cita.index', [
+            'citas' => $citas,
+            'texto' => $texto,
+            'fecha' => $fecha,
+        ]);
+    }
+
+    public function obtenerCitaReprogramable(Cita $cita, Request $request): View|RedirectResponse
+    {
+        $cita = Cita::obtenerDetallePorId($cita->id_cita);
+        abort_unless($cita, 404);
+
+        if (! $this->esReprogramable($cita)) {
+            return redirect()->route('citas.reprogramar.index')
+                ->with('error', $cita->estado === 'Atendida' || $cita->estado === 'Cancelada' || $cita->estado === 'Inasistencia'
+                    ? 'Esta cita no puede reprogramarse, registre una nueva cita.'
+                    : 'No se puede reprogramar una cita pasada.');
+        }
+
+        $seleccion = $request->validate([
+            'nueva_fecha' => ['nullable', 'date_format:Y-m-d'],
+            'nueva_hora_inicio' => ['nullable', 'date_format:H:i'],
+            'nueva_hora_fin' => ['nullable', 'date_format:H:i'],
+        ]);
+        $horarioSeleccionado = isset($seleccion['nueva_fecha'], $seleccion['nueva_hora_inicio'], $seleccion['nueva_hora_fin'])
+            ? $seleccion
+            : null;
+
+        return view('citas.reprogramar_cita.formulario', [
+            'cita' => $cita,
+            'horarioSeleccionado' => $horarioSeleccionado,
+            'urlDisponibilidad' => route('disponibilidad.index', [
+                'id_cita' => $cita->id_cita,
+                'id_especialidad' => $cita->id_especialidad,
+                'id_medico' => $cita->id_medico,
+            ]),
+        ]);
+    }
+
+    public function reprogramarCita(ReprogramarCitaRequest $request, Cita $cita): RedirectResponse
+    {
+        $datos = $request->validated();
+        $nuevaFecha = $datos['nueva_fecha'];
+        $nuevaHoraInicio = $datos['nueva_hora_inicio'].':00';
+        $nuevaHoraFin = $datos['nueva_hora_fin'].':00';
+        $idCita = $cita->id_cita;
+
+        $resultado = DB::transaction(function () use (
+            $idCita,
+            $nuevaFecha,
+            $nuevaHoraInicio,
+            $nuevaHoraFin
+        ): array {
+            $cita = Cita::query()->whereKey($idCita)->lockForUpdate()->first();
+            if (! $cita) {
+                return ['error' => 'No se encontró la cita para reprogramar.', 'tipo' => 'cita'];
+            }
+
+            if (! $this->esReprogramable($cita)) {
+                return [
+                    'error' => $cita->estado === 'Atendida' || $cita->estado === 'Cancelada' || $cita->estado === 'Inasistencia'
+                        ? 'Esta cita no puede reprogramarse, registre una nueva cita.'
+                        : 'No se puede reprogramar una cita pasada.',
+                    'tipo' => 'cita',
+                ];
+            }
+
+            $medico = Medico::query()->whereKey($cita->id_medico)->lockForUpdate()->first();
+            if (! $medico || ! $medico->activo) {
+                return ['error' => 'El médico no está activo y no puede recibir citas.', 'tipo' => 'medico'];
+            }
+
+            if (
+                $cita->fecha->toDateString() === $nuevaFecha
+                && substr($cita->hora_inicio, 0, 5) === substr($nuevaHoraInicio, 0, 5)
+            ) {
+                return ['error' => 'Seleccione un horario distinto al actual.', 'tipo' => 'disponibilidad'];
+            }
+
+            $inicioNuevo = Carbon::parse($nuevaFecha.' '.$nuevaHoraInicio);
+            if ($inicioNuevo->lessThanOrEqualTo(now())) {
+                return ['error' => 'El horario seleccionado no es válido.', 'tipo' => 'disponibilidad'];
+            }
+
+            if (! HorarioAtencion::obtenerHorarioActivoParaBloque(
+                $medico->id_medico,
+                $nuevaFecha,
+                $nuevaHoraInicio,
+                $nuevaHoraFin
+            )) {
+                return ['error' => 'El horario seleccionado no es válido.', 'tipo' => 'disponibilidad'];
+            }
+
+            if (Cita::existeCitaSuperpuesta(
+                $medico->id_medico,
+                $nuevaFecha,
+                $nuevaHoraInicio,
+                $nuevaHoraFin,
+                $cita->id_cita
+            )) {
+                return ['error' => 'El horario seleccionado ya no está disponible.', 'tipo' => 'disponibilidad'];
+            }
+
+            $fechaAnterior = $cita->fecha->format('Y-m-d');
+            $horaInicioAnterior = substr($cita->hora_inicio, 0, 5);
+            $horaFinAnterior = substr($cita->hora_fin, 0, 5);
+            $cita->actualizarFechaHoraCita($nuevaFecha, $nuevaHoraInicio, $nuevaHoraFin);
+
+            Bitacora::registrar(
+                'REPROGRAMAR_CITA',
+                'cita',
+                'Cita: '.$cita->codigo
+                    .' - Anterior: '.$fechaAnterior.' '.$horaInicioAnterior.'-'.$horaFinAnterior
+                    .' - Nueva: '.$nuevaFecha.' '.substr($nuevaHoraInicio, 0, 5).'-'.substr($nuevaHoraFin, 0, 5)
+            );
+
+            return ['id_cita' => $cita->id_cita];
+        });
+
+        if (isset($resultado['error'])) {
+            if ($resultado['tipo'] === 'disponibilidad') {
+                return redirect()->route('disponibilidad.horarios', [
+                    'id_cita' => $idCita,
+                    'id_especialidad' => $cita->id_especialidad,
+                    'id_medico' => $cita->id_medico,
+                    'fecha' => $nuevaFecha,
+                ])->with('error', $resultado['error']);
+            }
+
+            return redirect()->route('citas.reprogramar.index')->with('error', $resultado['error']);
+        }
+
+        return redirect()->route('citas.reprogramar.confirmacion', $resultado['id_cita'])
+            ->with('ok', 'Cita reprogramada');
+    }
+
+    public function mostrarConfirmacionReprogramacion(Cita $cita): ViewContract
+    {
+        $cita->load(['paciente.usuario', 'medico.usuario', 'especialidad']);
+
+        return view('citas.reprogramar_cita.confirmacion', ['cita' => $cita]);
+    }
+
+    private function esReprogramable(Cita $cita): bool
+    {
+        if (! in_array($cita->estado, ['Programada', 'Confirmada'], true)) {
+            return false;
+        }
+
+        return Carbon::parse($cita->fecha->toDateString().' '.$cita->hora_inicio)->isFuture();
     }
 
     public function mostrarConfirmacion(Cita $cita, Request $request): View
