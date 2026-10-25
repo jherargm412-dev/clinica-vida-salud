@@ -3,6 +3,7 @@
 namespace App\Modulos\medicos_especialidades\request\gestionar_horario_atencion;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 /** CU11: validación del formulario de horario de atención. */
 class HorarioAtencionRequest extends FormRequest
@@ -29,6 +30,29 @@ class HorarioAtencionRequest extends FormRequest
             'hora_fin' => ['required', 'date_format:H:i', 'after:hora_inicio'],
             'duracion_cita' => ['required', 'integer', 'min:15', 'max:180'],
         ];
+    }
+
+    /** 8c: el rango de horas debe dividirse exactamente en citas de la duración indicada. */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            // Si ya hay errores en las horas o la duración, no se revisa esta regla
+            if ($validator->errors()->hasAny(['hora_inicio', 'hora_fin', 'duracion_cita'])) {
+                return;
+            }
+
+            [$hi, $mi] = array_map('intval', explode(':', $this->hora_inicio));
+            [$hf, $mf] = array_map('intval', explode(':', $this->hora_fin));
+            $minutosRango = ($hf * 60 + $mf) - ($hi * 60 + $mi);
+            $duracion = (int) $this->duracion_cita;
+
+            if ($minutosRango % $duracion !== 0) {
+                $validator->errors()->add(
+                    'hora_fin',
+                    "El rango de horas debe dividirse exactamente en citas de {$duracion} minutos"
+                );
+            }
+        });
     }
 
     public function messages(): array

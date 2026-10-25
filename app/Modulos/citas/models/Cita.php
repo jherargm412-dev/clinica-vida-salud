@@ -211,12 +211,16 @@ class Cita extends Model
             ->exists();
     }
 
-    /** CU13 (secuencia 5.8): ¿el paciente ya tiene una cita vigente que se superpone? */
+    /**
+     * CU13 (secuencia 5.8) y CU14: ¿el paciente ya tiene una cita vigente que se superpone?
+     * En CU14 se excluye la propia cita que se está reprogramando.
+     */
     public static function existeCitaSuperpuestaPaciente(
         int $idPaciente,
         string $fecha,
         string $horaInicio,
-        string $horaFin
+        string $horaFin,
+        ?int $idCitaExcluida = null
     ): bool {
         return self::query()
             ->where('id_paciente', $idPaciente)
@@ -224,6 +228,7 @@ class Cita extends Model
             ->where('estado', '<>', 'Cancelada')
             ->where('hora_inicio', '<', $horaFin)
             ->where('hora_fin', '>', $horaInicio)
+            ->when($idCitaExcluida, fn ($q) => $q->where('id_cita', '<>', $idCitaExcluida))
             ->exists();
     }
 
@@ -246,18 +251,21 @@ class Cita extends Model
         return $cita;
     }
 
-    /** CU11 (secuencia 4 y 5): ¿existen citas pendientes que colisionan con este horario del médico? */
-    public static function existenCitasPendientes(int $idMedico, int $diaSemana, string $horaInicio, string $horaFin, ?int $idHorarioExcluido = null): bool
+    /**
+     * CU11 (secuencia 4 y 5): ¿existen citas pendientes (de hoy en adelante) que caen en este horario del médico?
+     * Las citas pasadas no cuentan: aunque sigan "Programadas" (CU16 aún no las cierra), ya no se atenderán.
+     */
+    public static function existenCitasPendientes(int $idMedico, int $diaSemana, string $horaInicio, string $horaFin): bool
     {
-        $diaPg = $diaSemana % 7;
+        $diaPg = $diaSemana % 7;   // PostgreSQL: 0 = domingo ... 6 = sábado
 
         return self::query()
             ->where('id_medico', $idMedico)
             ->whereIn('estado', ['Programada', 'Confirmada'])
+            ->whereDate('fecha', '>=', now()->toDateString())
             ->whereRaw('EXTRACT(DOW FROM fecha) = ?', [$diaPg])
             ->whereRaw('hora_inicio < ?', [$horaFin])
             ->whereRaw('hora_fin > ?', [$horaInicio])
-            ->when($idHorarioExcluido, fn ($q) => $q->where('id_cita', '<>', $idHorarioExcluido))
             ->exists();
     }
 }

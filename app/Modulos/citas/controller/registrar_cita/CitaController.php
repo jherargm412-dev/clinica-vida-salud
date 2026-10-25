@@ -427,6 +427,17 @@ class CitaController extends Controller
                 return ['error' => 'El horario seleccionado ya no está disponible.', 'tipo' => 'disponibilidad'];
             }
 
+            // El paciente no puede quedar con dos citas a la misma hora (igual que en CU13)
+            if (Cita::existeCitaSuperpuestaPaciente(
+                $cita->id_paciente,
+                $nuevaFecha,
+                $nuevaHoraInicio,
+                $nuevaHoraFin,
+                $cita->id_cita
+            )) {
+                return ['error' => 'El paciente ya tiene una cita en ese horario.', 'tipo' => 'disponibilidad'];
+            }
+
             $fechaAnterior = $cita->fecha->format('Y-m-d');
             $horaInicioAnterior = substr($cita->hora_inicio, 0, 5);
             $horaFinAnterior = substr($cita->hora_fin, 0, 5);

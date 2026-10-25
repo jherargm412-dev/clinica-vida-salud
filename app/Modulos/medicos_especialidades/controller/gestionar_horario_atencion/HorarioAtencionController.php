@@ -122,11 +122,14 @@ class HorarioAtencionController extends Controller
     {
         $datos = $request->validated();
 
+        // Un horario con citas pendientes no se puede modificar (detallar CU11).
+        // Se revisa el horario ACTUAL (lo que está guardado), no el nuevo rango:
+        // si no, al mover las horas las citas ya registradas quedarían fuera del horario.
         if (Cita::existenCitasPendientes(
             $horario->id_medico,
             $horario->dia_semana,
-            $datos['hora_inicio'],
-            $datos['hora_fin']
+            $horario->hora_inicio,
+            $horario->hora_fin
         )) {
             return back()
                 ->withErrors(['hora_inicio' => 'No se puede modificar un horario con citas pendientes'])
