@@ -1,0 +1,32 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam linetype polyline
+skinparam dpi 200
+
+title DIAGRAMA DE COMUNICACIÓN - CU06 Gestionar Paciente
+
+actor "Recepcionista" as R
+boundary "UI_paciente" as UI
+control "PacienteController" as C
+entity "Paciente" as P
+entity "Usuario" as U
+entity "Rol" as RO
+entity "Cita" as CI
+entity "Bitacora" as B
+
+R -- UI : 1: mostrarPacientes() →\n2: buscarPaciente() →\n3: crearPaciente() →\n4: editarPaciente() →\n5: desactivarPaciente() →\n6: activarPaciente() →
+
+UI -- C : 1.1: listarPacientes() →\n2.1: buscarPacientes(texto) →\n3.1: registrarPaciente(datos) →\n4.1: modificarPaciente(idPaciente, datos) →\n5.1: desactivarPaciente(idPaciente) →\n6.1: activarPaciente(idPaciente) →
+
+C -- P : 1.2: listarTodos() →\n2.2: buscarPorTexto(texto) →\n3.2: existeCI(ci) →\n3.5: generarCodigoPaciente() →\n3.7: insertarPaciente(datos) →\n4.2: obtenerPorId(idPaciente) →\n4.4: actualizarPaciente(idPaciente, datos) →\n5.2: obtenerPorId(idPaciente) →\n5.4: cambiarEstadoPaciente(idPaciente, activo) →\n6.2: obtenerPorId(idPaciente) →\n6.3: cambiarEstadoPaciente(idPaciente, activo) →
+
+C -- U : 3.3: existeCorreo(correo, idUsuarioExcluido) →\n3.6: insertarUsuario(datos) →\n4.3: existeCorreo(correo, idUsuarioExcluido) →\n4.5: actualizarDatosUsuario(idUsuario, datos) →\n5.5: cambiarEstadoUsuario(idUsuario, activo) →\n6.4: cambiarEstadoUsuario(idUsuario, activo) →
+
+C -- RO : 3.4: obtenerPorNombre(nombre) →
+
+C -- CI : 5.3: existenCitasPendientesPaciente(idPaciente) →
+
+C -- B : 3.8: registrarAccion(accion, tablaAfectada, detalle) →\n4.6: registrarAccion(accion, tablaAfectada, detalle) →\n5.6: registrarAccion(accion, tablaAfectada, detalle) →\n6.5: registrarAccion(accion, tablaAfectada, detalle) →
+@enduml

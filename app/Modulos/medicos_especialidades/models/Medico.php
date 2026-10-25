@@ -41,10 +41,46 @@ class Medico extends Model
         return $this->hasMany(Cita::class, 'id_medico', 'id_medico');
     }
 
+    /** CU13 (secuencias 5.3 y 5.5): médico por id y validación de especialidad asignada. */
+    public static function obtenerPorId(int $idMedico): ?self
+    {
+        return self::with('usuario')->find($idMedico);
+    }
+
+    public function tieneEspecialidad(int $idEspecialidad): bool
+    {
+        return $this->especialidades()
+            ->where('especialidad.id_especialidad', $idEspecialidad)
+            ->exists();
+    }
+
     /** Nombre completo del médico (se toma de su cuenta de usuario). Uso: $medico->nombre_completo */
     public function getNombreCompletoAttribute(): string
     {
         return $this->usuario?->nombre_completo ?? '';
+    }
+
+    /** CU11 (secuencia 1): médicos activos para asignar o visualizar horarios. */
+    public static function listarActivos()
+    {
+        return self::query()
+            ->where('activo', true)
+            ->with(['usuario', 'especialidades'])
+            ->orderBy('codigo')
+            ->get();
+    }
+
+    /** CU12 (secuencia 2): médicos activos que atienden una especialidad activa. */
+    public static function listarActivosPorEspecialidad(int $idEspecialidad): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->where('activo', true)
+            ->whereHas('especialidades', fn ($q) => $q
+                ->where('especialidad.id_especialidad', $idEspecialidad)
+                ->where('especialidad.activo', true))
+            ->with('usuario')
+            ->orderBy('codigo')
+            ->get();
     }
 
     /**

@@ -1,0 +1,29 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam linetype polyline
+skinparam dpi 200
+
+title DIAGRAMA DE COMUNICACIÓN - CU11 Gestionar Horario de Atención
+
+actor "Administrador" as A
+boundary "UI_horarioAtencion" as UI
+control "HorarioAtencionController" as C
+entity "Medico" as M
+entity "HorarioAtencion" as H
+entity "Cita" as CI
+entity "Bitacora" as B
+
+A -- UI : 1: mostrarMedicos() →\n2: consultarHorarios() →\n3: crearHorario() →\n4: editarHorario() →\n5: desactivarHorario() →\n6: activarHorario() →
+
+UI -- C : 1.1: listarMedicosActivos() →\n2.1: listarHorariosMedico(idMedico, filtros) →\n3.1: registrarHorario(datos) →\n4.1: modificarHorario(idHorario, datos) →\n5.1: desactivarHorario(idHorario) →\n6.1: activarHorario(idHorario) →
+
+C -- M : 1.2: listarActivos() →
+
+C -- H : 2.2: listarPorMedico(idMedico, filtros) →\n3.2: existeSuperposicion(idMedico, dia, horaInicio, horaFin, idHorarioExcluido) →\n3.3: insertarHorario(datos) →\n4.2: obtenerPorId(idHorario) →\n4.4: existeSuperposicion(idMedico, dia, horaInicio, horaFin, idHorarioExcluido) →\n4.5: actualizarHorario(idHorario, datos) →\n5.2: obtenerPorId(idHorario) →\n5.4: cambiarEstadoHorario(idHorario, activo) →\n6.2: obtenerPorId(idHorario) →\n6.3: existeSuperposicion(idMedico, dia, horaInicio, horaFin, idHorarioExcluido) →\n6.4: cambiarEstadoHorario(idHorario, activo) →
+
+C -- CI : 4.3: existenCitasPendientes(idMedico, dia, horaInicio, horaFin) →\n5.3: existenCitasPendientes(idMedico, dia, horaInicio, horaFin) →
+
+C -- B : 3.4: registrarAccion(accion, tablaAfectada, detalle) →\n4.6: registrarAccion(accion, tablaAfectada, detalle) →\n5.5: registrarAccion(accion, tablaAfectada, detalle) →\n6.5: registrarAccion(accion, tablaAfectada, detalle) →
+@enduml

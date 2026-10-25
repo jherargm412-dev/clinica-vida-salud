@@ -44,4 +44,19 @@ class Especialidad extends Model
             ->orderBy('nombre')
             ->get();
     }
+
+    /** CU12 (secuencia 1): especialidades disponibles para consultar citas. */
+    public static function listarActivas(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->where('activo', true)
+            ->orderBy('nombre')
+            ->get();
+    }
+
+    /** CU13 (secuencia 5.4): obtiene una especialidad por identificador. */
+    public static function obtenerPorId(int $idEspecialidad): ?self
+    {
+        return self::find($idEspecialidad);
+    }
 }

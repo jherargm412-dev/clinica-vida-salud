@@ -6,6 +6,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Modulos\medicos_especialidades\controller\gestionar_especialidad\EspecialidadController;
+use App\Modulos\medicos_especialidades\controller\gestionar_horario_atencion\HorarioAtencionController;
 use App\Modulos\medicos_especialidades\controller\gestionar_medico\MedicoController;
 
 //Qué es una ruta: une una dirección de la página con un método del controller. Por ejemplo, 
@@ -34,5 +35,15 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
         Route::post('/medicos/{medico}/activar', [MedicoController::class, 'activar'])->name('medicos.activar');
     });
 
-    // CU11 Gestionar horario         -> middleware('permiso:horarios.gestionar')
+    // CU11 Gestionar horario
+    Route::middleware('permiso:horarios.gestionar')->group(function () {
+        Route::get('/horarios', [HorarioAtencionController::class, 'index'])->name('horarios.index');
+        Route::get('/horarios/medico/{medico}', [HorarioAtencionController::class, 'listarHorariosMedico'])->name('horarios.medico');
+        Route::get('/horarios/nuevo', [HorarioAtencionController::class, 'mostrarFormularioNuevo'])->name('horarios.crear');
+        Route::post('/horarios', [HorarioAtencionController::class, 'registrarHorario'])->name('horarios.guardar');
+        Route::get('/horarios/{horario}/editar', [HorarioAtencionController::class, 'editar'])->name('horarios.editar');
+        Route::post('/horarios/{horario}/actualizar', [HorarioAtencionController::class, 'modificarHorario'])->name('horarios.actualizar');
+        Route::post('/horarios/{horario}/desactivar', [HorarioAtencionController::class, 'desactivarHorario'])->name('horarios.desactivar');
+        Route::post('/horarios/{horario}/activar', [HorarioAtencionController::class, 'activarHorario'])->name('horarios.activar');
+    });
 });

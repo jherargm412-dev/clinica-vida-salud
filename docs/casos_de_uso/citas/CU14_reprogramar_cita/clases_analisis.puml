@@ -1,0 +1,96 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype polyline
+skinparam dpi 200
+
+hide circle
+
+skinparam class {
+  BackgroundColor #EEEEEE
+  BorderColor #333333
+}
+
+title DIAGRAMA DE CLASE DE ANÁLISIS - CU14 Reprogramar Cita
+
+class "Recepcionista" as R <<actor>>
+
+class "UI_reprogramarCita" as UI <<boundary>> {
+  + mostrarCitasReprogramables(): void
+  + buscarCita(): void
+  + seleccionarCita(): void
+  + consultarDisponibilidad(): void
+  + guardarReprogramacion(): void
+}
+
+class "CitaController" as C <<control>> {
+  + listarCitasReprogramables(): void
+  + buscarCitasReprogramables(texto, fecha): void
+  + obtenerCitaReprogramable(idCita): void
+  + reprogramarCita(idCita, nuevaFecha, nuevaHoraInicio): void
+}
+
+class "DisponibilidadController" as D <<control>> {
+  + consultarHorariosDisponibles(idMedico, fecha): void
+}
+
+class "Cita" as CI <<entity>> {
+  - idCita: Integer
+  - codigo: String
+  - fecha: Date
+  - horaInicio: Time
+  - horaFin: Time
+  - motivo: String
+  - estado: String
+  - fechaCreacion: DateTime
+  - motivoCancelacion: String
+  - fechaCancelacion: DateTime
+  + listarReprogramables(): void
+  + buscarReprogramables(texto, fecha): void
+  + obtenerDetallePorId(idCita): void
+  + existeCitaSuperpuesta(idMedico, fecha, horaInicio, horaFin, idCitaExcluida): Boolean
+  + actualizarFechaHoraCita(idCita, fecha, horaInicio, horaFin): void
+}
+
+class "Medico" as M <<entity>> {
+  - idMedico: Integer
+  - codigo: String
+  - registroProfesional: String
+  - telefono: String
+  - activo: Boolean
+  + obtenerPorId(idMedico): void
+}
+
+class "HorarioAtencion" as H <<entity>> {
+  - idHorario: Integer
+  - diaSemana: Integer
+  - horaInicio: Time
+  - horaFin: Time
+  - duracionCita: Integer
+  - activo: Boolean
+  + listarHorariosActivosPorDia(idMedico, diaSemana): void
+}
+
+class "Bitacora" as B <<entity>> {
+  - idBitacora: Integer
+  - fechaHora: DateTime
+  - accion: String
+  - tablaAfectada: String
+  - detalle: String
+  - ip: String
+  + registrarAccion(accion, tablaAfectada, detalle): void
+}
+
+note bottom of D : Reutilizado de CU12 («include»)
+
+R -- UI
+UI -- C
+UI -- D
+C -- CI
+C -- M
+C -- H
+C -- B
+M "1" *-- "0..*" H : tiene
+M "1" -- "0..*" CI : atiende
+@enduml

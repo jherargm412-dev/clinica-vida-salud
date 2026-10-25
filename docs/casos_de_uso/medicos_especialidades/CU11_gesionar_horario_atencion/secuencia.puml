@@ -1,0 +1,58 @@
+@startuml
+autonumber
+skinparam shadowing false
+skinparam dpi 200
+
+title DIAGRAMA DE SECUENCIA - CU11 Gestionar Horario de Atención
+
+actor "Administrador" as A
+boundary "UI_horarioAtencion" as UI
+control "HorarioAtencionController" as C
+entity "Medico" as M
+entity "HorarioAtencion" as H
+entity "Cita" as CI
+entity "Bitacora" as B
+
+== 1. Mostrar Médicos ==
+A -> UI: mostrarMedicos()
+UI -> C: listarMedicosActivos()
+C -> M: listarActivos()
+
+== 2. Consultar Horarios ==
+A -> UI: consultarHorarios()
+UI -> C: listarHorariosMedico(idMedico, filtros)
+C -> H: listarPorMedico(idMedico, filtros)
+
+== 3. Crear Horario ==
+A -> UI: crearHorario()
+UI -> C: registrarHorario(datos)
+C -> H: existeSuperposicion(idMedico, dia, horaInicio, horaFin, null)
+C -> H: insertarHorario(datos) [si no hay superposición]
+C -> B: registrarAccion(accion, tablaAfectada, detalle)
+
+== 4. Editar Horario ==
+A -> UI: editarHorario()
+UI -> C: modificarHorario(idHorario, datos)
+C -> H: obtenerPorId(idHorario)
+C -> CI: existenCitasPendientes(idMedico, dia, horaInicio, horaFin)
+C -> H: existeSuperposicion(idMedico, dia, horaInicio, horaFin, idHorario)
+C -> H: actualizarHorario(idHorario, datos) [sin citas pendientes ni superposición]
+C -> B: registrarAccion(accion, tablaAfectada, detalle)
+
+== 5. Desactivar Horario ==
+A -> UI: desactivarHorario()
+UI -> C: desactivarHorario(idHorario)
+C -> H: obtenerPorId(idHorario)
+C -> CI: existenCitasPendientes(idMedico, dia, horaInicio, horaFin)
+C -> H: cambiarEstadoHorario(idHorario, false) [sin citas pendientes]
+C -> B: registrarAccion(accion, tablaAfectada, detalle)
+
+== 6. Activar Horario ==
+A -> UI: activarHorario()
+UI -> C: activarHorario(idHorario)
+C -> H: obtenerPorId(idHorario)
+C -> H: existeSuperposicion(idMedico, dia, horaInicio, horaFin, idHorario)
+C -> H: cambiarEstadoHorario(idHorario, true) [si no hay superposición]
+C -> B: registrarAccion(accion, tablaAfectada, detalle)
+
+@enduml

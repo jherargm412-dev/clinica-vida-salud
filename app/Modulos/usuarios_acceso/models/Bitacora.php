@@ -48,15 +48,38 @@ class Bitacora extends Model
         static::deleting(fn () => false);
     }
 
+    /** Palabras que en el código de la acción se guardan sin tilde (ej. CAMBIAR_CONTRASENA). */
+    private const PALABRAS_CON_TILDE = [
+        'contrasena' => 'contraseña',
+        'medico'     => 'médico',
+        'medicos'    => 'médicos',
+        'medica'     => 'médica',
+        'sesion'     => 'sesión',
+        'atencion'   => 'atención',
+    ];
+
+    /** Frases a las que les falta el "de" (ej. INICIO_SESION -> "Inicio de sesión"). */
+    private const FRASES = [
+        'inicio sesión'    => 'inicio de sesión',
+        'cierre sesión'    => 'cierre de sesión',
+        'bloqueo cuenta'   => 'bloqueo de cuenta',
+        'horario atención' => 'horario de atención',
+    ];
+
     /** "REGISTRAR_ESPECIALIDAD" -> "Registrar especialidad". Uso: $registro->accion_legible */
     public function getAccionLegibleAttribute(): string
     {
         return self::legible($this->accion);
     }
 
+    /** Convierte el código de la acción en texto para mostrar. En la BD el código no cambia. */
     public static function legible(string $accion): string
     {
-        return ucfirst(mb_strtolower(str_replace('_', ' ', $accion)));
+        $palabras = explode('_', mb_strtolower($accion));
+        $palabras = array_map(fn ($p) => self::PALABRAS_CON_TILDE[$p] ?? $p, $palabras);
+        $texto = strtr(implode(' ', $palabras), self::FRASES);
+
+        return mb_strtoupper(mb_substr($texto, 0, 1)) . mb_substr($texto, 1);
     }
 
     /** Color de la etiqueta según el tipo de acción. Uso: $registro->color_accion */

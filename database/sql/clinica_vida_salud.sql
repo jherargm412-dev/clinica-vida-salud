@@ -228,15 +228,13 @@ INSERT INTO permiso (clave, nombre, descripcion) VALUES
     ('citas.registrar_atencion', 'Registrar atención de cita',       'CU18: marcar una cita como atendida'),
     ('reportes.generar',         'Generar reportes',                 'CU19: reportes de citas por fecha, médico, especialidad y estado');
 
--- Permisos por rol, según el diagrama de casos de uso general
+-- Permisos por rol, según el diagrama de casos de uso general.
+-- El Administrador recibe TODOS los permisos (puede usar cualquier función del sistema).
 INSERT INTO rol_permiso (id_rol, id_permiso)
 SELECT r.id_rol, p.id_permiso
 FROM rol r
 JOIN permiso p ON
-     (r.nombre = 'Administrador' AND p.clave IN (
-         'usuarios.gestionar', 'roles.gestionar', 'bitacora.consultar',
-         'especialidades.gestionar', 'medicos.gestionar', 'horarios.gestionar',
-         'agenda.consultar', 'reportes.generar'))
+     (r.nombre = 'Administrador')
   OR (r.nombre = 'Recepcionista' AND p.clave IN (
          'pacientes.gestionar', 'historial.consultar', 'disponibilidad.consultar',
          'citas.registrar', 'citas.reprogramar', 'citas.cancelar',

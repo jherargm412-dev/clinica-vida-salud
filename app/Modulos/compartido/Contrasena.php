@@ -31,4 +31,39 @@ class Contrasena
 
         return $reglas;
     }
+
+        /**
+     * CU06 (secuencia 3, paso 7): contraseña temporal de 8 caracteres al azar.
+     * Cumple la política: al menos 1 mayúscula, 1 minúscula, 1 número y 1 carácter especial.
+     * Se evitan letras y números parecidos (I, O, l, o, 0, 1) para que se lea bien al dictarla.
+     */
+    public static function generarTemporal(): string
+    {
+        $mayusculas = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+        $minusculas = 'abcdefghijkmnpqrstuvwxyz';
+        $numeros = '23456789';
+        $especiales = '!@#$%*?';
+        $todos = $mayusculas . $minusculas . $numeros . $especiales;
+
+        // Un carácter de cada tipo (así siempre cumple la política)...
+        $caracteres = [
+            $mayusculas[random_int(0, strlen($mayusculas) - 1)],
+            $minusculas[random_int(0, strlen($minusculas) - 1)],
+            $numeros[random_int(0, strlen($numeros) - 1)],
+            $especiales[random_int(0, strlen($especiales) - 1)],
+        ];
+
+        // ...y el resto al azar hasta completar 8
+        while (count($caracteres) < 8) {
+            $caracteres[] = $todos[random_int(0, strlen($todos) - 1)];
+        }
+
+        // Se mezclan para que los tipos no queden siempre en las mismas posiciones
+        for ($i = count($caracteres) - 1; $i > 0; $i--) {
+            $j = random_int(0, $i);
+            [$caracteres[$i], $caracteres[$j]] = [$caracteres[$j], $caracteres[$i]];
+        }
+
+        return implode('', $caracteres);
+    }
 }

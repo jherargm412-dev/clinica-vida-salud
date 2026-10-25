@@ -1,0 +1,24 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam dpi 200
+skinparam usecase {
+  BackgroundColor #E8F1FB
+  BorderColor #333333
+}
+
+actor "Recepcionista" as R
+actor "Paciente" as PA
+
+rectangle "CU12 Consultar Disponibilidad" {
+  usecase "CU12\nConsultar\nDisponibilidad" as CU12
+  usecase "CU13\nRegistrar Cita" as CU13
+  usecase "CU14\nReprogramar Cita" as CU14
+}
+
+R --> CU12
+PA --> CU12
+CU13 .> CU12 : <<include>>
+CU14 .> CU12 : <<include>>
+@enduml

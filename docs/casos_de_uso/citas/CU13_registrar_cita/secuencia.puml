@@ -1,0 +1,55 @@
+@startuml
+autonumber
+skinparam shadowing false
+skinparam dpi 200
+
+title DIAGRAMA DE SECUENCIA - CU13 Registrar Cita
+
+actor "Recepcionista" as R
+actor "Paciente" as PA
+boundary "UI_cita" as UI
+control "CitaController" as C
+control "DisponibilidadController" as D
+entity "Paciente" as P
+entity "Medico" as M
+entity "Especialidad" as E
+entity "HorarioAtencion" as H
+entity "Cita" as CI
+entity "Bitacora" as B
+
+== 1. Buscar Paciente (Recepcionista) ==
+R -> UI: buscarPaciente()
+UI -> C: buscarPacientes(texto)
+C -> P: buscarPorTexto(texto)
+
+== 2. Seleccionar Paciente (Recepcionista) ==
+R -> UI: seleccionarPaciente()
+UI -> C: obtenerPacienteActivo(idPaciente)
+C -> P: obtenerPorId(idPaciente)
+
+== 3. Mostrar Mis Datos (Paciente) ==
+PA -> UI: mostrarMisDatos()
+UI -> C: obtenerPacienteSesion()
+C -> P: obtenerPorUsuario(idUsuario)
+
+== 4. Consultar Disponibilidad (include CU12, igual para ambos actores) ==
+R -> UI: consultarDisponibilidad()
+UI -> D: listarEspecialidadesActivas()
+UI -> D: listarMedicosPorEspecialidad(idEspecialidad)
+UI -> D: consultarHorariosDisponibles(idMedico, fecha)
+
+== 5. Guardar Cita (igual para ambos actores) ==
+R -> UI: guardarCita()
+UI -> C: registrarCita(datos)
+C -> P: obtenerPorId(idPaciente)
+C -> M: obtenerPorId(idMedico)
+C -> E: obtenerPorId(idEspecialidad)
+C -> M: tieneEspecialidad(idMedico, idEspecialidad)
+C -> H: listarHorariosActivosPorDia(idMedico, diaSemana)
+C -> CI: existeCitaSuperpuesta(idMedico, fecha, horaInicio, horaFin, null)
+C -> CI: existeCitaSuperpuestaPaciente(idPaciente, fecha, horaInicio, horaFin)
+C -> CI: generarCodigoCita() [si el horario está disponible]
+C -> CI: insertarCita(datos)
+C -> B: registrarAccion(accion, tablaAfectada, detalle)
+
+@enduml

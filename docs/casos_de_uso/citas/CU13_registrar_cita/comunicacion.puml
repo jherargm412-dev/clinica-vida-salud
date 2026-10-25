@@ -1,0 +1,43 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam linetype polyline
+skinparam dpi 200
+
+title DIAGRAMA DE COMUNICACIÓN - CU13 Registrar Cita
+
+actor "Recepcionista" as R
+actor "Paciente" as PA
+boundary "UI_cita" as UI
+control "CitaController" as C
+control "DisponibilidadController" as D
+entity "Paciente" as P
+entity "Medico" as M
+entity "Especialidad" as E
+entity "HorarioAtencion" as H
+entity "Cita" as CI
+entity "Bitacora" as B
+
+R -- UI : 1: buscarPaciente() →\n2: seleccionarPaciente() →\n4: consultarDisponibilidad() →\n5: guardarCita() →
+
+PA -- UI : 3: mostrarMisDatos() →\n4: consultarDisponibilidad() →\n5: guardarCita() →
+
+UI -- C : 1.1: buscarPacientes(texto) →\n2.1: obtenerPacienteActivo(idPaciente) →\n3.1: obtenerPacienteSesion() →\n5.1: registrarCita(datos) →
+
+UI -- D : 4.1: listarEspecialidadesActivas() →\n4.2: listarMedicosPorEspecialidad(idEspecialidad) →\n4.3: consultarHorariosDisponibles(idMedico, fecha) →
+
+C -- P : 1.2: buscarPorTexto(texto) →\n2.2: obtenerPorId(idPaciente) →\n3.2: obtenerPorUsuario(idUsuario) →\n5.2: obtenerPorId(idPaciente) →
+
+C -- M : 5.3: obtenerPorId(idMedico) →\n5.5: tieneEspecialidad(idMedico, idEspecialidad) →
+
+C -- E : 5.4: obtenerPorId(idEspecialidad) →
+
+C -- H : 5.6: listarHorariosActivosPorDia(idMedico, diaSemana) →
+
+C -- CI : 5.7: existeCitaSuperpuesta(idMedico, fecha, horaInicio, horaFin, idCitaExcluida) →\n5.8: existeCitaSuperpuestaPaciente(idPaciente, fecha, horaInicio, horaFin) →\n5.9: generarCodigoCita() →\n5.10: insertarCita(datos) →
+
+C -- B : 5.11: registrarAccion(accion, tablaAfectada, detalle) →
+
+note bottom of D : Reutilizado de CU12\n(«include»)
+@enduml

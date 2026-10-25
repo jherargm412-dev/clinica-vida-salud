@@ -19,17 +19,20 @@ return [
     // Médicos, especialidades y horarios
     ['titulo' => 'Especialidades',      'icono' => 'bi-clipboard2-pulse',  'cu' => 'CU09', 'permisos' => ['especialidades.gestionar'], 'ruta' => 'especialidades.index'],
     ['titulo' => 'Médicos',             'icono' => 'bi-person-badge',      'cu' => 'CU10', 'permisos' => ['medicos.gestionar'],        'ruta' => 'medicos.index'],
-    ['titulo' => 'Horarios de atención','icono' => 'bi-calendar-week',     'cu' => 'CU11', 'permisos' => ['horarios.gestionar'],       'ruta' => null],
+    ['titulo' => 'Horarios de atención','icono' => 'bi-calendar-week',     'cu' => 'CU11', 'permisos' => ['horarios.gestionar'],       'ruta' => 'horarios.index'],
 
     // Pacientes
-    ['titulo' => 'Pacientes',           'icono' => 'bi-person-vcard',      'cu' => 'CU06', 'permisos' => ['pacientes.gestionar'],      'ruta' => null],
+    ['titulo' => 'Pacientes',           'icono' => 'bi-person-vcard',      'cu' => 'CU06', 'permisos' => ['pacientes.gestionar'],      'ruta' => 'pacientes.index'],
     ['titulo' => 'Perfil médico',       'icono' => 'bi-heart-pulse',       'cu' => 'CU07', 'permisos' => ['perfil_medico.gestionar'],  'ruta' => null],
     ['titulo' => 'Historial de citas',  'icono' => 'bi-clock-history',     'cu' => 'CU08', 'permisos' => ['historial.consultar'],      'ruta' => null],
 
     // Citas
-    ['titulo' => 'Disponibilidad',      'icono' => 'bi-calendar-check',    'cu' => 'CU12', 'permisos' => ['disponibilidad.consultar'], 'ruta' => null],
-    ['titulo' => 'Citas',               'icono' => 'bi-calendar-plus',     'cu' => 'CU13-16',
-        'permisos' => ['citas.registrar', 'citas.reprogramar', 'citas.cancelar', 'citas.controlar_estado'], 'ruta' => null],
+    ['titulo' => 'Disponibilidad',      'icono' => 'bi-calendar-check',    'cu' => 'CU12', 'permisos' => ['disponibilidad.consultar'], 'ruta' => 'disponibilidad.index'],
+    ['titulo' => 'Registrar cita',      'icono' => 'bi-calendar-plus',     'cu' => 'CU13', 'permisos' => ['citas.registrar'], 'ruta' => 'citas.crear'],
+    ['titulo' => 'Reprogramar cita',   'icono' => 'bi-calendar2-week',    'cu' => 'CU14', 'permisos' => ['citas.reprogramar'], 'ruta' => 'citas.reprogramar.index'],
+    ['titulo' => 'Cancelar cita',      'icono' => 'bi-calendar-x',        'cu' => 'CU15', 'permisos' => ['citas.cancelar'], 'ruta' => 'citas.cancelar.index'],
+    ['titulo' => 'Controlar estado de citas', 'icono' => 'bi-clipboard-check', 'cu' => 'CU16',
+        'permisos' => ['citas.controlar_estado'], 'ruta' => null],
 
     // Agenda y reportes
     ['titulo' => 'Agenda médica',       'icono' => 'bi-calendar3',         'cu' => 'CU17-18',

@@ -11,8 +11,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Railway entrega la app detrás de un proxy HTTPS
-        $middleware->trustProxies(at: '*');
+        // Render entrega la app detrás de varios proxies internos (IPs privadas 10.x).
+        // Confiamos en los rangos privados para que request()->ip() devuelva la IP real del usuario.
+        $middleware->trustProxies(at: [
+            '10.0.0.0/8',
+            '172.16.0.0/12',
+            '192.168.0.0/16',
+            '127.0.0.1',
+            '::1',
+        ]);
 
         // Sin sesión → al login; con sesión e intentando entrar al login → al inicio
         $middleware->redirectGuestsTo(fn () => route('login'));
