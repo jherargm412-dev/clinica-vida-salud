@@ -2,11 +2,13 @@
 
 namespace App\Modulos\citas\models;
 
+use App\Modulos\compartido\Texto;
 use App\Modulos\medicos_especialidades\models\Especialidad;
 use App\Modulos\medicos_especialidades\models\Medico;
 use App\Modulos\pacientes\models\Paciente;
-use App\Modulos\compartido\Texto;
 use App\Modulos\usuarios_acceso\models\Usuario;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +17,9 @@ use Illuminate\Support\Facades\DB;
 class Cita extends Model
 {
     protected $table = 'cita';
+
     protected $primaryKey = 'id_cita';
+
     public $timestamps = false;
 
     public const ESTADOS = ['Programada', 'Confirmada', 'Atendida', 'Cancelada', 'Inasistencia'];
@@ -67,8 +71,7 @@ class Cita extends Model
         int $idMedico,
         string $fecha,
         ?int $idCitaExcluida = null
-    ): \Illuminate\Database\Eloquent\Collection
-    {
+    ): Collection {
         return self::query()
             ->select(['hora_inicio', 'hora_fin'])
             ->where('id_medico', $idMedico)
@@ -80,7 +83,7 @@ class Cita extends Model
     }
 
     /** CU14 (secuencia 1): citas futuras Programadas o Confirmadas. */
-    public static function listarReprogramables(): \Illuminate\Database\Eloquent\Builder
+    public static function listarReprogramables(): Builder
     {
         return self::query()
             ->with(['paciente.usuario', 'medico.usuario', 'especialidad'])
@@ -96,19 +99,74 @@ class Cita extends Model
             ->orderBy('hora_inicio');
     }
 
-    /** CU14 (secuencia 2): búsqueda por código, CI, nombre o apellido y fecha. */
-    public static function buscarReprogramables(?string $texto = null, ?string $fecha = null): \Illuminate\Database\Eloquent\Builder
+    /** CU15 (secuencia 1): citas que todavía se pueden cancelar. */
+    public static function listarCancelables(): Builder
     {
-        $consulta = self::listarReprogramables();
+        return self::query()
+            ->with(['paciente.usuario', 'medico.usuario', 'especialidad'])
+            ->whereIn('estado', ['Programada', 'Confirmada'])
+            ->where(function ($q) {
+                $q->whereDate('fecha', '>', now()->toDateString())
+                    ->orWhere(function ($hoy) {
+                        $hoy->whereDate('fecha', now()->toDateString())
+                            ->where('hora_inicio', '>', now()->format('H:i:s'));
+                    });
+            })
+            ->orderBy('fecha')
+            ->orderBy('hora_inicio');
+    }
+
+    /** CU15 (secuencia 2): búsqueda de citas cancelables por código, paciente y fecha. */
+    public static function buscarCancelables(?string $texto = null, ?string $fecha = null): Builder
+    {
+        $consulta = self::listarCancelables();
 
         if ($texto !== null && trim($texto) !== '') {
-            $buscado = '%' . Texto::sinTildes(trim($texto)) . '%';
+            $buscado = '%'.Texto::sinTildes(trim($texto)).'%';
             $consulta->where(function ($q) use ($buscado) {
                 $q->where('codigo', 'ILIKE', $buscado)
                     ->orWhereHas('paciente', fn ($paciente) => $paciente
                         ->where('ci', 'ILIKE', $buscado)
                         ->orWhereHas('usuario', fn ($usuario) => $usuario->whereRaw(
-                            Texto::sqlSinTildes("nombres || ' ' || apellidos") . ' ILIKE ?',
+                            Texto::sqlSinTildes("nombres || ' ' || apellidos").' ILIKE ?',
+                            [$buscado]
+                        )));
+            });
+        }
+
+        return $consulta->when($fecha, fn ($q) => $q->whereDate('fecha', $fecha));
+    }
+
+    /** CU15 (secuencia 4): cancela solo citas que siguen Programadas o Confirmadas. */
+    public static function marcarCitaCancelada(
+        int $idCita,
+        string $motivoCancelacion,
+        int $idUsuario
+    ): bool {
+        return self::query()
+            ->whereKey($idCita)
+            ->whereIn('estado', ['Programada', 'Confirmada'])
+            ->update([
+                'estado' => 'Cancelada',
+                'motivo_cancelacion' => $motivoCancelacion,
+                'fecha_cancelacion' => now(),
+                'id_usuario_cancelacion' => $idUsuario,
+            ]) > 0;
+    }
+
+    /** CU14 (secuencia 2): búsqueda por código, CI, nombre o apellido y fecha. */
+    public static function buscarReprogramables(?string $texto = null, ?string $fecha = null): Builder
+    {
+        $consulta = self::listarReprogramables();
+
+        if ($texto !== null && trim($texto) !== '') {
+            $buscado = '%'.Texto::sinTildes(trim($texto)).'%';
+            $consulta->where(function ($q) use ($buscado) {
+                $q->where('codigo', 'ILIKE', $buscado)
+                    ->orWhereHas('paciente', fn ($paciente) => $paciente
+                        ->where('ci', 'ILIKE', $buscado)
+                        ->orWhereHas('usuario', fn ($usuario) => $usuario->whereRaw(
+                            Texto::sqlSinTildes("nombres || ' ' || apellidos").' ILIKE ?',
                             [$buscado]
                         )));
             });
@@ -180,7 +238,7 @@ class Cita extends Model
     /** CU13 (secuencia 5.10): inserta la cita con sus datos ya validados. */
     public static function insertarCita(array $datos): self
     {
-        $cita = new self();
+        $cita = new self;
         $cita->setAttribute('id_cita', (int) substr($datos['codigo'], 4));
         $cita->fill($datos);
         $cita->save();
