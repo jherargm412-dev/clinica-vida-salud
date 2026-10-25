@@ -30,8 +30,9 @@ return [
     ['titulo' => 'Disponibilidad',      'icono' => 'bi-calendar-check',    'cu' => 'CU12', 'permisos' => ['disponibilidad.consultar'], 'ruta' => 'disponibilidad.index'],
     ['titulo' => 'Registrar cita',      'icono' => 'bi-calendar-plus',     'cu' => 'CU13', 'permisos' => ['citas.registrar'], 'ruta' => 'citas.crear'],
     ['titulo' => 'Reprogramar cita',   'icono' => 'bi-calendar2-week',    'cu' => 'CU14', 'permisos' => ['citas.reprogramar'], 'ruta' => 'citas.reprogramar.index'],
-    ['titulo' => 'Gestión de citas',   'icono' => 'bi-calendar2-check',   'cu' => 'CU15-16',
-        'permisos' => ['citas.cancelar', 'citas.controlar_estado'], 'ruta' => null],
+    ['titulo' => 'Cancelar cita',      'icono' => 'bi-calendar-x',        'cu' => 'CU15', 'permisos' => ['citas.cancelar'], 'ruta' => 'citas.cancelar.index'],
+    ['titulo' => 'Controlar estado de citas', 'icono' => 'bi-clipboard-check', 'cu' => 'CU16',
+        'permisos' => ['citas.controlar_estado'], 'ruta' => null],
 
     // Agenda y reportes
     ['titulo' => 'Agenda médica',       'icono' => 'bi-calendar3',         'cu' => 'CU17-18',

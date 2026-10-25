@@ -4,6 +4,7 @@ namespace App\Modulos\citas\controller\registrar_cita;
 
 use App\Http\Controllers\Controller;
 use App\Modulos\citas\models\Cita;
+use App\Modulos\citas\request\cancelar_cita\CancelarCitaRequest;
 use App\Modulos\citas\request\registrar_cita\RegistrarCitaRequest;
 use App\Modulos\citas\request\registrar_cita\ReprogramarCitaRequest;
 use App\Modulos\medicos_especialidades\models\Especialidad;
@@ -21,6 +22,88 @@ use Illuminate\View\View;
 /** CU13 Registrar Cita */
 class CitaController extends Controller
 {
+    public function listarCitasCancelables(): View
+    {
+        return $this->vistaCitasCancelables('', '');
+    }
+
+    public function buscarCitasCancelables(Request $request): View
+    {
+        $filtros = $request->validate([
+            'texto' => ['nullable', 'string', 'max:100'],
+            'fecha' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+
+        return $this->vistaCitasCancelables(
+            $filtros['texto'] ?? '',
+            $filtros['fecha'] ?? ''
+        );
+    }
+
+    private function vistaCitasCancelables(string $texto, string $fecha): View
+    {
+        $citas = Cita::buscarCancelables($texto ?: null, $fecha ?: null)
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('citas.cancelar_cita.index', [
+            'citas' => $citas,
+            'texto' => $texto,
+            'fecha' => $fecha,
+        ]);
+    }
+
+    public function obtenerCitaCancelable(Cita $cita): View|RedirectResponse
+    {
+        $cita = Cita::obtenerDetallePorId($cita->id_cita);
+        abort_unless($cita, 404);
+
+        if (! $this->esCancelable($cita)) {
+            return redirect()->route('citas.cancelar.index')
+                ->with('error', $this->mensajeNoCancelable($cita));
+        }
+
+        return view('citas.cancelar_cita.confirmar', ['cita' => $cita]);
+    }
+
+    public function cancelarCita(CancelarCitaRequest $request, Cita $cita): RedirectResponse
+    {
+        $idCita = $cita->id_cita;
+        $idUsuario = (int) $request->user()->id_usuario;
+        $motivoCancelacion = $request->validated()['motivo_cancelacion'];
+
+        $resultado = DB::transaction(function () use ($idCita, $idUsuario, $motivoCancelacion): array {
+            $cita = Cita::query()->whereKey($idCita)->lockForUpdate()->first();
+            if (! $cita) {
+                return ['error' => 'No se encontró la cita para cancelar.'];
+            }
+
+            if (! $this->esCancelable($cita)) {
+                return ['error' => $this->mensajeNoCancelable($cita)];
+            }
+
+            if (! Cita::marcarCitaCancelada($idCita, $motivoCancelacion, $idUsuario)) {
+                return ['error' => 'Esta cita no puede cancelarse.'];
+            }
+
+            Bitacora::registrar(
+                'CANCELAR_CITA',
+                'cita',
+                'Cita: '.$cita->codigo.' - Motivo: '.$motivoCancelacion,
+                $idUsuario
+            );
+
+            return ['success' => true];
+        });
+
+        if (isset($resultado['error'])) {
+            return redirect()->route('citas.cancelar.index')->with('error', $resultado['error']);
+        }
+
+        return redirect()->route('citas.cancelar.index')
+            ->with('ok', 'Cita cancelada');
+    }
+
     public function mostrarFormularioRegistro(Request $request): View
     {
         $datos = $request->validate([
@@ -391,6 +474,21 @@ class CitaController extends Controller
         }
 
         return Carbon::parse($cita->fecha->toDateString().' '.$cita->hora_inicio)->isFuture();
+    }
+
+    private function esCancelable(Cita $cita): bool
+    {
+        return in_array($cita->estado, ['Programada', 'Confirmada'], true)
+            && Carbon::parse($cita->fecha->toDateString().' '.$cita->hora_inicio)->isFuture();
+    }
+
+    private function mensajeNoCancelable(Cita $cita): string
+    {
+        if (! in_array($cita->estado, ['Programada', 'Confirmada'], true)) {
+            return 'Esta cita no puede cancelarse.';
+        }
+
+        return 'No se puede cancelar una cita pasada.';
     }
 
     public function mostrarConfirmacion(Cita $cita, Request $request): View

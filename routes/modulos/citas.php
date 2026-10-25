@@ -40,6 +40,17 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
             ->name('citas.reprogramar.confirmacion');
     });
 
-    // CU15 Cancelar cita             -> middleware('permiso:citas.cancelar')
+    // CU15 Cancelar cita
+    Route::middleware('permiso:citas.cancelar')->group(function () {
+        Route::get('/citas/cancelar', [CitaController::class, 'listarCitasCancelables'])
+            ->name('citas.cancelar.index');
+        Route::get('/citas/cancelar/buscar', [CitaController::class, 'buscarCitasCancelables'])
+            ->name('citas.cancelar.buscar');
+        Route::get('/citas/{cita}/cancelar', [CitaController::class, 'obtenerCitaCancelable'])
+            ->name('citas.cancelar.confirmar');
+        Route::post('/citas/{cita}/cancelar', [CitaController::class, 'cancelarCita'])
+            ->name('citas.cancelar.guardar');
+    });
+
     // CU16 Controlar estado          -> middleware('permiso:citas.controlar_estado')
 });
