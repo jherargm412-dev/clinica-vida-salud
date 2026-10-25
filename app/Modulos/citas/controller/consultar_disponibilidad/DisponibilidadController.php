@@ -209,11 +209,9 @@ class DisponibilidadController extends Controller
             return null;
         }
 
-        abort_unless(
-            $request->user()->rol?->nombre === 'Recepcionista'
-                && $request->user()->tienePermiso('citas.reprogramar'),
-            403
-        );
+        // El acceso se decide solo por permiso (no por el nombre del rol),
+        // así cualquier rol con "citas.reprogramar" puede usarlo (ej. Administrador).
+        abort_unless($request->user()->tienePermiso('citas.reprogramar'), 403);
 
         $cita = Cita::obtenerDetallePorId($idCita);
         abort_unless($cita, 404);
