@@ -41,6 +41,24 @@ class Medico extends Model
         return $this->hasMany(Cita::class, 'id_medico', 'id_medico');
     }
 
+    /** CU17: médicos activos con cuenta activa que pueden consultarse en la agenda. */
+    public static function listarParaAgenda(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->where('activo', true)
+            ->whereHas('usuario', fn ($consulta) => $consulta->where('activo', true))
+            ->orderBy('codigo')
+            ->get();
+    }
+
+    /** CU17: identifica el perfil médico asociado a una cuenta. */
+    public static function obtenerPorIdUsuario(int $idUsuario): ?self
+    {
+        return self::query()
+            ->where('id_usuario', $idUsuario)
+            ->first();
+    }
+
     /** CU13 (secuencias 5.3 y 5.5): médico por id y validación de especialidad asignada. */
     public static function obtenerPorId(int $idMedico): ?self
     {

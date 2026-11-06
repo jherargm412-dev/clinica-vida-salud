@@ -127,6 +127,24 @@ class Cita extends Model
             ->update(['estado' => $nuevoEstado]) > 0;
     }
 
+    /** CU17: citas de un médico filtradas por fecha y estado, incluyendo reservas vigentes. */
+    public static function listarPorMedicoFechaEstado(int $idMedico, ?string $fecha, ?string $estado): Builder
+    {
+        return self::query()
+            ->where('id_medico', $idMedico)
+            ->where(function ($consulta) {
+                $consulta->where('estado', '<>', 'Pendiente de pago')
+                    ->orWhere(function ($pendiente) {
+                        $pendiente->where('estado', 'Pendiente de pago')
+                            ->where('fecha_creacion', '>', now()->subMinutes(self::MINUTOS_RESERVA_PAGO));
+                    });
+            })
+            ->when($fecha, fn ($consulta) => $consulta->whereDate('fecha', $fecha))
+            ->when($estado, fn ($consulta) => $consulta->where('estado', $estado))
+            ->orderBy('fecha')
+            ->orderBy('hora_inicio');
+    }
+
     // ---------------------------------------------------------------
     // CU21 Pagar cita: reserva de 10 minutos
     // ---------------------------------------------------------------
