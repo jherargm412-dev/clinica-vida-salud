@@ -1,0 +1,50 @@
+@startuml
+' CU19 Generar Reporte - Diagrama de comunicación (Pacientes, ingresos y caja)
+' Escenarios: 4 Pacientes registrados, 5 Ingresos, 6 Cierres de caja
+left to right direction
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam nodesep 50
+skinparam ranksep 120
+
+actor "Administrador" as A
+boundary "UI_Reportes" as UI
+control "Ctrl_Reportes" as C
+entity "Paciente" as Paciente
+entity "Medico" as Medico
+entity "Especialidad" as Especialidad
+entity "MetodoPago" as MetodoPago
+entity "Pago" as Pago
+entity "DetallePago" as DetallePago
+entity "Usuario" as Usuario
+entity "SesionCaja" as SesionCaja
+entity "Bitacora" as Bitacora
+
+A -- UI : <color:#2E8B57>4: seleccionarReporte("Pacientes registrados") →</color>\n<color:#2E8B57>4.1: generar(estado, fechaIni, fechaFin) →</color>\n<color:#2E8B57>4.6: exportar(formato) →</color>\n<color:#7B2D8E>5: seleccionarReporte("Ingresos") →</color>\n<color:#7B2D8E>5.9: generar(fechaIni, fechaFin, idMedico, idEspecialidad, idMetodoPago) →</color>\n<color:#7B2D8E>5.16: exportar(formato) →</color>\n<color:#C0392B>6: seleccionarReporte("Cierres de caja") →</color>\n<color:#C0392B>6.5: generar(fechaIni, fechaFin, idUsuario) →</color>\n<color:#C0392B>6.10: exportar(formato) →</color>
+
+UI -- C : <color:#2E8B57>4.2: generarReportePacientes(estado, fechaIni, fechaFin) →</color>\n<color:#2E8B57>4.5: reporte ←</color>\n<color:#2E8B57>4.7: exportarReporte(reporte, formato) →</color>\n<color:#2E8B57>4.10: archivo ←</color>\n<color:#7B2D8E>5.1: obtenerFiltrosIngresos() →</color>\n<color:#7B2D8E>5.8: filtros ←</color>\n<color:#7B2D8E>5.10: generarReporteIngresos(fechaIni, fechaFin, idMedico, idEspecialidad, idMetodoPago) →</color>\n<color:#7B2D8E>5.15: reporte ←</color>\n<color:#7B2D8E>5.17: exportarReporte(reporte, formato) →</color>\n<color:#7B2D8E>5.20: archivo ←</color>\n<color:#C0392B>6.1: obtenerRecepcionistas() →</color>\n<color:#C0392B>6.4: recepcionistas ←</color>\n<color:#C0392B>6.6: generarReporteCierres(fechaIni, fechaFin, idUsuario) →</color>\n<color:#C0392B>6.9: reporte ←</color>\n<color:#C0392B>6.11: exportarReporte(reporte, formato) →</color>\n<color:#C0392B>6.14: archivo ←</color>
+
+C -- Paciente : <color:#2E8B57>4.3: obtenerPacientes(estado, fechaIni, fechaFin) →</color>\n<color:#2E8B57>4.4: pacientes ←</color>
+
+C -- Medico : <color:#7B2D8E>5.2: listarMedicos() →</color>\n<color:#7B2D8E>5.3: medicos ←</color>
+
+C -- Especialidad : <color:#7B2D8E>5.4: listarEspecialidades() →</color>\n<color:#7B2D8E>5.5: especialidades ←</color>
+
+C -- MetodoPago : <color:#7B2D8E>5.6: listarMetodosPago() →</color>\n<color:#7B2D8E>5.7: metodos ←</color>
+
+C -- Pago : <color:#7B2D8E>5.11: obtenerPagos(fechaIni, fechaFin, idMedico, idEspecialidad, idMetodoPago) →</color>\n<color:#7B2D8E>5.12: pagos ←</color>
+
+C -- DetallePago : <color:#7B2D8E>5.13: obtenerTotalesPorMetodo(fechaIni, fechaFin, idMedico, idEspecialidad, idMetodoPago) →</color>\n<color:#7B2D8E>5.14: totales ←</color>
+
+C -- Usuario : <color:#C0392B>6.2: listarRecepcionistas() →</color>\n<color:#C0392B>6.3: recepcionistas ←</color>
+
+C -- SesionCaja : <color:#C0392B>6.7: obtenerSesionesCerradas(fechaIni, fechaFin, idUsuario) →</color>\n<color:#C0392B>6.8: sesiones ←</color>
+
+C -- Bitacora : <color:#2E8B57>4.8: registrar(usuario, "Exportar reporte", detalle, ip) →</color>\n<color:#2E8B57>4.9: ok ←</color>\n<color:#7B2D8E>5.18: registrar(usuario, "Exportar reporte", detalle, ip) →</color>\n<color:#7B2D8E>5.19: ok ←</color>\n<color:#C0392B>6.12: registrar(usuario, "Exportar reporte", detalle, ip) →</color>\n<color:#C0392B>6.13: ok ←</color>
+
+legend bottom right
+<color:#2E8B57>4: Reporte de pacientes registrados</color>
+<color:#7B2D8E>5: Reporte de ingresos</color>
+<color:#C0392B>6: Reporte de cierres de caja</color>
+endlegend
+@enduml

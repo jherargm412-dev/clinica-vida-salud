@@ -1,0 +1,180 @@
+@startuml
+' CU19 Generar Reporte - Diagrama de clases de análisis (igual a EA)
+' Atributos tomados del diagrama de BD Ciclo 2 (sin FKs).
+left to right direction
+hide circle
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultFontSize 11
+skinparam class {
+  BackgroundColor #F7EEE4
+  BorderColor #555555
+}
+
+class UI_Reportes <<boundary>> {
+  + abrirReportes()
+  + descargarArchivo(archivo)
+  + exportar(formato)
+  + generar(estado, fechaIni, fechaFin)
+  + generar(fecha, idMedico)
+  + generar(fechaIni, fechaFin)
+  + generar(fechaIni, fechaFin, idMedico, idEspecialidad, estado)
+  + generar(fechaIni, fechaFin, idMedico, idEspecialidad, idMetodoPago)
+  + generar(fechaIni, fechaFin, idUsuario)
+  + mostrarFiltros(filtros)
+  + mostrarReporte(reporte)
+  + mostrarReportes()
+  + seleccionarReporte(tipo)
+}
+
+class Ctrl_Reportes <<control>> {
+  - calcularTotales(datos)
+  + exportarReporte(reporte, formato)
+  + generarAgendaDiaria(fecha, idMedico)
+  - generarArchivo(reporte, formato)
+  + generarReporteAsistencia(fechaIni, fechaFin)
+  + generarReporteCierres(fechaIni, fechaFin, idUsuario)
+  + generarReporteCitas(fechaIni, fechaFin, idMedico, idEspecialidad, estado)
+  + generarReporteIngresos(fechaIni, fechaFin, idMedico, idEspecialidad, idMetodoPago)
+  + generarReportePacientes(estado, fechaIni, fechaFin)
+  + obtenerFiltrosCitas()
+  + obtenerFiltrosIngresos()
+  + obtenerMedicos()
+  + obtenerRecepcionistas()
+  - validarRangoFechas(fechaIni, fechaFin)
+}
+
+class Especialidad <<entity>> {
+  - idEspecialidad: Integer
+  - nombre: String
+  - descripcion: String
+  - activo: Boolean
+  + listarEspecialidades()
+}
+
+class Medico <<entity>> {
+  - idMedico: Integer
+  - codigo: String
+  - registroProfesional: String
+  - telefono: String
+  - activo: Boolean
+  + listarMedicos()
+}
+
+class Cita <<entity>> {
+  - idCita: Integer
+  - codigo: String
+  - fecha: Date
+  - horaInicio: Time
+  - horaFin: Time
+  - motivo: String
+  - estado: String
+  - fechaCreacion: DateTime
+  - motivoCancelacion: String
+  - fechaCancelacion: DateTime
+  - canceladaPor: String
+  + contarCitasPorEstado(fechaIni, fechaFin)
+  + obtenerAgenda(fecha, idMedico)
+  + obtenerCitas(fechaIni, fechaFin, idMedico, idEspecialidad, estado)
+}
+
+class Paciente <<entity>> {
+  - idPaciente: Integer
+  - codigo: String
+  - ci: String
+  - fechaNacimiento: Date
+  - sexo: String
+  - telefono: String
+  - direccion: String
+  - activo: Boolean
+  + obtenerPacientes(estado, fechaIni, fechaFin)
+}
+
+class Usuario <<entity>> {
+  - idUsuario: Integer
+  - nombreUsuario: String
+  - correo: String
+  - contrasena: String
+  - nombres: String
+  - apellidos: String
+  - activo: Boolean
+  - bloqueado: Boolean
+  - intentosFallidos: Integer
+  - fechaRegistro: DateTime
+  + listarRecepcionistas()
+}
+
+class Bitacora <<entity>> {
+  - idBitacora: Integer
+  - fechaHora: DateTime
+  - accion: String
+  - tablaAfectada: String
+  - detalle: String
+  - ip: String
+  + registrar(idUsuario, accion, detalle, ip)
+}
+
+class SesionCaja <<entity>> {
+  - idSesionCaja: Integer
+  - apertura: DateTime
+  - montoInicial: Decimal
+  - cierre: DateTime
+  - montoContado: Decimal
+  - diferencia: Decimal
+  - estado: String
+  + obtenerSesionesCerradas(fechaIni, fechaFin, idUsuario)
+}
+
+class Pago <<entity>> {
+  - idPago: Integer
+  - numeroComprobante: String
+  - montoTotal: Decimal
+  - fecha: DateTime
+  - estado: String
+  + obtenerPagos(fechaIni, fechaFin, idMedico, idEspecialidad, idMetodoPago)
+}
+
+class DetallePago <<entity>> {
+  - idDetallePago: Integer
+  - monto: Decimal
+  - referenciaExterna: String
+  - estado: String
+  + obtenerTotalesPorMetodo(fechaIni, fechaFin, idMedico, idEspecialidad, idMetodoPago)
+}
+
+class MetodoPago <<entity>> {
+  - idMetodoPago: Integer
+  - nombre: String
+  - enLinea: Boolean
+  - activo: Boolean
+  + listarMetodosPago()
+}
+
+UI_Reportes -- Ctrl_Reportes
+Ctrl_Reportes -- Especialidad
+Ctrl_Reportes -- Medico
+Ctrl_Reportes -- Cita
+Ctrl_Reportes -- Paciente
+Ctrl_Reportes -- Usuario
+Ctrl_Reportes -- Bitacora
+Ctrl_Reportes -- SesionCaja
+Ctrl_Reportes -- Pago
+Ctrl_Reportes -- DetallePago
+Ctrl_Reportes -- MetodoPago
+
+' Relaciones entre entidades (nombres y cardinalidades del diagrama de BD)
+Especialidad "1..*" -[norank]- "0..*" Medico : tiene
+Especialidad "1" -[norank]- "0..*" Cita : clasifica
+Medico "1" -[norank]- "0..*" Cita : atiende
+Paciente "1" -[norank]- "0..*" Cita : tiene
+Cita "1" -[norank]- "0..1" Pago : tiene
+Pago "1" *-[norank]- "1..*" DetallePago : contiene
+MetodoPago "1" -[norank]- "0..*" DetallePago : clasifica
+Usuario "1" -[norank]- "0..1" Medico : tiene
+Usuario "1" -[norank]- "0..1" Paciente : tiene
+Usuario "0..1" -[norank]- "0..*" Pago : registra
+Usuario "1" -[norank]- "0..*" SesionCaja : abre
+Usuario "0..1" -[norank]- "0..*" Bitacora : registra
+@enduml
