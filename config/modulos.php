@@ -52,7 +52,7 @@ return [
         ['grupo' => 'citas', 'titulo' => 'Reprogramar cita', 'icono' => 'bi-calendar2-week', 'cu' => 'CU14', 'permisos' => ['citas.reprogramar'],        'ruta' => 'citas.reprogramar.index'],
         ['grupo' => 'citas', 'titulo' => 'Cancelar cita',    'icono' => 'bi-calendar-x',     'cu' => 'CU15', 'permisos' => ['citas.cancelar'],           'ruta' => 'citas.cancelar.index'],
         ['grupo' => 'citas', 'titulo' => 'Controlar estado de citas', 'icono' => 'bi-clipboard-check', 'cu' => 'CU16',
-            'permisos' => ['citas.controlar_estado'], 'ruta' => null],
+            'permisos' => ['citas.controlar_estado'], 'ruta' => 'citas.estado.index'],
 
         // Agenda médica
         ['grupo' => 'agenda_medica', 'titulo' => 'Agenda médica', 'icono' => 'bi-calendar3', 'cu' => 'CU17-18',
