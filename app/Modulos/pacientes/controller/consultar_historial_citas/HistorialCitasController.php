@@ -7,6 +7,7 @@ use App\Modulos\citas\models\Cita;
 use App\Modulos\medicos_especialidades\models\Especialidad;
 use App\Modulos\medicos_especialidades\models\Medico;
 use App\Modulos\pacientes\models\Paciente;
+use App\Modulos\pagos\service\ReservaPago;
 use App\Modulos\usuarios_acceso\models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,10 +22,10 @@ class HistorialCitasController extends Controller
     /** Muestra el buscador a recepción o el historial propio al paciente. */
     public function mostrarBuscadorPacientes(Request $request): View
     {
-        $usuario = Auth::user()->loadMissing('rol');
+        $usuario = Auth::user();
         $estado = $this->validarEstado($request);
 
-        if ($usuario->rol?->nombre === 'Paciente') {
+        if (Paciente::obtenerPorIdUsuario($usuario->id_usuario)) {
             return $this->consultarMisCitas($usuario->id_usuario, $estado);
         }
 
@@ -79,10 +80,11 @@ class HistorialCitasController extends Controller
     /** Permite al paciente abrir directamente sus propias citas. */
     public function mostrarMisCitas(Request $request): View
     {
-        $usuario = Auth::user()->loadMissing('rol');
-        abort_unless($usuario->rol?->nombre === 'Paciente', 403);
+        $usuario = Auth::user();
+        $paciente = Paciente::obtenerPorIdUsuario($usuario->id_usuario);
+        abort_unless($paciente, 403);
 
-        return $this->consultarMisCitas($usuario->id_usuario, $this->validarEstado($request));
+        return $this->mostrarHistorial($paciente, $this->validarEstado($request), true);
     }
 
     /** Consulta el historial del paciente seleccionado por recepción. */
@@ -114,6 +116,8 @@ class HistorialCitasController extends Controller
 
     private function mostrarHistorial(Paciente $paciente, ?string $estado, bool $esPaciente): View
     {
+        ReservaPago::liberarVencidas();
+
         $citas = Cita::listarPorPaciente($paciente->id_paciente, $estado)
             ->paginate(15)
             ->withQueryString();
@@ -158,7 +162,7 @@ class HistorialCitasController extends Controller
 
     private function verificarNoPaciente(): void
     {
-        $usuario = Auth::user()->loadMissing('rol');
-        abort_if($usuario->rol?->nombre === 'Paciente', 403);
+        $usuario = Auth::user();
+        abort_if(Paciente::obtenerPorIdUsuario($usuario->id_usuario), 403);
     }
 }

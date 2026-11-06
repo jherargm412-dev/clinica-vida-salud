@@ -28,6 +28,15 @@ class Cita extends Model
 
     public const ESTADOS = ['Pendiente de pago', 'Programada', 'Confirmada', 'Atendida', 'Cancelada', 'Inasistencia'];
 
+    public const COLOR_ESTADO = [
+        'Pendiente de pago' => 'warning',
+        'Programada' => 'primary',
+        'Confirmada' => 'success',
+        'Atendida' => 'success',
+        'Cancelada' => 'secondary',
+        'Inasistencia' => 'secondary',
+    ];
+
     /** CU21: minutos que el horario queda reservado mientras la cita está "Pendiente de pago". */
     public const MINUTOS_RESERVA_PAGO = 10;
 
@@ -131,6 +140,10 @@ class Cita extends Model
         return self::query()
             ->whereKey($idCita)
             ->whereIn('estado', $estadosOrigen)
+            ->when(
+                in_array($nuevoEstado, ['Atendida', 'Inasistencia'], true),
+                fn ($consulta) => $consulta->whereRaw('(fecha + hora_inicio) <= ?', [now()->toDateTimeString()])
+            )
             ->update(['estado' => $nuevoEstado]) > 0;
     }
 
@@ -158,6 +171,7 @@ class Cita extends Model
         return self::query()
             ->where('id_medico', $idMedico)
             ->whereIn('estado', $estados)
+            ->whereRaw('(fecha + hora_inicio) <= ?', [now()->toDateTimeString()])
             ->orderByDesc('fecha')
             ->orderBy('hora_inicio');
     }
@@ -169,6 +183,7 @@ class Cita extends Model
             ->whereKey($idCita)
             ->where('id_medico', $idMedico)
             ->whereIn('estado', ['Programada', 'Confirmada', 'Atendida'])
+            ->whereRaw('(fecha + hora_inicio) <= ?', [now()->toDateTimeString()])
             ->exists();
     }
 
@@ -178,6 +193,7 @@ class Cita extends Model
         return self::query()
             ->whereKey($idCita)
             ->whereIn('estado', ['Programada', 'Confirmada'])
+            ->whereRaw('(fecha + hora_inicio) <= ?', [now()->toDateTimeString()])
             ->update(['estado' => 'Atendida']) > 0;
     }
 

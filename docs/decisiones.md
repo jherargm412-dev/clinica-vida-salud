@@ -111,3 +111,12 @@
 
 ## Menú lateral
 - Las opciones se agrupan por paquete en grupos desplegables (`config/modulos.php`: `grupos` y `opciones`), en el orden del diagrama de paquetes, salvo Agenda médica y Reportes, que van al final. Un grupo con una sola opción para el rol se muestra como enlace directo. La página de Inicio muestra las mismas tarjetas agrupadas.
+
+## Ciclo 2: CU07, CU08, CU16, CU17 y CU18
+- Las opciones de CU07 y CU18 requieren tanto su permiso como una ficha vinculada del tipo de actor correspondiente; el menú no se filtra por el nombre del rol. Los controladores autorizan la operación por permiso y asociación de usuario-paciente/médico, de modo que un rol personalizado con el permiso y ficha apropiados pueda usarla.
+- CU08 determina el historial propio mediante la ficha de paciente vinculada. Si la cuenta tiene esa ficha, no puede consultar otros historiales; el resto de usuarios con permiso puede buscar pacientes.
+- CU17 determina la agenda propia mediante la ficha de médico vinculada. Los demás usuarios con `agenda.consultar` pueden seleccionar un médico.
+- CU16 usa `CAMBIAR_ESTADO_CITA` para cualquier transición; CU18 usa `REGISTRAR_ATENCION` y CU07 `ACTUALIZAR_PERFIL_MEDICO`. Los nombres de tabla en bitácora usan las tablas reales (`cita`, `atencion_medica`, `perfil_medico`) y ningún registro de auditoría incluye diagnóstico ni notas clínicas.
+- Los badges de todos los estados de cita se obtienen de `Cita::COLOR_ESTADO` para conservar una sola asignación de colores.
+- CU16 no permite registrar Atención/Inasistencia hasta el inicio de la cita. CU18 tampoco lista ni guarda atención antes del inicio, y no admite más de una atención clínica por cita.
+- CU08 ejecuta `ReservaPago::liberarVencidas()` antes de consultar el historial para que las reservas vencidas aparezcan como canceladas.

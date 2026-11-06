@@ -66,21 +66,22 @@ class EstadoCitaController extends Controller
                 return 'no_encontrada';
             }
 
+            if (
+                in_array($nuevoEstado, ['Atendida', 'Inasistencia'], true)
+                && now()->lt($cita->fecha->toDateString().' '.$cita->hora_inicio)
+            ) {
+                return 'cita_futura';
+            }
+
             if (! Cita::cambiarEstado($idCita, $nuevoEstado)) {
                 return 'transicion_invalida';
             }
 
-            $accion = match ($nuevoEstado) {
-                'Confirmada' => 'CONFIRMAR_CITA',
-                'Atendida' => 'REGISTRAR_ATENCION',
-                'Inasistencia' => 'REGISTRAR_INASISTENCIA',
-            };
-
             Bitacora::registrarAccion(
                 $idUsuario,
-                $accion,
-                'Cita',
-                'Cita: '.$cita->codigo.' - Estado: '.$nuevoEstado
+                'CAMBIAR_ESTADO_CITA',
+                'cita',
+                'Cita: '.$cita->codigo.' - Nuevo estado: '.$nuevoEstado
             );
 
             return 'actualizada';
@@ -93,6 +94,11 @@ class EstadoCitaController extends Controller
         if ($resultado === 'transicion_invalida') {
             return redirect()->route('citas.estado.index')
                 ->with('error', 'La cita no puede cambiar a ese estado.');
+        }
+
+        if ($resultado === 'cita_futura') {
+            return redirect()->route('citas.estado.index')
+                ->with('error', 'La atención o inasistencia solo se puede registrar después del inicio de la cita.');
         }
 
         return redirect()->route('citas.estado.index')

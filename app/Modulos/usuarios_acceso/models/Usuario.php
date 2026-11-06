@@ -222,7 +222,11 @@ class Usuario extends Authenticatable
         return array_values(array_filter(
             config('modulos.opciones', []),
             fn (array $modulo) => count(array_intersect($modulo['permisos'], $this->clavesPermiso())) > 0
-                && (! isset($modulo['roles']) || in_array($this->rol?->nombre, $modulo['roles'], true))
+                && match ($modulo['perfil'] ?? null) {
+                    'paciente' => $this->paciente()->exists(),
+                    'medico' => $this->medico()->exists(),
+                    default => true,
+                }
         ));
     }
 
