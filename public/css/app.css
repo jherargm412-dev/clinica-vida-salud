@@ -155,3 +155,16 @@ a.cvs-paso-contenido:hover .cvs-paso-nombre { text-decoration: underline; }
 [data-bs-theme="dark"] .cvs-iniciales { background: rgba(45, 212, 191, .12); color: #2dd4bf; }
 [data-bs-theme="dark"] .cvs-paso.actual .cvs-paso-circulo { color: #2dd4bf; border-color: #2dd4bf; }
 
+
+/* Disponibilidad (CU12): semana de cada médico, una celda por día */
+.cvs-semana th, .cvs-semana td { padding: .5rem .35rem; }
+.cvs-celda {
+    display: block; min-width: 4.5rem; padding: .45rem .25rem; border-radius: .5rem; font-size: .85rem; text-align: center;
+    border: 1px dashed var(--bs-border-color); color: var(--bs-secondary-color); text-decoration: none;
+}
+.cvs-celda.vacia { border-color: transparent; }
+.cvs-celda.libre { border: 1px solid rgba(15, 118, 110, .35); background: rgba(15, 118, 110, .07); color: var(--cvs-primario); font-weight: 600; }
+.cvs-celda.libre:hover { border-color: var(--cvs-primario); }
+.cvs-celda.libre.elegida { background: var(--cvs-primario); border-color: var(--cvs-primario); color: #fff; }
+[data-bs-theme="dark"] .cvs-celda.libre { background: rgba(45, 212, 191, .08); border-color: rgba(45, 212, 191, .35); color: #5eead4; }
+[data-bs-theme="dark"] .cvs-celda.libre.elegida { background: var(--cvs-primario); color: #fff; }

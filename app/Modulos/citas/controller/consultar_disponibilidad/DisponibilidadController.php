@@ -4,88 +4,69 @@ namespace App\Modulos\citas\controller\consultar_disponibilidad;
 
 use App\Http\Controllers\Controller;
 use App\Modulos\citas\models\Cita;
+use App\Modulos\citas\service\Disponibilidad;
 use App\Modulos\medicos_especialidades\models\Especialidad;
-use App\Modulos\medicos_especialidades\models\HorarioAtencion;
 use App\Modulos\medicos_especialidades\models\Medico;
 use App\Modulos\pacientes\models\Paciente;
+use App\Modulos\pagos\service\ReservaPago;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
-/** CU12 Consultar Disponibilidad */
+/**
+ * CU12 Consultar Disponibilidad.
+ * La pantalla muestra, en un solo lugar:
+ *   1. las especialidades activas (botones),
+ *   2. los médicos de la especialidad elegida con sus próximos 7 días (cuántos horarios libres hay cada día),
+ *   3. las horas libres del médico y día elegidos, separadas en mañana y tarde.
+ * También la usa CU14 Reprogramar cita (con "id_cita"): el médico y la especialidad quedan fijos.
+ */
 class DisponibilidadController extends Controller
 {
+    /** Parámetros que acepta la pantalla (todos llegan por la URL). */
+    private const REGLAS = [
+        'id_cita' => ['nullable', 'integer', 'exists:cita,id_cita'],
+        'id_especialidad' => ['nullable', 'integer', 'exists:especialidad,id_especialidad'],
+        'id_medico' => ['nullable', 'integer', 'exists:medico,id_medico'],
+        'id_paciente' => ['nullable', 'integer', 'exists:paciente,id_paciente'],
+        'desde' => ['nullable', 'date_format:Y-m-d'],   // primer día de la semana mostrada
+    ];
+
+    /** 1. Mostrar especialidades (secuencia 1: listarEspecialidadesActivas). */
     public function listarEspecialidadesActivas(Request $request): View|RedirectResponse
     {
-        $datos = $request->validate([
-            'id_cita' => ['nullable', 'integer', 'exists:cita,id_cita'],
-            'id_especialidad' => ['nullable', 'integer', 'exists:especialidad,id_especialidad'],
-            'id_medico' => ['nullable', 'integer', 'exists:medico,id_medico'],
-        ]);
-        $this->validarPacienteContexto($request);
-        $cita = $this->citaParaReprogramar(
-            $request,
-            isset($datos['id_cita']) ? (int) $datos['id_cita'] : null
-        );
+        $datos = $request->validate(self::REGLAS);
+        $idPaciente = $this->idPacienteContexto($request);
 
-        if ($cita) {
-            $especialidad = Especialidad::obtenerPorId($cita->id_especialidad);
-            $medico = Medico::obtenerPorId($cita->id_medico);
-            abort_unless($especialidad && $medico, 404);
-            if (! $medico->activo || ! $medico->usuario?->activo) {
-                return redirect()->route('citas.reprogramar.index')
-                    ->with('error', 'El médico no está activo y no puede recibir citas.');
-            }
-
-            return $this->vistaDisponibilidad(
-                especialidad: $especialidad,
-                medicos: Medico::query()->with('usuario')->whereKey($medico->id_medico)->get(),
-                medico: $medico,
-                idPaciente: $this->idPacienteContexto($request),
-                idCitaExcluir: $cita->id_cita
-            );
+        // Reprogramación (CU14): directamente la semana del médico de la cita
+        $reprogramacion = $this->reprogramacion($request, $datos);
+        if ($reprogramacion instanceof RedirectResponse) {
+            return $reprogramacion;
+        }
+        if ($reprogramacion) {
+            return $this->vistaDisponibilidad($request, $idPaciente, ...$reprogramacion);
         }
 
-        return $this->vistaDisponibilidad(idPaciente: $this->idPacienteContexto($request));
+        return $this->vistaDisponibilidad($request, $idPaciente);
     }
 
+    /** 2. Seleccionar especialidad (secuencia 2: listarMedicosPorEspecialidad): médicos con su semana. */
     public function listarMedicosPorEspecialidad(Request $request): View|RedirectResponse
     {
-        $datos = $request->validate([
+        $datos = $request->validate(array_merge(self::REGLAS, [
             'id_especialidad' => ['required', 'integer', 'exists:especialidad,id_especialidad'],
-            'id_medico' => ['nullable', 'integer', 'exists:medico,id_medico'],
-            'id_paciente' => ['nullable', 'integer', 'exists:paciente,id_paciente'],
-            'id_cita' => ['nullable', 'integer', 'exists:cita,id_cita'],
-        ]);
+        ]));
         $idPaciente = $this->idPacienteContexto($request);
-        $cita = $this->citaParaReprogramar(
-            $request,
-            isset($datos['id_cita']) ? (int) $datos['id_cita'] : null
-        );
 
-        if ($cita) {
-            abort_unless(
-                (int) $datos['id_especialidad'] === (int) $cita->id_especialidad
-                    && (! isset($datos['id_medico']) || (int) $datos['id_medico'] === (int) $cita->id_medico),
-                422
-            );
-            $especialidad = Especialidad::obtenerPorId($cita->id_especialidad);
-            $medico = Medico::obtenerPorId($cita->id_medico);
-            abort_unless($especialidad && $medico, 404);
-            if (! $medico->activo || ! $medico->usuario?->activo) {
-                return redirect()->route('citas.reprogramar.index')
-                    ->with('error', 'El médico no está activo y no puede recibir citas.');
-            }
-
-            return $this->vistaDisponibilidad(
-                especialidad: $especialidad,
-                medicos: Medico::query()->with('usuario')->whereKey($medico->id_medico)->get(),
-                medico: $medico,
-                idPaciente: $idPaciente,
-                idCitaExcluir: $cita->id_cita
-            );
+        $reprogramacion = $this->reprogramacion($request, $datos);
+        if ($reprogramacion instanceof RedirectResponse) {
+            return $reprogramacion;
+        }
+        if ($reprogramacion) {
+            return $this->vistaDisponibilidad($request, $idPaciente, ...$reprogramacion);
         }
 
         $especialidad = Especialidad::query()
@@ -94,113 +75,89 @@ class DisponibilidadController extends Controller
             ->firstOrFail();
 
         return $this->vistaDisponibilidad(
+            $request,
+            $idPaciente,
             especialidad: $especialidad,
-            medicos: Medico::listarActivosPorEspecialidad($especialidad->id_especialidad),
-            idPaciente: $idPaciente
+            medicos: $this->medicosDisponibles($especialidad->id_especialidad)
         );
     }
 
+    /** 3. Consultar disponibilidad (secuencia 3: consultarHorariosDisponibles): horas libres del médico ese día. */
     public function consultarHorariosDisponibles(Request $request): View|RedirectResponse
     {
-        $datos = $request->validate([
+        $datos = $request->validate(array_merge(self::REGLAS, [
             'id_especialidad' => ['required', 'integer', 'exists:especialidad,id_especialidad'],
             'id_medico' => ['required', 'integer', 'exists:medico,id_medico'],
             'fecha' => ['required', 'date', 'after_or_equal:today'],
-            'id_paciente' => ['nullable', 'integer', 'exists:paciente,id_paciente'],
-            'id_cita' => ['nullable', 'integer', 'exists:cita,id_cita'],
-        ]);
+        ]));
         $idPaciente = $this->idPacienteContexto($request);
-        $citaExcluir = $this->citaParaReprogramar(
-            $request,
-            isset($datos['id_cita']) ? (int) $datos['id_cita'] : null
-        );
+        $fecha = Carbon::parse($datos['fecha'])->startOfDay();
 
-        if ($citaExcluir) {
-            abort_unless(
-                (int) $datos['id_especialidad'] === (int) $citaExcluir->id_especialidad
-                    && (int) $datos['id_medico'] === (int) $citaExcluir->id_medico,
-                422,
-                'No puede cambiar el médico ni la especialidad al reprogramar.'
-            );
-            $especialidad = Especialidad::obtenerPorId($citaExcluir->id_especialidad);
-            $medico = Medico::obtenerPorId($citaExcluir->id_medico);
-            abort_unless($especialidad && $medico, 404);
-            if (! $medico->activo || ! $medico->usuario?->activo) {
-                return redirect()->route('citas.reprogramar.index')
-                    ->with('error', 'El médico no está activo y no puede recibir citas.');
-            }
-            $medicos = Medico::query()->with('usuario')->whereKey($medico->id_medico)->get();
-        } else {
-            $especialidad = Especialidad::query()
-                ->where('id_especialidad', $datos['id_especialidad'])
-                ->where('activo', true)
-                ->firstOrFail();
-            $medicos = Medico::listarActivosPorEspecialidad($especialidad->id_especialidad);
-            $medico = $medicos->firstWhere('id_medico', (int) $datos['id_medico']);
+        $reprogramacion = $this->reprogramacion($request, $datos);
+        if ($reprogramacion instanceof RedirectResponse) {
+            return $reprogramacion;
+        }
+        if ($reprogramacion) {
+            return $this->vistaDisponibilidad($request, $idPaciente, ...$reprogramacion, fecha: $fecha);
         }
 
-        if (! $especialidad || ! $medico || ! $medico->activo) {
-            if ($citaExcluir) {
-                return redirect()->route('citas.reprogramar.index')
-                    ->with('error', 'El médico no está activo y no puede recibir citas.');
-            }
-
-            throw ValidationException::withMessages([
-                'id_medico' => 'Seleccione un médico activo de la especialidad elegida.',
-            ]);
-        }
-        if (! $citaExcluir && ! $especialidad->activo) {
-            throw ValidationException::withMessages([
-                'id_especialidad' => 'Seleccione una especialidad activa.',
-            ]);
+        $especialidad = Especialidad::query()
+            ->where('id_especialidad', $datos['id_especialidad'])
+            ->where('activo', true)
+            ->first();
+        if (! $especialidad) {
+            throw ValidationException::withMessages(['id_especialidad' => 'Seleccione una especialidad activa.']);
         }
 
-        $fecha = Carbon::parse($datos['fecha']);
-        $horarios = HorarioAtencion::listarHorariosActivosPorDia(
-            $medico->id_medico,
-            $fecha->dayOfWeekIso
+        $medicos = $this->medicosDisponibles($especialidad->id_especialidad);
+        $medico = $medicos->firstWhere('id_medico', (int) $datos['id_medico']);
+        if (! $medico) {
+            throw ValidationException::withMessages(['id_medico' => 'Seleccione un médico activo de la especialidad elegida.']);
+        }
+
+        return $this->vistaDisponibilidad($request, $idPaciente, $especialidad, $medicos, $medico, $fecha);
+    }
+
+    /** Médicos activos (y con cuenta activa) de la especialidad. */
+    private function medicosDisponibles(int $idEspecialidad): Collection
+    {
+        return Medico::listarActivosPorEspecialidad($idEspecialidad)
+            ->filter(fn (Medico $medico) => (bool) $medico->usuario?->activo)
+            ->values();
+    }
+
+    /**
+     * Si llega "id_cita" (CU14 Reprogramar), devuelve la especialidad, el médico y la cita a reprogramar
+     * (el médico y la especialidad no se pueden cambiar). Null si no es una reprogramación.
+     */
+    private function reprogramacion(Request $request, array $datos): array|RedirectResponse|null
+    {
+        $cita = $this->citaParaReprogramar($request, isset($datos['id_cita']) ? (int) $datos['id_cita'] : null);
+        if (! $cita) {
+            return null;
+        }
+
+        abort_unless(
+            (! isset($datos['id_especialidad']) || (int) $datos['id_especialidad'] === (int) $cita->id_especialidad)
+                && (! isset($datos['id_medico']) || (int) $datos['id_medico'] === (int) $cita->id_medico),
+            422,
+            'No puede cambiar el médico ni la especialidad al reprogramar.'
         );
-        $citasOcupadas = Cita::listarHorasOcupadas(
-            $medico->id_medico,
-            $fecha->toDateString(),
-            $citaExcluir?->id_cita
-        );
-        $horariosDisponibles = $horarios->map(function (HorarioAtencion $horario) use ($fecha, $citasOcupadas): array {
-            $bloques = [];
-            $inicioHorario = Carbon::parse($horario->hora_inicio);
-            $finHorario = Carbon::parse($horario->hora_fin);
 
-            while ($inicioHorario->copy()->addMinutes($horario->duracion_cita)->lessThanOrEqualTo($finHorario)) {
-                $finBloque = $inicioHorario->copy()->addMinutes($horario->duracion_cita);
-                $horaInicio = $inicioHorario->format('H:i:s');
-                $horaFin = $finBloque->format('H:i:s');
-                $esHoraPasada = $fecha->isToday() && $inicioHorario->lessThanOrEqualTo(now());
-                $estaOcupado = $citasOcupadas->contains(fn (Cita $cita): bool =>
-                    $cita->hora_inicio < $horaFin && $cita->hora_fin > $horaInicio
-                );
+        $especialidad = Especialidad::obtenerPorId($cita->id_especialidad);
+        $medico = Medico::obtenerPorId($cita->id_medico);
+        abort_unless($especialidad && $medico, 404);
+        if (! $medico->activo || ! $medico->usuario?->activo) {
+            return redirect()->route('citas.reprogramar.index')
+                ->with('error', 'El médico no está activo y no puede recibir citas.');
+        }
 
-                if (! $esHoraPasada && ! $estaOcupado) {
-                    $bloques[] = [
-                        'hora_inicio' => $inicioHorario->format('H:i'),
-                        'hora_fin' => $finBloque->format('H:i'),
-                    ];
-                }
-
-                $inicioHorario->addMinutes($horario->duracion_cita);
-            }
-
-            return ['horario' => $horario, 'bloques' => $bloques];
-        });
-
-        return $this->vistaDisponibilidad(
-            especialidad: $especialidad,
-            medicos: $medicos,
-            medico: $medico,
-            fecha: $fecha->toDateString(),
-            horariosDisponibles: $horariosDisponibles,
-            idPaciente: $idPaciente,
-            idCitaExcluir: $citaExcluir?->id_cita
-        );
+        return [
+            'especialidad' => $especialidad,
+            'medicos' => Medico::query()->with('usuario')->whereKey($medico->id_medico)->get(),
+            'medico' => $medico,
+            'cita' => $cita,
+        ];
     }
 
     private function citaParaReprogramar(Request $request, ?int $idCita): ?Cita
@@ -223,13 +180,6 @@ class DisponibilidadController extends Controller
         );
 
         return $cita;
-    }
-
-    private function validarPacienteContexto(Request $request): void
-    {
-        $request->validate([
-            'id_paciente' => ['nullable', 'integer', 'exists:paciente,id_paciente'],
-        ]);
     }
 
     private function idPacienteContexto(Request $request): ?int
@@ -255,24 +205,59 @@ class DisponibilidadController extends Controller
     }
 
     private function vistaDisponibilidad(
+        Request $request,
+        ?int $idPaciente,
         ?Especialidad $especialidad = null,
-        ?\Illuminate\Database\Eloquent\Collection $medicos = null,
+        ?Collection $medicos = null,
         ?Medico $medico = null,
-        ?string $fecha = null,
-        ?\Illuminate\Support\Collection $horariosDisponibles = null,
-        ?int $idPaciente = null,
-        ?int $idCitaExcluir = null
+        ?Carbon $fecha = null,
+        ?Cita $cita = null
     ): View {
+        // Semana mostrada: 7 días desde "desde" (hoy como mínimo); el día elegido siempre queda visible
+        $hoy = today();
+        $desde = $request->filled('desde') ? Carbon::parse($request->query('desde')) : ($fecha?->copy() ?? $hoy->copy());
+        if ($desde->lt($hoy)) {
+            $desde = $hoy->copy();
+        }
+        if ($fecha && ($fecha->lt($desde) || $fecha->gt($desde->copy()->addDays(6)))) {
+            $desde = $fecha->copy();
+        }
+
+        // Cuántos horarios libres tiene cada médico cada día de la semana
+        $semanas = [];
+        if ($medicos !== null) {
+            // CU21 (7a): las citas que no se pagaron a tiempo liberan su horario antes de contarlo
+            ReservaPago::liberarVencidas();
+            foreach ($medicos as $opcion) {
+                $semanas[$opcion->id_medico] = Disponibilidad::resumenDias($opcion->id_medico, $desde, 7, $cita?->id_cita);
+            }
+        }
+
+        // Horas del día elegido (libres y ocupadas), separadas en mañana y tarde
+        $turnos = ($medico && $fecha)
+            ? Disponibilidad::porTurno(Disponibilidad::horasDelDia($medico->id_medico, $fecha, $cita?->id_cita))
+            : null;
+
+        // Datos que se repiten en todos los enlaces de la pantalla
+        $esPaciente = $request->user()->rol?->nombre === 'Paciente';
+        $conservar = array_filter([
+            'id_paciente' => $esPaciente ? null : $idPaciente,
+            'id_cita' => $cita?->id_cita,
+        ], fn ($valor) => $valor !== null);
+
         return view('citas.consultar_disponibilidad.index', [
-            'especialidades' => Especialidad::listarActivas(),
+            'especialidades' => $cita ? collect() : Especialidad::listarActivas(),
             'especialidadSeleccionada' => $especialidad,
             'medicos' => $medicos,
             'medicoSeleccionado' => $medico,
             'fecha' => $fecha,
-            'horariosDisponibles' => $horariosDisponibles,
-            'diaConsultado' => $fecha ? Carbon::parse($fecha)->dayOfWeekIso : null,
-            'idPaciente' => $idPaciente,
-            'idCitaExcluir' => $idCitaExcluir,
+            'desde' => $desde,
+            'semanas' => $semanas,
+            'turnos' => $turnos,
+            'cita' => $cita,
+            'idPaciente' => $esPaciente ? null : $idPaciente,
+            'conservar' => $conservar,
+            'puedeRegistrar' => $request->user()->tienePermiso('citas.registrar'),
         ]);
     }
 }
