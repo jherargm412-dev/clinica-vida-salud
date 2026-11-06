@@ -1,0 +1,60 @@
+@startuml
+' CU19 Generar Reporte - Diagrama de secuencia (Reporte de citas) = flujo principal
+hide footbox
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam sequenceMessageAlign left
+
+actor "Administrador" as A
+boundary "UI_Reportes" as UI
+control "Ctrl_Reportes" as C
+entity "Medico" as Medico
+entity "Especialidad" as Especialidad
+entity "Cita" as Cita
+entity "Bitacora" as Bitacora
+
+A -> UI : abrirReportes()
+activate UI
+UI -> UI : mostrarReportes()
+
+A -> UI : seleccionarReporte("Citas")
+UI -> C : obtenerFiltrosCitas()
+activate C
+C -> Medico : listarMedicos()
+activate Medico
+Medico --> C : medicos
+deactivate Medico
+C -> Especialidad : listarEspecialidades()
+activate Especialidad
+Especialidad --> C : especialidades
+deactivate Especialidad
+C --> UI : filtros
+deactivate C
+UI -> UI : mostrarFiltros(filtros)
+
+A -> UI : generar(fechaIni, fechaFin, idMedico, idEspecialidad, estado)
+UI -> C : generarReporteCitas(fechaIni, fechaFin, idMedico, idEspecialidad, estado)
+activate C
+C -> C : validarRangoFechas(fechaIni, fechaFin)
+C -> Cita : obtenerCitas(fechaIni, fechaFin, idMedico, idEspecialidad, estado)
+activate Cita
+Cita --> C : citas
+deactivate Cita
+C -> C : calcularTotales(citas)
+C --> UI : reporte
+deactivate C
+UI -> UI : mostrarReporte(reporte)
+
+A -> UI : exportar(formato)
+UI -> C : exportarReporte(reporte, formato)
+activate C
+C -> C : generarArchivo(reporte, formato)
+C -> Bitacora : registrar(usuario, "Exportar reporte", detalle, ip)
+activate Bitacora
+Bitacora --> C : ok
+deactivate Bitacora
+C --> UI : archivo
+deactivate C
+UI -> UI : descargarArchivo(archivo)
+deactivate UI
+@enduml

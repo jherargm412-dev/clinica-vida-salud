@@ -156,4 +156,23 @@ class Paciente extends Model
     {
         self::query()->whereKey($idPaciente)->update(['activo' => $activo]);
     }
+
+    /**
+     * CU19 (4.3 obtenerPacientes): pacientes ordenados por apellidos y nombres.
+     * $estado: 'activo' | 'inactivo' | null (todos). Las fechas filtran por la fecha de registro
+     * de su cuenta (usuario.fecha_registro); cada una es opcional.
+     */
+    public static function obtenerPacientes(?string $estado = null, ?string $fechaIni = null, ?string $fechaFin = null): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->join('usuario', 'usuario.id_usuario', '=', 'paciente.id_usuario')
+            ->select('paciente.*')
+            ->with('usuario')
+            ->when($estado, fn ($q) => $q->where('paciente.activo', $estado === 'activo'))
+            ->when($fechaIni, fn ($q) => $q->whereDate('usuario.fecha_registro', '>=', $fechaIni))
+            ->when($fechaFin, fn ($q) => $q->whereDate('usuario.fecha_registro', '<=', $fechaFin))
+            ->orderBy('usuario.apellidos')
+            ->orderBy('usuario.nombres')
+            ->get();
+    }
 }

@@ -1,0 +1,70 @@
+@startuml
+' CU19 Generar Reporte - Diagrama de secuencia (Ingresos) = alternativo 3d
+hide footbox
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam sequenceMessageAlign left
+
+actor "Administrador" as A
+boundary "UI_Reportes" as UI
+control "Ctrl_Reportes" as C
+entity "Medico" as Medico
+entity "Especialidad" as Especialidad
+entity "MetodoPago" as MetodoPago
+entity "Pago" as Pago
+entity "DetallePago" as DetallePago
+entity "Bitacora" as Bitacora
+
+A -> UI : abrirReportes()
+activate UI
+UI -> UI : mostrarReportes()
+
+A -> UI : seleccionarReporte("Ingresos")
+UI -> C : obtenerFiltrosIngresos()
+activate C
+C -> Medico : listarMedicos()
+activate Medico
+Medico --> C : medicos
+deactivate Medico
+C -> Especialidad : listarEspecialidades()
+activate Especialidad
+Especialidad --> C : especialidades
+deactivate Especialidad
+C -> MetodoPago : listarMetodosPago()
+activate MetodoPago
+MetodoPago --> C : metodos
+deactivate MetodoPago
+C --> UI : filtros
+deactivate C
+UI -> UI : mostrarFiltros(filtros)
+
+A -> UI : generar(fechaIni, fechaFin, idMedico, idEspecialidad, idMetodoPago)
+UI -> C : generarReporteIngresos(fechaIni, fechaFin, idMedico, idEspecialidad, idMetodoPago)
+activate C
+C -> C : validarRangoFechas(fechaIni, fechaFin)
+C -> Pago : obtenerPagos(fechaIni, fechaFin, idMedico, idEspecialidad, idMetodoPago)
+activate Pago
+Pago --> C : pagos
+deactivate Pago
+C -> DetallePago : obtenerTotalesPorMetodo(fechaIni, fechaFin, idMedico, idEspecialidad, idMetodoPago)
+activate DetallePago
+DetallePago --> C : totales
+deactivate DetallePago
+C -> C : calcularTotales(pagos)
+C --> UI : reporte
+deactivate C
+UI -> UI : mostrarReporte(reporte)
+
+A -> UI : exportar(formato)
+UI -> C : exportarReporte(reporte, formato)
+activate C
+C -> C : generarArchivo(reporte, formato)
+C -> Bitacora : registrar(usuario, "Exportar reporte", detalle, ip)
+activate Bitacora
+Bitacora --> C : ok
+deactivate Bitacora
+C --> UI : archivo
+deactivate C
+UI -> UI : descargarArchivo(archivo)
+deactivate UI
+@enduml

@@ -54,6 +54,12 @@ class Especialidad extends Model
             ->get();
     }
 
+    /** CU19 (listarEspecialidades): TODAS las especialidades, también las inactivas (los reportes son historial). */
+    public static function listarEspecialidades(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()->orderBy('nombre')->get();
+    }
+
     /** CU20 (2.2 listarActivasSinTarifa): especialidades activas que todavía no tienen una tarifa activa. */
     public static function listarActivasSinTarifa(): \Illuminate\Database\Eloquent\Collection
     {

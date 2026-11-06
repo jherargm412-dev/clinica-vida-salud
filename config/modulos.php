@@ -61,7 +61,8 @@ return [
             'permisos' => ['citas.registrar_atencion'], 'roles' => ['Medico'], 'ruta' => 'atencion.index'],
 
         // Reportes
-        ['grupo' => 'reportes', 'titulo' => 'Reportes', 'icono' => 'bi-bar-chart', 'cu' => 'CU19', 'permisos' => ['reportes.generar'], 'ruta' => null],
+        ['grupo' => 'reportes', 'titulo' => 'Reportes', 'icono' => 'bi-bar-chart', 'cu' => 'CU19',
+            'permisos' => ['reportes.generar', 'reportes.generar_todos'], 'ruta' => 'reportes.index'],
 
         // Pagos y caja
         ['grupo' => 'pagos', 'titulo' => 'Tarifas y métodos de pago', 'icono' => 'bi-cash-coin', 'cu' => 'CU20', 'permisos' => ['pagos.configurar'], 'ruta' => 'tarifas.index',

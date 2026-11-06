@@ -106,6 +106,35 @@ class Pago extends Model
             ->orderByDesc('id_pago');
     }
 
+    /**
+     * CU19 (5.11 obtenerPagos): pagos "Pagado" entre dos fechas (fecha en que quedó pagado), con SOLO
+     * sus detalles "Aprobado" (y del método elegido, si se filtra por método).
+     * Médico, especialidad y método son opcionales (null = todos).
+     */
+    public static function obtenerPagos(string $fechaIni, string $fechaFin, ?int $idMedico = null,
+                                        ?int $idEspecialidad = null, ?int $idMetodoPago = null): \Illuminate\Database\Eloquent\Collection
+    {
+        // Detalles que cuentan como dinero cobrado
+        $detallesCobrados = fn ($d) => $d
+            ->where('estado', 'Aprobado')
+            ->when($idMetodoPago, fn ($m) => $m->where('id_metodo_pago', $idMetodoPago));
+
+        return self::query()
+            ->where('estado', 'Pagado')
+            ->whereDate('fecha', '>=', $fechaIni)
+            ->whereDate('fecha', '<=', $fechaFin)
+            ->when($idMedico, fn ($q) => $q->whereHas('cita', fn ($c) => $c->where('id_medico', $idMedico)))
+            ->when($idEspecialidad, fn ($q) => $q->whereHas('cita', fn ($c) => $c->where('id_especialidad', $idEspecialidad)))
+            ->whereHas('detalles', $detallesCobrados)
+            ->with([
+                'cita.paciente.usuario', 'cita.especialidad', 'usuario',
+                'detalles' => fn ($d) => $detallesCobrados($d)->with('metodoPago')->orderBy('id_detalle_pago'),
+            ])
+            ->orderBy('fecha')
+            ->orderBy('id_pago')
+            ->get();
+    }
+
     /** Detalles que cuentan para el total: los que siguen "Pendiente" o ya están "Aprobado". */
     public function detallesVigentes()
     {

@@ -1,0 +1,35 @@
+@startuml
+' CU19 Generar Reporte - Diagrama de comunicación (Citas)
+' Escenarios: 1 Reporte de citas, 2 Reporte de asistencia, 3 Agenda diaria
+left to right direction
+skinparam shadowing false
+skinparam defaultFontSize 11
+skinparam nodesep 60
+skinparam ranksep 120
+
+actor "Administrador" as A
+boundary "UI_Reportes" as UI
+control "Ctrl_Reportes" as C
+entity "Medico" as Medico
+entity "Especialidad" as Especialidad
+entity "Cita" as Cita
+entity "Bitacora" as Bitacora
+
+A -- UI : 1: abrirReportes() →\n1.1: seleccionarReporte("Citas") →\n1.8: generar(fechaIni, fechaFin, idMedico, idEspecialidad, estado) →\n1.13: exportar(formato) →\n<color:#1F5FBF>2: seleccionarReporte("Asistencia") →</color>\n<color:#1F5FBF>2.1: generar(fechaIni, fechaFin) →</color>\n<color:#1F5FBF>2.6: exportar(formato) →</color>\n<color:#D9730D>3: seleccionarReporte("Agenda diaria") →</color>\n<color:#D9730D>3.5: generar(fecha, idMedico) →</color>\n<color:#D9730D>3.10: exportar("PDF") →</color>
+
+UI -- C : 1.2: obtenerFiltrosCitas() →\n1.7: filtros ←\n1.9: generarReporteCitas(fechaIni, fechaFin, idMedico, idEspecialidad, estado) →\n1.12: reporte ←\n1.14: exportarReporte(reporte, formato) →\n1.17: archivo ←\n<color:#1F5FBF>2.2: generarReporteAsistencia(fechaIni, fechaFin) →</color>\n<color:#1F5FBF>2.5: reporte ←</color>\n<color:#1F5FBF>2.7: exportarReporte(reporte, formato) →</color>\n<color:#1F5FBF>2.10: archivo ←</color>\n<color:#D9730D>3.1: obtenerMedicos() →</color>\n<color:#D9730D>3.4: medicos ←</color>\n<color:#D9730D>3.6: generarAgendaDiaria(fecha, idMedico) →</color>\n<color:#D9730D>3.9: agenda ←</color>\n<color:#D9730D>3.11: exportarReporte(agenda, "PDF") →</color>\n<color:#D9730D>3.14: archivo ←</color>
+
+C -- Medico : 1.3: listarMedicos() →\n1.4: medicos ←\n<color:#D9730D>3.2: listarMedicos() →</color>\n<color:#D9730D>3.3: medicos ←</color>
+
+C -- Especialidad : 1.5: listarEspecialidades() →\n1.6: especialidades ←
+
+C -- Cita : 1.10: obtenerCitas(fechaIni, fechaFin, idMedico, idEspecialidad, estado) →\n1.11: citas ←\n<color:#1F5FBF>2.3: contarCitasPorEstado(fechaIni, fechaFin) →</color>\n<color:#1F5FBF>2.4: conteo ←</color>\n<color:#D9730D>3.7: obtenerAgenda(fecha, idMedico) →</color>\n<color:#D9730D>3.8: citas ←</color>
+
+C -- Bitacora : 1.15: registrar(usuario, "Exportar reporte", detalle, ip) →\n1.16: ok ←\n<color:#1F5FBF>2.8: registrar(usuario, "Exportar reporte", detalle, ip) →</color>\n<color:#1F5FBF>2.9: ok ←</color>\n<color:#D9730D>3.12: registrar(usuario, "Exportar reporte", detalle, ip) →</color>\n<color:#D9730D>3.13: ok ←</color>
+
+legend bottom right
+1: Reporte de citas
+<color:#1F5FBF>2: Reporte de asistencia</color>
+<color:#D9730D>3: Agenda diaria</color>
+endlegend
+@enduml

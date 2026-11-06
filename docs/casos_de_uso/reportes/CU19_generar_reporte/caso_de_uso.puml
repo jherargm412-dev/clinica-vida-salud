@@ -1,0 +1,21 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam usecase {
+  BackgroundColor #DDEBF7
+  BorderColor #555555
+}
+skinparam rectangle {
+  BorderColor #555555
+}
+
+actor "Administrador" as Admin
+actor "Recepcionista" as Recep
+
+rectangle "Sistema de gestión de citas médicas" {
+  usecase "CU19 Generar Reporte" as CU19
+}
+
+Admin -- CU19
+Recep -- CU19
+@enduml

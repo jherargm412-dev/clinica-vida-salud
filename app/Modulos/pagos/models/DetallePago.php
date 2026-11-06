@@ -74,4 +74,30 @@ class DetallePago extends Model
     {
         $this->update(['estado' => 'Rechazado']);
     }
+
+    /**
+     * CU19 (5.13 obtenerTotalesPorMetodo): total cobrado por cada método de pago, con los mismos
+     * filtros que Pago::obtenerPagos (pago "Pagado" + detalle "Aprobado").
+     * Cada fila: metodo, total.
+     */
+    public static function obtenerTotalesPorMetodo(string $fechaIni, string $fechaFin, ?int $idMedico = null,
+                                                   ?int $idEspecialidad = null, ?int $idMetodoPago = null): \Illuminate\Support\Collection
+    {
+        return \Illuminate\Support\Facades\DB::table('detalle_pago as d')
+            ->join('pago as p', 'p.id_pago', '=', 'd.id_pago')
+            ->join('cita as c', 'c.id_cita', '=', 'p.id_cita')
+            ->join('metodo_pago as m', 'm.id_metodo_pago', '=', 'd.id_metodo_pago')
+            ->selectRaw('m.nombre AS metodo, SUM(d.monto) AS total')
+            ->where('p.estado', 'Pagado')
+            ->where('d.estado', 'Aprobado')
+            ->whereDate('p.fecha', '>=', $fechaIni)
+            ->whereDate('p.fecha', '<=', $fechaFin)
+            ->when($idMedico, fn ($q) => $q->where('c.id_medico', $idMedico))
+            ->when($idEspecialidad, fn ($q) => $q->where('c.id_especialidad', $idEspecialidad))
+            ->when($idMetodoPago, fn ($q) => $q->where('d.id_metodo_pago', $idMetodoPago))
+            ->groupBy('m.nombre', 'm.en_linea')
+            ->orderBy('m.en_linea')
+            ->orderBy('m.nombre')
+            ->get();
+    }
 }
