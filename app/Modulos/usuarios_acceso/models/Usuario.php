@@ -180,6 +180,24 @@ class Usuario extends Authenticatable
         return \Illuminate\Support\Facades\Hash::check($contrasena, $this->contrasena);
     }
 
+    /** CU02 (Recuperar contraseña): busca la cuenta por su correo, sin distinguir mayúsculas. */
+    public static function buscarPorCorreo(string $correo): ?self
+    {
+        return self::whereRaw('LOWER(correo) = ?', [mb_strtolower(trim($correo))])->first();
+    }
+
+    /**
+     * CU02 (Recuperar contraseña): guarda la nueva contraseña cifrada y desbloquea la cuenta.
+     * Quien abrió el enlace del correo demostró ser el dueño, así que no tiene que esperar al administrador.
+     */
+    public function restablecerContrasena(string $nueva): void
+    {
+        $this->contrasena = \Illuminate\Support\Facades\Hash::make($nueva);
+        $this->bloqueado = false;
+        $this->intentos_fallidos = 0;
+        $this->save();
+    }
+
     /**
      * CU10 (secuencia "listarMedicosSinVincular"): cuentas ACTIVAS con rol Medico
      * que todavía no tienen ficha de médico. $incluir: la cuenta actual del médico que se edita.

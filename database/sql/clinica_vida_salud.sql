@@ -24,6 +24,7 @@ DROP TABLE IF EXISTS metodo_pago         CASCADE;
 DROP TABLE IF EXISTS cita                CASCADE;
 DROP TABLE IF EXISTS horario_atencion    CASCADE;
 DROP TABLE IF EXISTS medico_especialidad CASCADE;
+DROP TABLE IF EXISTS recuperacion_contrasena CASCADE;
 DROP TABLE IF EXISTS bitacora            CASCADE;
 DROP TABLE IF EXISTS perfil_medico       CASCADE;
 DROP TABLE IF EXISTS paciente            CASCADE;
@@ -145,6 +146,20 @@ CREATE TABLE bitacora (
     detalle         TEXT,
     ip              VARCHAR(45)  NOT NULL,
     CONSTRAINT fk_bitacora_usuario FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario) ON DELETE RESTRICT
+);
+
+-- CU02 (Recuperar contraseña): enlaces de un solo uso enviados por correo.
+-- Se guarda solo el hash SHA-256 del token, nunca el token real.
+CREATE TABLE recuperacion_contrasena (
+    id_recuperacion   SERIAL       PRIMARY KEY,
+    id_usuario        INTEGER      NOT NULL,
+    token             VARCHAR(64)  NOT NULL,              -- hash SHA-256 del token (64 caracteres hexadecimales)
+    fecha_solicitud   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_expiracion  TIMESTAMP    NOT NULL,              -- 30 minutos después de la solicitud
+    usado             BOOLEAN      NOT NULL DEFAULT FALSE, -- TRUE: ya se usó o fue reemplazado por uno nuevo
+    CONSTRAINT fk_recuperacion_usuario FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario) ON DELETE RESTRICT,
+    CONSTRAINT uq_recuperacion_token   UNIQUE (token),
+    CONSTRAINT ck_recuperacion_fechas  CHECK (fecha_expiracion > fecha_solicitud)
 );
 
 CREATE TABLE tarifa (
@@ -372,6 +387,7 @@ CREATE INDEX ix_atencion_medica_medico ON atencion_medica (id_medico);
 CREATE INDEX ix_detalle_pago_pago    ON detalle_pago (id_pago);
 CREATE INDEX ix_movimiento_caja_sesion ON movimiento_caja (id_sesion_caja);
 CREATE INDEX ix_notificacion_cita    ON notificacion (id_cita);
+CREATE INDEX ix_recuperacion_usuario ON recuperacion_contrasena (id_usuario);
 
 -- ---------------------------------------------------------------------
 -- 6. Datos iniciales

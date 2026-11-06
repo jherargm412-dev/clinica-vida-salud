@@ -35,6 +35,17 @@
 - Código organizado por paquetes (`app/Modulos/<paquete>`), igual que el diagrama de paquetes.
 - Base de datos creada con el script SQL; no se usan migraciones de Laravel.
 
+## Recuperar contraseña (CU02, flujo alternativo 3a) — 06/11/2026
+- Se documenta como flujo alternativo de CU02 (no es un CU nuevo). Enlace "¿Olvidó su contraseña?" en el login → correo → enlace de un solo uso → nueva contraseña.
+- Correo por Brevo (`MAIL_MAILER=brevo`), remitente `clinicavidasalud.oficial@gmail.com`. Solo funciona con cuentas que tienen correo; un paciente sin correo debe acudir a recepción.
+- Al restablecer la contraseña **la cuenta se desbloquea** y los intentos vuelven a 0: quien abre el enlace demostró ser el dueño del correo y no tiene que esperar al administrador. Los mensajes de cuenta bloqueada (5c, 5d) ahora mencionan esta opción.
+- Seguridad: mismo mensaje exista o no el correo (no revela qué correos están registrados); en la tabla `recuperacion_contrasena` se guarda solo el hash SHA-256 del token; el enlace vence en 30 minutos y sirve una sola vez; al pedir uno nuevo se anulan los anteriores; no se envía otro si se pidió uno hace menos de 1 minuto; la página del enlace no envía la URL a otros sitios (`referrer no-referrer`). Las cuentas desactivadas no reciben enlace.
+- Límite de peticiones por IP con limitadores con nombre (`AppServiceProvider`): 5 solicitudes por minuto y 20 aperturas o envíos del enlace por minuto. No se usa `throttle:N,1` sin nombre porque comparte el contador con el del login.
+- Misma política de contraseñas de CU01 y CU04 (`Contrasena::reglas`), con confirmación y checklist verde.
+- Bitácora: `SOLICITAR_RECUPERACION` (también si el correo no existe, sin usuario) y `RESTABLECER_CONTRASENA` ("y cuenta desbloqueada" si estaba bloqueada).
+- Las páginas públicas (login, recuperar y restablecer) comparten la plantilla `resources/views/compartido/publica.blade.php`.
+- Base existente: `database/sql/actualizacion_recuperar_contrasena.sql`.
+
 ## Usuarios (CU01)
 - En CU01 solo se asignan roles activos **excepto Paciente** (las cuentas de pacientes se crean en el CU06 junto con su ficha). Al editar una cuenta se muestra también su rol actual.
 - Correo opcional; si se ingresa, debe ser único. Contraseña obligatoria al registrar; al modificar, si se deja vacía se mantiene.
