@@ -74,4 +74,28 @@ class SesionCaja extends Model
             'estado' => 'Cerrada',
         ]);
     }
+
+    /**
+     * CU19 (6.7 obtenerSesionesCerradas): cajas "Cerrada" abiertas entre dos fechas (inclusive),
+     * de un usuario o de todos (null). Trae también la suma de sus ingresos en
+     * "movimientos_sum_monto" (con ella se calcula el monto esperado, igual que en CU22).
+     */
+    public static function obtenerSesionesCerradas(string $fechaIni, string $fechaFin, ?int $idUsuario = null): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->with('usuario')
+            ->withSum('movimientos', 'monto')
+            ->where('estado', 'Cerrada')
+            ->whereDate('apertura', '>=', $fechaIni)
+            ->whereDate('apertura', '<=', $fechaFin)
+            ->when($idUsuario, fn ($q) => $q->where('id_usuario', $idUsuario))
+            ->orderBy('apertura')
+            ->get();
+    }
+
+    /** CU19: monto esperado = monto inicial + ingresos en efectivo (en centavos, como CU22). */
+    public function montoEsperadoCentavos(): int
+    {
+        return Pago::aCentavos($this->monto_inicial) + Pago::aCentavos($this->movimientos_sum_monto ?? 0);
+    }
 }

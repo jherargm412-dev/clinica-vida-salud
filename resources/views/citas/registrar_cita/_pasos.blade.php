@@ -1,7 +1,8 @@
 {{-- CU13 / CU21 · Barra de pasos del asistente "Registrar cita".
-     Recibe: $pasos (claves en orden), $actual (clave del paso actual), $urlsPasos (enlaces a pasos ya hechos; opcional) --}}
+     Recibe: $pasos (claves en orden), $actual (clave del paso actual), $urlsPasos (enlaces a pasos ya hechos; opcional).
+     Opcionales para usarla en otros asistentes (p. ej. CU19 Reportes): $nombresPasos (clave => nombre) y $etiquetaPasos. --}}
 @php
-    $nombresPasos = [
+    $nombresPasos = $nombresPasos ?? [
         'paciente' => 'Paciente',
         'especialidad' => 'Especialidad',
         'medico' => 'Médico',
@@ -12,7 +13,7 @@
     $urlsPasos = $urlsPasos ?? [];
 @endphp
 
-<ol class="cvs-pasos" aria-label="Pasos para registrar la cita">
+<ol class="cvs-pasos" aria-label="{{ $etiquetaPasos ?? 'Pasos para registrar la cita' }}">
     @foreach ($pasos as $i => $clave)
         @php($estado = $i < $indiceActual ? 'hecho' : ($i === $indiceActual ? 'actual' : 'pendiente'))
         <li class="cvs-paso {{ $estado }}" @if ($estado === 'actual') aria-current="step" @endif>

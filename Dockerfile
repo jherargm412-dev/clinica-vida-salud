@@ -4,10 +4,12 @@
 # =====================================================================
 FROM php:8.2-apache
 
-# 1. Extensiones de PHP: pdo_pgsql (PostgreSQL) y opcache (rendimiento)
+# 1. Extensiones de PHP: pdo_pgsql (PostgreSQL), opcache (rendimiento) y,
+#    para CU19 Reportes, gd y zip (las exige PhpSpreadsheet para el Excel .xlsx)
 RUN apt-get update \
- && apt-get install -y --no-install-recommends libpq-dev unzip \
- && docker-php-ext-install pdo_pgsql opcache \
+ && apt-get install -y --no-install-recommends libpq-dev unzip libzip-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
+ && docker-php-ext-configure gd --with-jpeg --with-freetype \
+ && docker-php-ext-install pdo_pgsql opcache zip gd \
  && rm -rf /var/lib/apt/lists/*
 
 # 2. Configuración de PHP para producción + zona horaria de Bolivia

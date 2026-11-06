@@ -98,6 +98,21 @@ class Medico extends Model
             ->get();
     }
 
+    /**
+     * CU19 (listarMedicos): TODOS los médicos (también los inactivos, porque los reportes son historial),
+     * ordenados por apellidos y nombres.
+     */
+    public static function listarMedicos(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->join('usuario', 'usuario.id_usuario', '=', 'medico.id_usuario')
+            ->select('medico.*')
+            ->with('usuario')
+            ->orderBy('usuario.apellidos')
+            ->orderBy('usuario.nombres')
+            ->get();
+    }
+
     /** CU12 (secuencia 2): médicos activos que atienden una especialidad activa. */
     public static function listarActivosPorEspecialidad(int $idEspecialidad): \Illuminate\Database\Eloquent\Collection
     {

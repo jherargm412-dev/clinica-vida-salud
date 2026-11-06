@@ -28,6 +28,8 @@ body { background: var(--cvs-fondo); }
     --bs-btn-hover-border-color: var(--cvs-primario);
     --bs-btn-active-bg: var(--cvs-primario-oscuro);
 }
+/* Pestañas (CU19 Reportes): la activa con el color del sistema, no el azul de Bootstrap */
+.nav-pills { --bs-nav-pills-link-active-bg: var(--cvs-primario); }
 .form-control:focus, .form-select:focus {
     border-color: #5eada6;
     box-shadow: 0 0 0 .2rem rgba(15, 118, 110, .2);
