@@ -38,5 +38,8 @@ Los casos de uso con un solo escenario tienen `comunicacion.puml` y `secuencia.p
 | usuarios_acceso | CU05 Consultar Bitácora | Jherar |
 | medicos_especialidades | CU09 Gestionar Especialidad | Jherar |
 | medicos_especialidades | CU10 Gestionar Médico | Jherar |
+| pagos | CU20 Gestionar Tarifas y Métodos de Pago | Jherar |
+| pagos | CU21 Pagar Cita | Jherar |
+| pagos | CU22 Gestionar Caja | Jherar |
 
 Los casos de uso de Luis Fernando (CU06, CU11–CU15) los agrega él con la misma estructura.
