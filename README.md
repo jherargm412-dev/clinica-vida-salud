@@ -13,6 +13,7 @@ Proyecto del Grupo 15 (Ingeniería de Requisitos). Aplicación **monolítica** c
 1. Instala **PHP 8.2+** (con la extensión `pdo_pgsql`), **Composer** y **PostgreSQL**.
 2. Crea la base de datos `clinica_vida_salud` y ejecuta el script `database/sql/clinica_vida_salud.sql`
    (en pgAdmin: Query Tool → abrir archivo → ejecutar).
+   Si la base ya existía antes del ciclo 2, ejecuta también `database/sql/actualizacion_ciclo2_perfil_medico_atencion.sql`.
 3. En la carpeta del proyecto:
    ```bash
    composer install
