@@ -9,6 +9,10 @@
             <a href="{{ route('agenda.index') }}" class="text-decoration-none">
                 <i class="bi bi-arrow-left"></i> Volver a médicos
             </a>
+        @else
+            <a href="{{ route('atencion.index') }}" class="btn btn-outline-primary btn-sm mb-2">
+                <i class="bi bi-clipboard2-pulse me-1"></i> Registrar atención
+            </a>
         @endunless
         <h1 class="h3 fw-semibold mt-2 mb-1">{{ $esMiAgenda ? 'Mi agenda' : 'Agenda médica' }}</h1>
         <p class="text-muted mb-0">{{ $medico->nombre_completo }} · {{ $medico->codigo }}</p>
