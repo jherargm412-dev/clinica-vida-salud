@@ -57,6 +57,8 @@ return [
         // Agenda médica
         ['grupo' => 'agenda_medica', 'titulo' => 'Agenda médica', 'icono' => 'bi-calendar3', 'cu' => 'CU17',
             'permisos' => ['agenda.consultar'], 'ruta' => 'agenda.index'],
+        ['grupo' => 'agenda_medica', 'titulo' => 'Registrar atención', 'icono' => 'bi-clipboard2-pulse', 'cu' => 'CU18',
+            'permisos' => ['citas.registrar_atencion'], 'roles' => ['Medico'], 'ruta' => 'atencion.index'],
 
         // Reportes
         ['grupo' => 'reportes', 'titulo' => 'Reportes', 'icono' => 'bi-bar-chart', 'cu' => 'CU19', 'permisos' => ['reportes.generar'], 'ruta' => null],

@@ -2,17 +2,19 @@
 
 namespace App\Modulos\citas\models;
 
+use App\Modulos\agenda_medica\models\AtencionMedica;
 use App\Modulos\compartido\Texto;
 use App\Modulos\medicos_especialidades\models\Especialidad;
 use App\Modulos\medicos_especialidades\models\Medico;
 use App\Modulos\pacientes\models\Paciente;
+use App\Modulos\pagos\models\Pago;
 use App\Modulos\usuarios_acceso\models\Usuario;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Modulos\pagos\models\Pago;
 use Illuminate\Support\Facades\DB;
 
 /** Entidad Cita (tabla "cita"). */
@@ -67,6 +69,11 @@ class Cita extends Model
         return $this->hasOne(Pago::class, 'id_cita', 'id_cita');
     }
 
+    public function atencionMedica(): HasOne
+    {
+        return $this->hasOne(AtencionMedica::class, 'id_cita', 'id_cita');
+    }
+
     /** CU08: lista todas las citas del paciente, opcionalmente filtradas por estado. */
     public static function listarPorPaciente(int $idPaciente, ?string $estado = null): Builder
     {
@@ -93,13 +100,13 @@ class Cita extends Model
         $consulta = self::listarGestionables();
 
         if ($texto !== null && trim($texto) !== '') {
-            $buscado = '%' . Texto::sinTildes(trim($texto)) . '%';
+            $buscado = '%'.Texto::sinTildes(trim($texto)).'%';
             $consulta->where(function ($q) use ($buscado) {
                 $q->where('codigo', 'ILIKE', $buscado)
                     ->orWhereHas('paciente', fn ($paciente) => $paciente
                         ->where('ci', 'ILIKE', $buscado)
                         ->orWhereHas('usuario', fn ($usuario) => $usuario->whereRaw(
-                            Texto::sqlSinTildes("nombres || ' ' || apellidos") . ' ILIKE ?',
+                            Texto::sqlSinTildes("nombres || ' ' || apellidos").' ILIKE ?',
                             [$buscado]
                         )));
             });
@@ -145,12 +152,41 @@ class Cita extends Model
             ->orderBy('hora_inicio');
     }
 
+    /** CU18: citas Programadas, Confirmadas o Atendidas del médico. */
+    public static function listarPorMedicoYEstados(int $idMedico, array $estados): Builder
+    {
+        return self::query()
+            ->where('id_medico', $idMedico)
+            ->whereIn('estado', $estados)
+            ->orderByDesc('fecha')
+            ->orderBy('hora_inicio');
+    }
+
+    /** CU18: comprueba que la cita pertenece al médico y permite registrar atención. */
+    public static function validarPuedeRegistrarAtencion(int $idCita, int $idMedico): bool
+    {
+        return self::query()
+            ->whereKey($idCita)
+            ->where('id_medico', $idMedico)
+            ->whereIn('estado', ['Programada', 'Confirmada', 'Atendida'])
+            ->exists();
+    }
+
+    /** CU18: marca como Atendida una cita Programada o Confirmada del médico. */
+    public static function marcarAtendida(int $idCita): bool
+    {
+        return self::query()
+            ->whereKey($idCita)
+            ->whereIn('estado', ['Programada', 'Confirmada'])
+            ->update(['estado' => 'Atendida']) > 0;
+    }
+
     // ---------------------------------------------------------------
     // CU21 Pagar cita: reserva de 10 minutos
     // ---------------------------------------------------------------
 
     /** Fecha y hora en que vence la reserva del horario (fecha de creación + 10 minutos). */
-    public function venceReserva(): \Carbon\Carbon
+    public function venceReserva(): Carbon
     {
         return $this->fecha_creacion->copy()->addMinutes(self::MINUTOS_RESERVA_PAGO);
     }

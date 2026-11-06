@@ -5,6 +5,7 @@
 */
 
 use App\Modulos\agenda_medica\controller\consultar_agenda_medica\AgendaMedicaController;
+use App\Modulos\agenda_medica\controller\registrar_atencion\AtencionCitaController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'cuenta.activa'])->group(function () {
@@ -18,5 +19,14 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
             ->name('agenda.mi');
     });
 
-    // CU18 Registrar atención        -> middleware('permiso:citas.registrar_atencion')
+    Route::middleware('permiso:citas.registrar_atencion')->group(function () {
+        Route::get('/atenciones', [AtencionCitaController::class, 'listarCitasAtendibles'])
+            ->name('atencion.index');
+        Route::get('/atenciones/{idCita}', [AtencionCitaController::class, 'obtenerDatosCita'])
+            ->whereNumber('idCita')
+            ->name('atencion.datos');
+        Route::post('/atenciones/{idCita}', [AtencionCitaController::class, 'guardarAtencion'])
+            ->whereNumber('idCita')
+            ->name('atencion.guardar');
+    });
 });
