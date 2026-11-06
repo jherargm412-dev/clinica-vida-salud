@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Modulos\pagos\models\Pago;
 use Illuminate\Support\Facades\DB;
 
 /** Entidad Cita (tabla "cita"). */
@@ -22,12 +24,15 @@ class Cita extends Model
 
     public $timestamps = false;
 
-    public const ESTADOS = ['Programada', 'Confirmada', 'Atendida', 'Cancelada', 'Inasistencia'];
+    public const ESTADOS = ['Pendiente de pago', 'Programada', 'Confirmada', 'Atendida', 'Cancelada', 'Inasistencia'];
+
+    /** CU21: minutos que el horario queda reservado mientras la cita está "Pendiente de pago". */
+    public const MINUTOS_RESERVA_PAGO = 10;
 
     protected $fillable = [
         'id_paciente', 'id_medico', 'id_especialidad', 'id_usuario_cancelacion',
         'codigo', 'fecha', 'hora_inicio', 'hora_fin', 'motivo', 'estado',
-        'motivo_cancelacion', 'fecha_cancelacion',
+        'motivo_cancelacion', 'fecha_cancelacion', 'cancelada_por',
     ];
 
     protected $casts = [
@@ -56,6 +61,73 @@ class Cita extends Model
         return $this->belongsTo(Usuario::class, 'id_usuario_cancelacion', 'id_usuario');
     }
 
+    // Cita 1 — 0..1 Pago (CU21)
+    public function pago(): HasOne
+    {
+        return $this->hasOne(Pago::class, 'id_cita', 'id_cita');
+    }
+
+    // ---------------------------------------------------------------
+    // CU21 Pagar cita: reserva de 10 minutos
+    // ---------------------------------------------------------------
+
+    /** Fecha y hora en que vence la reserva del horario (fecha de creación + 10 minutos). */
+    public function venceReserva(): \Carbon\Carbon
+    {
+        return $this->fecha_creacion->copy()->addMinutes(self::MINUTOS_RESERVA_PAGO);
+    }
+
+    /** CU21 (calcularTiempoRestante): segundos que quedan para pagar (0 si ya venció). */
+    public function segundosRestantesPago(): int
+    {
+        return max(0, (int) now()->diffInSeconds($this->venceReserva(), false));
+    }
+
+    /** CU21 (retencionVigente): ¿sigue "Pendiente de pago" y dentro de los 10 minutos? */
+    public function retencionVigente(): bool
+    {
+        return $this->estado === 'Pendiente de pago' && $this->venceReserva()->isFuture();
+    }
+
+    /** CU21 (paso 1): citas pendientes de pago; si se indica el paciente, solo las suyas. */
+    public static function listarPendientesDePago(?int $idPaciente = null): Collection
+    {
+        return self::query()
+            ->with(['paciente.usuario', 'medico.usuario', 'especialidad'])
+            ->where('estado', 'Pendiente de pago')
+            ->when($idPaciente, fn ($q) => $q->where('id_paciente', $idPaciente))
+            ->orderBy('fecha_creacion')
+            ->get();
+    }
+
+    /** CU21 (7a): ids de las citas cuya reserva de 10 minutos ya venció. */
+    public static function idsReservasVencidas(): array
+    {
+        return self::query()
+            ->where('estado', 'Pendiente de pago')
+            ->where('fecha_creacion', '<=', now()->subMinutes(self::MINUTOS_RESERVA_PAGO))
+            ->pluck('id_cita')
+            ->all();
+    }
+
+    /** CU21 (paso 7 marcarProgramada): el pago se completó; la cita ocupa el horario. */
+    public function marcarProgramada(): void
+    {
+        $this->update(['estado' => 'Programada']);
+    }
+
+    /** CU21 (7a y Cancelar): la cancela el sistema y el horario queda libre. */
+    public function cancelarPorSistema(string $motivo): void
+    {
+        $this->update([
+            'estado' => 'Cancelada',
+            'motivo_cancelacion' => $motivo,
+            'fecha_cancelacion' => now(),
+            'cancelada_por' => 'Sistema',
+            'id_usuario_cancelacion' => null,
+        ]);
+    }
+
     /** CU06 (secuencia 5): ¿tiene el paciente citas futuras aún programadas o confirmadas? */
     public static function existenCitasPendientesPaciente(int $idPaciente): bool
     {
@@ -63,6 +135,15 @@ class Cita extends Model
             ->where('id_paciente', $idPaciente)
             ->whereDate('fecha', '>=', now()->toDateString())
             ->whereIn('estado', ['Programada', 'Confirmada'])
+            ->exists();
+    }
+
+    /** CU20 (4.2): ¿hay citas de la especialidad esperando su pago? (no se puede desactivar su tarifa) */
+    public static function existenPendientesDePago(int $idEspecialidad): bool
+    {
+        return self::query()
+            ->where('id_especialidad', $idEspecialidad)
+            ->where('estado', 'Pendiente de pago')
             ->exists();
     }
 

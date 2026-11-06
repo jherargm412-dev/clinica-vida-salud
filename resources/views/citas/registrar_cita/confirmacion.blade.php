@@ -10,7 +10,11 @@
                 <i class="bi bi-check-circle-fill text-success fs-3"></i>
                 <h1 class="h3 fw-semibold mb-0">Cita registrada</h1>
             </div>
-            <p class="text-muted">La cita quedó programada correctamente.</p>
+            <p class="text-muted">
+                {{ $cita->estado === 'Pendiente de pago'
+                    ? 'La cita reserva el horario durante 10 minutos hasta que se pague.'
+                    : 'La cita quedó programada correctamente.' }}
+            </p>
 
             <dl class="row mb-4">
                 <dt class="col-sm-3">Código</dt>

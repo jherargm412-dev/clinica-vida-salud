@@ -28,6 +28,18 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // Brevo: envío de correos por API (aviso "Cita programada", CU21)
+    'brevo' => [
+        'key' => env('BREVO_API_KEY'),
+    ],
+
+    // Stripe (pasarela de pago en línea, CU21). Usar SOLO claves de prueba (sk_test_ / pk_test_).
+    'stripe' => [
+        'secret' => env('STRIPE_SECRET_KEY'),
+        'public' => env('STRIPE_PUBLISHABLE_KEY'),   // la usa Stripe.js para mostrar el formulario incrustado (CU21)
+        'moneda' => strtolower(env('STRIPE_CURRENCY', 'bob')),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

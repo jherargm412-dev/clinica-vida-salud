@@ -56,6 +56,7 @@ class Bitacora extends Model
         'medica'     => 'médica',
         'sesion'     => 'sesión',
         'atencion'   => 'atención',
+        'metodo'     => 'método',
     ];
 
     /** Frases a las que les falta el "de" (ej. INICIO_SESION -> "Inicio de sesión"). */
@@ -64,6 +65,7 @@ class Bitacora extends Model
         'cierre sesión'    => 'cierre de sesión',
         'bloqueo cuenta'   => 'bloqueo de cuenta',
         'horario atención' => 'horario de atención',
+        'método pago'      => 'método de pago',
     ];
 
     /** "REGISTRAR_ESPECIALIDAD" -> "Registrar especialidad". Uso: $registro->accion_legible */

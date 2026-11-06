@@ -1,0 +1,76 @@
+@startuml
+title CU22 Gestionar Caja - Diagrama de secuencia
+hide footbox
+skinparam sequenceMessageAlign center
+
+' Flujo principal: mostrar -> abrir -> consultar -> cerrar
+
+actor Recepcionista
+boundary UI_Caja
+control Ctrl_Caja
+entity SesionCaja
+entity MovimientoCaja
+entity Pago
+entity Bitacora
+
+activate Recepcionista
+Recepcionista -> UI_Caja : mostrarCaja()
+activate UI_Caja
+UI_Caja -> Ctrl_Caja : obtenerCajaActual()
+activate Ctrl_Caja
+Ctrl_Caja -> SesionCaja : obtenerAbiertaPorUsuario(idUsuario)
+SesionCaja --> Ctrl_Caja : null
+Ctrl_Caja --> UI_Caja : sinCajaAbierta
+deactivate Ctrl_Caja
+UI_Caja -> UI_Caja : mostrarFormularioApertura()
+deactivate UI_Caja
+
+Recepcionista -> UI_Caja : abrirCaja(montoInicial)
+activate UI_Caja
+UI_Caja -> Ctrl_Caja : registrarApertura(montoInicial)
+activate Ctrl_Caja
+Ctrl_Caja -> Ctrl_Caja : validarMontoInicial(montoInicial)
+Ctrl_Caja -> SesionCaja : obtenerAbiertaPorUsuario(idUsuario)
+SesionCaja --> Ctrl_Caja : null
+Ctrl_Caja -> SesionCaja : insertarSesion(idUsuario, montoInicial)
+SesionCaja --> Ctrl_Caja : sesion
+Ctrl_Caja -> Bitacora : registrar(recepcionista, "Abrir caja", detalle, ip)
+Bitacora --> Ctrl_Caja : ok
+Ctrl_Caja --> UI_Caja : "Caja abierta", sesion
+deactivate Ctrl_Caja
+UI_Caja -> UI_Caja : mostrarMensaje("Caja abierta")
+deactivate UI_Caja
+
+Recepcionista -> UI_Caja : consultarCaja()
+activate UI_Caja
+UI_Caja -> Ctrl_Caja : obtenerResumenCaja(idSesionCaja)
+activate Ctrl_Caja
+Ctrl_Caja -> MovimientoCaja : listarPorSesion(idSesionCaja)
+MovimientoCaja --> Ctrl_Caja : ingresos
+Ctrl_Caja -> Ctrl_Caja : calcularMontoEsperado(montoInicial, ingresos)
+Ctrl_Caja --> UI_Caja : sesion, ingresos, totalIngresos, montoEsperado
+deactivate Ctrl_Caja
+UI_Caja -> UI_Caja : mostrarResumenCaja(sesion, ingresos, totalIngresos, montoEsperado)
+deactivate UI_Caja
+
+Recepcionista -> UI_Caja : cerrarCaja(montoContado)
+activate UI_Caja
+UI_Caja -> UI_Caja : pedirConfirmacionCierre(montoContado)
+Recepcionista -> UI_Caja : confirmarCierre()
+UI_Caja -> Ctrl_Caja : registrarCierre(idSesionCaja, montoContado)
+activate Ctrl_Caja
+Ctrl_Caja -> Pago : existePagoEfectivoEnCurso(idUsuario)
+Pago --> Ctrl_Caja : false
+Ctrl_Caja -> MovimientoCaja : sumarPorSesion(idSesionCaja)
+MovimientoCaja --> Ctrl_Caja : totalIngresos
+Ctrl_Caja -> Ctrl_Caja : calcularDiferencia(montoContado, montoEsperado)
+Ctrl_Caja -> SesionCaja : cerrarSesion(idSesionCaja, montoContado, diferencia)
+SesionCaja --> Ctrl_Caja : ok
+Ctrl_Caja -> Bitacora : registrar(recepcionista, "Cerrar caja", detalle, ip)
+Bitacora --> Ctrl_Caja : ok
+Ctrl_Caja --> UI_Caja : "Caja cerrada", resumenCierre
+deactivate Ctrl_Caja
+UI_Caja -> UI_Caja : mostrarResumenCierre(resumenCierre)
+deactivate UI_Caja
+deactivate Recepcionista
+@enduml

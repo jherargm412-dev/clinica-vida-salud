@@ -75,3 +75,39 @@
 - Nueva contraseña con la misma política del CU01 (Contrasena::reglas, con confirmación y checklist verde) y distinta de la actual ("La nueva contraseña debe ser diferente de la actual").
 - Bitácora: ACTUALIZAR_PERFIL y CAMBIAR_CONTRASENA.
 
+
+## Pagos (CU20, CU21, CU22)
+- Tablas nuevas: `tarifa`, `metodo_pago`, `sesion_caja`, `pago`, `detalle_pago`, `movimiento_caja`, `notificacion`. Para una base existente se aplica `database/sql/actualizacion_pagos.sql` (no borra datos).
+- La cita tiene el estado nuevo "Pendiente de pago" (`estado` pasa a VARCHAR(20)) y la columna `cancelada_por` ('Sistema' cuando la cancela CU21).
+- Agregados que no estaban en los diagramas: `pago.id_usuario` (quién registró el cobro; lo usan `existePagoEfectivoEnCurso` y la caja del paso 8) y `detalle_pago.id_sesion_pasarela` (sesión de Stripe que se verifica al volver).
+- Permisos: `pagos.configurar` (CU20, Administrador), `pagos.cobrar` (CU21, Recepcionista), `pagos.pagar_propia` (CU21, Paciente), `caja.gestionar` (CU22, Recepcionista). El Administrador los tiene todos.
+- CU20: una sola tarifa activa por especialidad (índice único parcial). Las tarifas inactivas quedan como historial y no se reactivan: se registra una nueva. El monto acepta coma o punto decimal y hasta 2 decimales. Siempre queda al menos un método de pago activo.
+- Bitácora: REGISTRAR_TARIFA, MODIFICAR_TARIFA, DESACTIVAR_TARIFA, CAMBIAR_METODO_PAGO.
+- CU22: cada usuario trabaja solo con su propia caja (una sola "Abierta" por usuario, índice único parcial). El monto inicial puede ser 0. Las cuentas de dinero se hacen en centavos para evitar errores de redondeo.
+- CU22: el paso 7 (diferencia y confirmación) no guarda nada; al confirmar, el monto esperado se recalcula y la caja se bloquea (`lockForUpdate`) para que un cobro en efectivo de CU21 no se cruce con el cierre. "Pago en efectivo en curso" (9a) = pago "Pendiente" del usuario con un detalle de efectivo "Pendiente".
+- Bitácora: ABRIR_CAJA, CERRAR_CAJA.
+- CU21: la cita se crea en "Pendiente de pago" (CU13) y reserva el horario 10 minutos desde `fecha_creacion`. CU13 exige una tarifa activa ("La especialidad no tiene una tarifa vigente; no se pueden registrar citas") y un método activo (en línea, si registra el paciente), y luego redirige a la pantalla de pago.
+- CU21: la reserva vencida se libera sin cron: `ReservaPago::liberarVencidas()` se llama al consultar horarios (CU12), registrar cita (CU13), en cada acción de CU21, al desactivar tarifa (CU20) y al cerrar caja (CU22). Respaldo opcional: `php artisan pagos:liberar-reservas` (programado cada minuto si corre el scheduler).
+- CU21: al vencer o cancelar, la cita queda "Cancelada" con `cancelada_por = 'Sistema'` y motivo "Pago no realizado a tiempo" o "Pago cancelado"; el pago y sus detalles pendientes quedan "Anulado"; se avisa el efectivo a devolver. La sesión de Stripe abierta se expira; si alcanzó a pagarse, se reembolsa automáticamente. Las cancelaciones automáticas no van a la bitácora; "Cancelar" registra ANULAR_PAGO.
+- CU21: Stripe Checkout (modo prueba). Se aprueba solo si al verificar la sesión en el servidor `payment_status = 'paid'` y coinciden el detalle (metadata), el monto y la moneda. `referencia_externa` = payment_intent. Moneda configurable (`STRIPE_CURRENCY`, por defecto bob).
+- CU21: la forma de cobro (efectivo / en línea / combinado) se recuerda en la sesión de Laravel; solo se cambia si no hay detalles "Pendiente". El recepcionista que elige la forma "toma" el cobro (`pago.id_usuario`) y el efectivo entra a SU caja. Comprobante `CP-0001` con bloqueo `pg_advisory_xact_lock` para no repetir números.
+- CU21 (RF29): aviso "Cita programada" solo por correo (Brevo por API, `MAIL_MAILER=brevo`); se envía después de guardar y, si falla o el paciente no tiene correo, la notificación queda "Fallida" sin revertir el pago. PENDIENTE: notificaciones push.
+- Bitácora: PAGAR_CITA, ANULAR_PAGO.
+- CU13 + CU21: "Registrar cita" es un asistente por pasos: Paciente (solo recepcionista) → Especialidad (con el precio de la tarifa) → Médico → Fecha y hora (7 días con cupos y bloques libres) → Resumen y pago. Cada paso es una página (lo elegido viaja en la URL; sin API). Solo se ofrecen especialidades activas con tarifa y médicos activos. La pantalla de pago (CU21) muestra la misma barra de pasos.
+- CU12: el cálculo de horarios libres está en `app/Modulos/citas/service/Disponibilidad.php` (lo usan "Disponibilidad" y el asistente). La pantalla "Disponibilidad" sigue existiendo (consulta y CU14).
+- CU12 (vista): especialidades como botones → tabla con cada médico de la especialidad y sus próximos 7 días ("N libres", "Lleno" o "—" si no atiende) → horas del día elegido separadas en Mañana y Tarde. Al elegir una hora se va a Registrar cita (o a Reprogramar, en CU14) con todo ya elegido. Se mantienen las 3 operaciones del diagrama de secuencia.
+- CU12 y CU13: las horas ocupadas por otra cita se muestran en rojo, tachadas y sin poder elegirse ("Ocupado", sin decir de quién es). Las horas ya pasadas de hoy no se muestran. Una cita "Cancelada" libera su hora al instante; una "Pendiente de pago" la ocupa mientras dura su reserva.
+- CU21 (RF25 consultar y reimprimir): la pantalla "Pagar cita" tiene dos pestañas: "Pendientes de pago" y "Pagadas" (comprobante, cita, fecha de pago, total y "Ver comprobante"). El paciente ve solo sus pagos; recepción busca por N° de comprobante, código de cita, CI o nombre.
+- CU21: si recepción empezó el cobro de una cita y tiene montos registrados sin terminar, el paciente no puede pagarla en línea ni cancelarla ("Recepción está registrando el pago de esta cita; comuníquese con recepción"). Si recepción solo eligió la forma de cobro, el paciente toma el cobro y paga el total en línea.
+- CU21: "Cancelar" revisa primero si la reserva ya venció (en ese caso queda como "Pago no realizado a tiempo"). Si Stripe cobró pero el detalle, el monto o la moneda no coinciden (6a), el detalle queda "Rechazado" y el cobro se reembolsa.
+- CU22: al registrar efectivo (CU21, paso 3) también se bloquea la caja, para que no se cruce con un cierre de caja al mismo tiempo.
+- CU21: Stripe Checkout **incrustado** (`ui_mode: embedded_page`): el formulario de Stripe aparece dentro de la pantalla de pago (usa `STRIPE_PUBLISHABLE_KEY`). Una tarjeta rechazada se informa en el mismo formulario; "No pagar en línea" deja el detalle "Rechazado" (5a). Se actualizaron el detallar de CU21 (pasos 4 y 5a) y NOTAS_IMPLEMENTACION.
+
+## Horarios de atención (CU11) — vista semanal
+- La lista muestra una fila por médico activo (días que atiende y resumen de tramos), con buscador y filtro "Con horario / Sin horario".
+- "Asignar horario" edita la semana completa del médico: por día, "Atiende" y uno o varios tramos (entrada, salida, duración de cada cita). Botón "Copiar el lunes a los días marcados" (solo JavaScript).
+- Al guardar (`guardarSemana`) se comparan los tramos guardados con los del formulario y se aplican las mismas operaciones y reglas de CU11: tramo igual → sin cambios (o modificar si cambió la duración); tramo cambiado → modificar; tramo quitado o día desmarcado → desactivar (baja lógica); tramo nuevo → activar uno inactivo con las mismas horas o registrar. No se modifica ni desactiva un horario con citas pendientes; los tramos de un día no pueden superponerse. Todo o nada: si un día tiene error no se guarda ningún cambio. Bitácora: REGISTRAR/MODIFICAR/ACTIVAR/DESACTIVAR_HORARIO.
+- Las rutas y métodos anteriores de un solo horario (crear, editar, activar, desactivar) se mantienen, pero ya no se enlazan desde la lista.
+
+## Menú lateral
+- Las opciones se agrupan por paquete en grupos desplegables (`config/modulos.php`: `grupos` y `opciones`), en el orden del diagrama de paquetes, salvo Agenda médica y Reportes, que van al final. Un grupo con una sola opción para el rol se muestra como enlace directo. La página de Inicio muestra las mismas tarjetas agrupadas.

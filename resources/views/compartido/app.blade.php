@@ -60,7 +60,7 @@
     <div class="d-flex">
         {{-- Menú lateral (pantallas grandes) --}}
         <aside class="cvs-sidebar d-none d-lg-block p-3">
-            @include('compartido._menu')
+            @include('compartido._menu', ['menuId' => 'escritorio'])
         </aside>
 
         {{-- Menú lateral (celular) --}}
@@ -70,7 +70,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
             </div>
             <div class="offcanvas-body">
-                @include('compartido._menu')
+                @include('compartido._menu', ['menuId' => 'movil'])
             </div>
         </div>
 

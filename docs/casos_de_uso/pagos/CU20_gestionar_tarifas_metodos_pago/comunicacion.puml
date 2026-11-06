@@ -1,0 +1,38 @@
+@startuml
+title CU20 Gestionar Tarifas y Métodos de Pago - Diagrama de comunicación
+left to right direction
+skinparam linetype polyline
+skinparam defaultTextAlignment left
+skinparam shadowing false
+
+actor Administrador
+boundary UI_TarifasMetodosPago
+control Ctrl_TarifasMetodosPago
+entity Tarifa
+entity MetodoPago
+entity Especialidad
+entity Cita
+entity Bitacora
+
+Administrador -- UI_TarifasMetodosPago : "<color:#000000>1: mostrarTarifasYMetodos() →</color>\n<color:#1F5FBF>2: nuevaTarifa() →</color>\n<color:#1F5FBF>2.4: guardarTarifa(idEspecialidad, monto) →</color>\n<color:#D9730D>3: modificarTarifa(idTarifa, monto) →</color>\n<color:#2E8B57>4: desactivarTarifa(idTarifa) →</color>\n<color:#7B2D8E>5: cambiarEstadoMetodo(idMetodoPago, estado) →</color>"
+
+UI_TarifasMetodosPago -- Ctrl_TarifasMetodosPago : "<color:#000000>1.1: obtenerTarifasYMetodos() →</color>\n<color:#000000>1.4: tarifas, metodos ←</color>\n<color:#1F5FBF>2.1: obtenerEspecialidadesSinTarifa() →</color>\n<color:#1F5FBF>2.3: especialidades ←</color>\n<color:#1F5FBF>2.5: registrarTarifa(idEspecialidad, monto) →</color>\n<color:#1F5FBF>2.9: 'Tarifa registrada', tarifas ←</color>\n<color:#D9730D>3.1: actualizarTarifa(idTarifa, monto) →</color>\n<color:#D9730D>3.4: 'Tarifa actualizada' ←</color>\n<color:#2E8B57>4.1: desactivarTarifa(idTarifa) →</color>\n<color:#2E8B57>4.5: 'Tarifa desactivada' ←</color>\n<color:#7B2D8E>5.1: cambiarEstadoMetodo(idMetodoPago, estado) →</color>\n<color:#7B2D8E>5.5: 'Método de pago actualizado' ←</color>"
+
+Ctrl_TarifasMetodosPago -- Tarifa : "<color:#000000>1.2: listarTarifas() →</color>\n<color:#1F5FBF>2.6: existeActivaPorEspecialidad(idEspecialidad) →</color>\n<color:#1F5FBF>2.7: insertarTarifa(idEspecialidad, monto) →</color>\n<color:#D9730D>3.2: actualizarMonto(idTarifa, monto) →</color>\n<color:#2E8B57>4.3: desactivar(idTarifa) →</color>"
+
+Ctrl_TarifasMetodosPago -- MetodoPago : "<color:#000000>1.3: listarMetodos() →</color>\n<color:#7B2D8E>5.2: contarActivos() →</color>\n<color:#7B2D8E>5.3: actualizarEstado(idMetodoPago, estado) →</color>"
+
+Ctrl_TarifasMetodosPago -- Especialidad : "<color:#1F5FBF>2.2: listarActivasSinTarifa() →</color>"
+
+Ctrl_TarifasMetodosPago -- Cita : "<color:#2E8B57>4.2: existenPendientesDePago(idEspecialidad) →</color>"
+
+Ctrl_TarifasMetodosPago -- Bitacora : "<color:#1F5FBF>2.8: registrar(administrador, 'Registrar tarifa', detalle, ip) →</color>\n<color:#D9730D>3.3: registrar(administrador, 'Modificar tarifa', detalle, ip) →</color>\n<color:#2E8B57>4.4: registrar(administrador, 'Desactivar tarifa', detalle, ip) →</color>\n<color:#7B2D8E>5.4: registrar(administrador, 'Cambiar método de pago', detalle, ip) →</color>"
+
+legend right
+  <color:#000000>1: Mostrar tarifas y métodos de pago</color>
+  <color:#1F5FBF>2: Registrar tarifa</color>
+  <color:#D9730D>3: Modificar tarifa</color>
+  <color:#2E8B57>4: Desactivar tarifa</color>
+  <color:#7B2D8E>5: Habilitar/deshabilitar método de pago</color>
+endlegend
+@enduml

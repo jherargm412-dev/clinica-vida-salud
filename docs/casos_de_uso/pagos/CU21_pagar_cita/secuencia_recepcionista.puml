@@ -1,0 +1,106 @@
+@startuml
+title CU21 Pagar Cita - Diagrama de secuencia (Recepcionista)
+hide footbox
+skinparam sequenceMessageAlign center
+
+' Flujo principal: pago combinado (efectivo + saldo en línea con Stripe)
+
+actor Recepcionista
+boundary UI_PagarCita
+control Ctrl_Pagos
+boundary PasarelaPagoEnLinea
+entity Cita
+entity Tarifa
+entity MetodoPago
+entity SesionCaja
+entity Pago
+entity DetallePago
+entity MovimientoCaja
+entity Notificacion
+entity Bitacora
+
+activate Recepcionista
+Recepcionista -> UI_PagarCita : mostrarPago(idCita)
+activate UI_PagarCita
+UI_PagarCita -> Ctrl_Pagos : obtenerDatosPago(idCita)
+activate Ctrl_Pagos
+Ctrl_Pagos -> Cita : obtenerDetallePorId(idCita)
+Cita --> Ctrl_Pagos : cita
+Ctrl_Pagos -> Tarifa : obtenerActivaPorEspecialidad(idEspecialidad)
+Tarifa --> Ctrl_Pagos : tarifa
+Ctrl_Pagos -> MetodoPago : listarActivos()
+MetodoPago --> Ctrl_Pagos : metodos
+Ctrl_Pagos --> UI_PagarCita : cita, montoTotal, tiempoRestante, metodos
+deactivate Ctrl_Pagos
+UI_PagarCita -> UI_PagarCita : mostrarResumenPago(cita, montoTotal, tiempoRestante, metodos)
+deactivate UI_PagarCita
+
+Recepcionista -> UI_PagarCita : seleccionarFormaCobro(forma)
+activate UI_PagarCita
+UI_PagarCita -> Ctrl_Pagos : iniciarCobro(idCita, forma)
+activate Ctrl_Pagos
+Ctrl_Pagos -> Pago : insertarPago(idCita, idUsuario, montoTotal)
+Pago --> Ctrl_Pagos : pago
+Ctrl_Pagos --> UI_PagarCita : idPago
+deactivate Ctrl_Pagos
+UI_PagarCita -> UI_PagarCita : mostrarFormaCobro(forma)
+deactivate UI_PagarCita
+
+Recepcionista -> UI_PagarCita : registrarEfectivo(montoEfectivo)
+activate UI_PagarCita
+UI_PagarCita -> Ctrl_Pagos : registrarPagoEfectivo(idCita, montoEfectivo)
+activate Ctrl_Pagos
+Ctrl_Pagos -> SesionCaja : obtenerAbiertaPorUsuario(idUsuario)
+SesionCaja --> Ctrl_Pagos : sesionCaja
+Ctrl_Pagos -> Ctrl_Pagos : validarMontoEfectivo(montoEfectivo, montoTotal, forma)
+Ctrl_Pagos -> DetallePago : insertarDetalle(idPago, idMetodoPago, montoEfectivo)
+DetallePago --> Ctrl_Pagos : detalleEfectivo
+Ctrl_Pagos --> UI_PagarCita : saldo
+deactivate Ctrl_Pagos
+UI_PagarCita -> UI_PagarCita : mostrarSaldo(saldo)
+deactivate UI_PagarCita
+
+Recepcionista -> UI_PagarCita : pagarEnLinea()
+activate UI_PagarCita
+UI_PagarCita -> Ctrl_Pagos : iniciarPagoEnLinea(idCita)
+activate Ctrl_Pagos
+Ctrl_Pagos -> Ctrl_Pagos : calcularSaldo(idPago)
+Ctrl_Pagos -> DetallePago : insertarDetalle(idPago, idMetodoPago, saldo)
+DetallePago --> Ctrl_Pagos : detalleEnLinea
+Ctrl_Pagos -> PasarelaPagoEnLinea : crearSesionPago(saldo, idCita)
+PasarelaPagoEnLinea --> Ctrl_Pagos : idSesion, clientSecret
+Ctrl_Pagos --> UI_PagarCita : clientSecret
+deactivate Ctrl_Pagos
+UI_PagarCita -> PasarelaPagoEnLinea : mostrarFormularioPago(clientSecret)
+deactivate UI_PagarCita
+Recepcionista -> PasarelaPagoEnLinea : pagarConTarjeta(datosTarjeta)
+PasarelaPagoEnLinea --> Recepcionista : pagoAprobado
+deactivate Recepcionista
+PasarelaPagoEnLinea ->> UI_PagarCita : retornarPago(idSesion)
+activate UI_PagarCita
+UI_PagarCita -> Ctrl_Pagos : confirmarPagoEnLinea(idCita, idSesion)
+activate Ctrl_Pagos
+Ctrl_Pagos -> PasarelaPagoEnLinea : verificarPago(idSesion)
+PasarelaPagoEnLinea --> Ctrl_Pagos : aprobado, referenciaExterna
+Ctrl_Pagos -> Cita : retencionVigente(idCita)
+Cita --> Ctrl_Pagos : vigente
+Ctrl_Pagos -> Ctrl_Pagos : validarSumaDetalles(idPago, montoTotal)
+Ctrl_Pagos -> DetallePago : aprobarDetalles(idPago, idSesion)
+DetallePago --> Ctrl_Pagos : ok
+Ctrl_Pagos -> Pago : generarNumeroComprobante()
+Pago --> Ctrl_Pagos : numeroComprobante
+Ctrl_Pagos -> Pago : marcarPagado(idPago, numeroComprobante)
+Pago --> Ctrl_Pagos : ok
+Ctrl_Pagos -> Cita : marcarProgramada(idCita)
+Cita --> Ctrl_Pagos : ok
+Ctrl_Pagos -> MovimientoCaja : insertarIngreso(idSesionCaja, idDetallePago, montoEfectivo)
+MovimientoCaja --> Ctrl_Pagos : ok
+Ctrl_Pagos -> Bitacora : registrar(recepcionista, "Pagar cita", detalle, ip)
+Bitacora --> Ctrl_Pagos : ok
+Ctrl_Pagos -> Notificacion : registrarAviso(idCita, "Cita programada")
+Notificacion --> Ctrl_Pagos : ok
+Ctrl_Pagos --> UI_PagarCita : "Pago registrado", comprobante
+deactivate Ctrl_Pagos
+UI_PagarCita -> UI_PagarCita : mostrarComprobante(comprobante)
+deactivate UI_PagarCita
+@enduml

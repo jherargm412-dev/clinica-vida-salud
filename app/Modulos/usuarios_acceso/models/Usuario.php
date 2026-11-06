@@ -186,13 +186,32 @@ class Usuario extends Authenticatable
         return in_array($clave, $this->clavesPermiso(), true);
     }
 
-    /** Módulos del menú (config/modulos.php) que el usuario puede ver. */
+    /** Opciones del menú (config/modulos.php) que el usuario puede ver. */
     public function modulosPermitidos(): array
     {
         return array_values(array_filter(
-            config('modulos', []),
+            config('modulos.opciones', []),
             fn (array $modulo) => count(array_intersect($modulo['permisos'], $this->clavesPermiso())) > 0
         ));
+    }
+
+    /**
+     * Menú lateral agrupado por paquete: cada grupo de config/modulos.php con las opciones
+     * que el usuario puede ver. Los grupos sin opciones permitidas no se devuelven.
+     * Resultado: [clave => ['titulo', 'icono', 'opciones' => [...]], ...] en el orden del menú.
+     */
+    public function gruposMenu(): array
+    {
+        $opciones = collect($this->modulosPermitidos())->groupBy('grupo');
+        $grupos = [];
+
+        foreach (config('modulos.grupos', []) as $clave => $grupo) {
+            if ($opciones->has($clave)) {
+                $grupos[$clave] = $grupo + ['opciones' => $opciones[$clave]->all()];
+            }
+        }
+
+        return $grupos;
     }
 
     public function getNombreCompletoAttribute(): string

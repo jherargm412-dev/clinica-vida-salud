@@ -39,6 +39,9 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
     Route::middleware('permiso:horarios.gestionar')->group(function () {
         Route::get('/horarios', [HorarioAtencionController::class, 'index'])->name('horarios.index');
         Route::get('/horarios/medico/{medico}', [HorarioAtencionController::class, 'listarHorariosMedico'])->name('horarios.medico');
+        // Asignar horario: la semana completa del médico en una sola pantalla
+        Route::get('/horarios/medico/{medico}/semana', [HorarioAtencionController::class, 'editarSemana'])->name('horarios.semana');
+        Route::post('/horarios/medico/{medico}/semana', [HorarioAtencionController::class, 'guardarSemana'])->name('horarios.semana.guardar');
         Route::get('/horarios/nuevo', [HorarioAtencionController::class, 'mostrarFormularioNuevo'])->name('horarios.crear');
         Route::post('/horarios', [HorarioAtencionController::class, 'registrarHorario'])->name('horarios.guardar');
         Route::get('/horarios/{horario}/editar', [HorarioAtencionController::class, 'editar'])->name('horarios.editar');

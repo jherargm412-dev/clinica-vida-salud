@@ -1,157 +1,207 @@
-{{-- CU12 Consultar Disponibilidad --}}
+{{-- CU12 Consultar Disponibilidad: especialidad → semana de cada médico → horas libres del día elegido.
+     También la usa CU14 Reprogramar cita (con $cita): se ve solo el médico de la cita. --}}
 @extends('compartido.app')
 
-@section('titulo', 'Consultar disponibilidad')
+@php
+    $diasCortos = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    $meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    $hasta = $desde->copy()->addDays(6);
+    $anterior = $desde->copy()->subDays(7);
+    $hayAnterior = $desde->gt(today());
+@endphp
+
+@section('titulo', $cita ? 'Seleccionar nuevo horario' : 'Consultar disponibilidad')
 
 @section('contenido')
     <div class="mb-3">
-        <h1 class="h3 fw-semibold mb-1">{{ $idCitaExcluir ? 'Seleccionar nuevo horario' : 'Consultar disponibilidad' }}</h1>
-        <p class="text-muted mb-0">Consulta los horarios libres por especialidad, médico y fecha.</p>
+        <h1 class="h3 fw-semibold mb-1">{{ $cita ? 'Seleccionar nuevo horario' : 'Consultar disponibilidad' }}</h1>
+        <p class="text-muted mb-0">
+            @if ($cita)
+                Cita {{ $cita->codigo }} · actual: {{ $cita->fecha->format('d/m/Y') }} {{ substr($cita->hora_inicio, 0, 5) }}.
+                Elija un día con horarios libres y luego la hora.
+            @else
+                Elija una especialidad para ver qué días tiene horarios libres cada médico.
+            @endif
+        </p>
     </div>
 
-    @if ($horariosDisponibles !== null && $horariosDisponibles->isNotEmpty()
-        && $horariosDisponibles->every(fn ($disponibilidad) => empty($disponibilidad['bloques'])))
-        <div class="alert alert-info">No hay horarios disponibles para esta fecha.</div>
+    @if ($errors->any())
+        <div class="alert alert-danger">{{ $errors->first() }}</div>
     @endif
 
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <h2 class="h5 fw-semibold">1. Seleccionar especialidad</h2>
-            <form method="GET" action="{{ route('disponibilidad.medicos') }}" class="row g-3 align-items-end">
-                @if ($idCitaExcluir)
-                    <input type="hidden" name="id_cita" value="{{ $idCitaExcluir }}">
-                    <input type="hidden" name="id_medico" value="{{ $medicoSeleccionado?->id_medico }}">
-                @endif
-                @if ($idPaciente)
-                    <input type="hidden" name="id_paciente" value="{{ $idPaciente }}">
-                @endif
-                <div class="col-md-8">
-                    <label for="id_especialidad" class="form-label">Especialidad</label>
-                    @if ($idCitaExcluir)
-                        <input type="hidden" name="id_especialidad" value="{{ $especialidadSeleccionada->id_especialidad }}">
-                        <div class="form-control bg-body-secondary">{{ $especialidadSeleccionada->nombre }}</div>
-                    @else
-                        <select id="id_especialidad" name="id_especialidad" class="form-select" required>
-                            <option value="">Seleccione una especialidad</option>
-                            @foreach ($especialidades as $especialidad)
-                                <option value="{{ $especialidad->id_especialidad }}"
-                                    @selected((int) ($especialidadSeleccionada?->id_especialidad ?? 0) === (int) $especialidad->id_especialidad)>
-                                    {{ $especialidad->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    @endif
-                    @error('id_especialidad') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-outline-primary w-100">
-                        <i class="bi bi-search me-1"></i> Buscar médicos
-                    </button>
-                </div>
-            </form>
+    {{-- 1. Especialidades --}}
+    @unless ($cita)
+        <div class="d-flex flex-wrap gap-2 mb-4" role="group" aria-label="Especialidades">
+            @forelse ($especialidades as $especialidad)
+                @php
+                    $elegida = $especialidadSeleccionada?->id_especialidad === $especialidad->id_especialidad;
+                @endphp
+                <a href="{{ route('disponibilidad.medicos', $conservar + ['id_especialidad' => $especialidad->id_especialidad]) }}"
+                   class="btn rounded-pill {{ $elegida ? 'btn-primary' : 'btn-outline-primary' }}"
+                   @if ($elegida) aria-current="true" @endif>
+                    {{ $especialidad->nombre }}
+                </a>
+            @empty
+                <div class="alert alert-info w-100 mb-0">No hay especialidades activas.</div>
+            @endforelse
         </div>
-    </div>
+    @endunless
 
+    {{-- 2. Médicos de la especialidad con sus próximos 7 días --}}
     @if ($especialidadSeleccionada)
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
-                <h2 class="h5 fw-semibold">2. Seleccionar médico y fecha</h2>
-                <p class="text-muted">Especialidad: {{ $especialidadSeleccionada->nombre }}</p>
-                <form method="GET" action="{{ route('disponibilidad.horarios') }}" class="row g-3 align-items-end">
-                    <input type="hidden" name="id_especialidad" value="{{ $especialidadSeleccionada->id_especialidad }}">
-                    @if ($idCitaExcluir)
-                        <input type="hidden" name="id_cita" value="{{ $idCitaExcluir }}">
-                    @endif
-                    @if ($idPaciente)
-                        <input type="hidden" name="id_paciente" value="{{ $idPaciente }}">
-                    @endif
-                    <div class="col-md-5">
-                        <label for="id_medico" class="form-label">Médico</label>
-                        @if ($idCitaExcluir)
-                            <input type="hidden" name="id_medico" value="{{ $medicoSeleccionado->id_medico }}">
-                            <div class="form-control bg-body-secondary">{{ $medicoSeleccionado->nombre_completo }} ({{ $medicoSeleccionado->codigo }})</div>
-                        @else
-                            <select id="id_medico" name="id_medico" class="form-select" required>
-                                <option value="">Seleccione un médico</option>
-                                @foreach ($medicos ?? [] as $medico)
-                                    <option value="{{ $medico->id_medico }}"
-                                        @selected((int) ($medicoSeleccionado?->id_medico ?? 0) === (int) $medico->id_medico)>
-                                        {{ $medico->nombre_completo }} ({{ $medico->codigo }})
-                                    </option>
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <h2 class="h5 fw-semibold mb-0">{{ $especialidadSeleccionada->nombre }}</h2>
+
+                    {{-- Cambiar de semana --}}
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="{{ $hayAnterior ? route('disponibilidad.medicos', $conservar + [
+                                'id_especialidad' => $especialidadSeleccionada->id_especialidad,
+                                'desde' => ($anterior->lt(today()) ? today() : $anterior)->toDateString(),
+                            ]) : '#' }}"
+                           class="btn btn-sm btn-outline-secondary {{ $hayAnterior ? '' : 'disabled' }}" aria-label="Semana anterior">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                        <span class="small fw-semibold text-nowrap">
+                            {{ $desde->day }} {{ $meses[$desde->month - 1] }} – {{ $hasta->day }} {{ $meses[$hasta->month - 1] }}
+                        </span>
+                        <a href="{{ route('disponibilidad.medicos', $conservar + [
+                                'id_especialidad' => $especialidadSeleccionada->id_especialidad,
+                                'desde' => $desde->copy()->addDays(7)->toDateString(),
+                            ]) }}"
+                           class="btn btn-sm btn-outline-secondary" aria-label="Semana siguiente">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                @if ($medicos->isEmpty())
+                    <div class="alert alert-info mb-0">No hay médicos activos para esta especialidad.</div>
+                @else
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 cvs-semana">
+                            <thead>
+                                <tr>
+                                    <th class="text-start">Médico</th>
+                                    @for ($i = 0; $i < 7; $i++)
+                                        @php
+                                            $dia = $desde->copy()->addDays($i);
+                                        @endphp
+                                        <th class="text-center fw-normal">
+                                            <span class="d-block small text-muted">{{ $dia->isToday() ? 'Hoy' : $diasCortos[$dia->dayOfWeekIso - 1] }}</span>
+                                            <span class="fw-semibold">{{ $dia->day }}</span>
+                                        </th>
+                                    @endfor
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($medicos as $opcion)
+                                    @php
+                                        $iniciales = mb_strtoupper(mb_substr($opcion->usuario->nombres, 0, 1) . mb_substr($opcion->usuario->apellidos, 0, 1));
+                                    @endphp
+                                    <tr>
+                                        <td class="text-start">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="cvs-iniciales">{{ $iniciales }}</span>
+                                                <div>
+                                                    <div class="fw-semibold text-nowrap">{{ $opcion->nombre_completo }}</div>
+                                                    <div class="small text-muted">{{ $opcion->codigo }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        @foreach ($semanas[$opcion->id_medico] as $dia)
+                                            @php
+                                                $elegida = $medicoSeleccionado?->id_medico === $opcion->id_medico
+                                                    && $fecha && $dia['fecha']->isSameDay($fecha);
+                                            @endphp
+                                            <td class="text-center">
+                                                @if ($dia['libres'] > 0)
+                                                    <a href="{{ route('disponibilidad.horarios', $conservar + [
+                                                            'id_especialidad' => $especialidadSeleccionada->id_especialidad,
+                                                            'id_medico' => $opcion->id_medico,
+                                                            'fecha' => $dia['fecha']->toDateString(),
+                                                            'desde' => $desde->toDateString(),
+                                                        ]) }}#horas"
+                                                       class="cvs-celda libre {{ $elegida ? 'elegida' : '' }}"
+                                                       title="Ver las horas libres">
+                                                        {{ $dia['libres'] }} {{ $dia['libres'] === 1 ? 'libre' : 'libres' }}
+                                                    </a>
+                                                @elseif ($dia['tieneHorario'])
+                                                    <span class="cvs-celda" title="Sin horarios libres">Lleno</span>
+                                                @else
+                                                    <span class="cvs-celda vacia" title="No atiende este día">—</span>
+                                                @endif
+                                            </td>
+                                        @endforeach
+                                    </tr>
                                 @endforeach
-                            </select>
-                        @endif
-                        @error('id_medico') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="col-md-4">
-                        <label for="fecha" class="form-label">Fecha</label>
-                        <input type="date" id="fecha" name="fecha" value="{{ $fecha }}"
-                               min="{{ now()->toDateString() }}" class="form-control" required>
-                        @error('fecha') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-calendar-check me-1"></i> Consultar horarios
-                        </button>
-                    </div>
-                </form>
-                @if (($medicos ?? collect())->isEmpty())
-                    <div class="alert alert-info mt-3 mb-0">No hay médicos activos para esta especialidad.</div>
+                    <p class="small text-muted mt-2 mb-0">
+                        Toque un día con horarios libres para ver las horas. «—» = no atiende ese día.
+                    </p>
                 @endif
             </div>
         </div>
     @endif
 
-    @if ($horariosDisponibles !== null)
-        <div class="card border-0 shadow-sm">
+    {{-- 3. Horas libres del médico y día elegidos --}}
+    @if ($turnos !== null)
+        <div class="card border-0 shadow-sm" id="horas">
             <div class="card-body">
-                <h2 class="h5 fw-semibold mb-1">Horarios disponibles</h2>
-                <p class="text-muted">
-                    {{ $medicoSeleccionado->nombre_completo }} · {{ $especialidadSeleccionada->nombre }} ·
-                    {{ \Carbon\Carbon::parse($fecha)->format('d/m/Y') }}
+                <h2 class="h5 fw-semibold mb-1">{{ $medicoSeleccionado->nombre_completo }}</h2>
+                <p class="text-muted mb-3">
+                    {{ ucfirst($fecha->locale('es')->isoFormat('dddd D [de] MMMM')) }}
+                    @if ($cita)
+                        · elija la nueva hora
+                    @elseif ($puedeRegistrar)
+                        · elija una hora para registrar la cita
+                    @endif
                 </p>
 
-                @forelse ($horariosDisponibles as $disponibilidad)
-                    <section class="border rounded p-3 mb-3">
-                        <h3 class="h6 fw-semibold">
-                            {{ \App\Modulos\medicos_especialidades\models\HorarioAtencion::DIAS[$diaConsultado] }}:
-                            {{ substr($disponibilidad['horario']->hora_inicio, 0, 5) }}–{{ substr($disponibilidad['horario']->hora_fin, 0, 5) }}
-                        </h3>
-                        @if ($disponibilidad['bloques'])
-                            <div class="d-flex flex-wrap gap-2">
-                                @foreach ($disponibilidad['bloques'] as $bloque)
-                                    <a href="{{ $idCitaExcluir
-                                        ? route('citas.reprogramar.editar', array_merge(
-                                            ['cita' => $idCitaExcluir],
-                                            [
-                                                'nueva_fecha' => $fecha,
-                                                'nueva_hora_inicio' => $bloque['hora_inicio'],
-                                                'nueva_hora_fin' => $bloque['hora_fin'],
-                                            ]
-                                        ))
-                                        : route('citas.crear', array_filter([
-                                            'id_paciente' => $idPaciente,
-                                            'id_especialidad' => $especialidadSeleccionada->id_especialidad,
-                                            'id_medico' => $medicoSeleccionado->id_medico,
-                                            'fecha' => $fecha,
-                                            'hora_inicio' => $bloque['hora_inicio'],
-                                            'hora_fin' => $bloque['hora_fin'],
-                                        ], fn ($valor) => $valor !== null)) }}"
-                                       class="badge text-bg-success fs-6 fw-normal text-decoration-none">
-                                        {{ $bloque['hora_inicio'] }}–{{ $bloque['hora_fin'] }}
-                                        <span class="visually-hidden">Elegir este horario</span>
-                                    </a>
-                                @endforeach
-                            </div>
-                        @else
-                            <p class="text-muted mb-0">No hay bloques disponibles en este horario.</p>
-                        @endif
-                    </section>
-                @empty
-                    <div class="alert alert-info mb-0">
-                        El médico no tiene horarios de atención activos para ese día.
+                @php
+                    $hayLibres = collect($turnos)->flatten(1)->contains(fn ($bloque) => ! $bloque['ocupado']);
+                @endphp
+                @unless ($hayLibres)
+                    <div class="alert alert-info">No hay horarios disponibles para esta fecha.</div>
+                @endunless
+
+                @foreach ($turnos as $turno => $bloques)
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                        <span class="text-muted small fw-semibold" style="width: 4.5rem">{{ $turno }}</span>
+                        @foreach ($bloques as $bloque)
+                            @if ($bloque['ocupado'])
+                                {{-- Ocupada por otra cita: en rojo y sin enlace (no se muestra de quién es) --}}
+                                <span class="btn cvs-hora ocupada" title="Ocupado" aria-disabled="true">
+                                    {{ $bloque['hora_inicio'] }}<span class="visually-hidden"> (ocupado)</span>
+                                </span>
+                            @elseif ($cita)
+                                <a href="{{ route('citas.reprogramar.editar', [
+                                        'cita' => $cita->id_cita,
+                                        'nueva_fecha' => $fecha->toDateString(),
+                                        'nueva_hora_inicio' => $bloque['hora_inicio'],
+                                        'nueva_hora_fin' => $bloque['hora_fin'],
+                                    ]) }}" class="btn btn-outline-primary cvs-hora">{{ $bloque['hora_inicio'] }}</a>
+                            @elseif ($puedeRegistrar)
+                                <a href="{{ route('citas.crear', array_filter([
+                                        'id_paciente' => $idPaciente,
+                                        'id_especialidad' => $especialidadSeleccionada->id_especialidad,
+                                        'id_medico' => $medicoSeleccionado->id_medico,
+                                        'fecha' => $fecha->toDateString(),
+                                        'hora_inicio' => $bloque['hora_inicio'],
+                                        'hora_fin' => $bloque['hora_fin'],
+                                    ], fn ($valor) => $valor !== null)) }}" class="btn btn-outline-primary cvs-hora">{{ $bloque['hora_inicio'] }}</a>
+                            @else
+                                <span class="btn btn-outline-secondary cvs-hora disabled">{{ $bloque['hora_inicio'] }}</span>
+                            @endif
+                        @endforeach
                     </div>
-                @endforelse
+                @endforeach
+                @if (collect($turnos)->flatten(1)->contains(fn ($bloque) => $bloque['ocupado']))
+                    <p class="small text-muted mb-0"><span class="cvs-muestra-ocupada"></span> Ocupado: ya tiene una cita registrada.</p>
+                @endif
             </div>
         </div>
     @endif
