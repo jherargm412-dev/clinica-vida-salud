@@ -89,7 +89,7 @@
                                 </td>
                                 <td>{{ $cita->especialidad?->nombre ?? '—' }}</td>
                                 <td>
-                                    <span class="badge text-bg-{{ $cita->estado === 'Cancelada' ? 'secondary' : ($cita->estado === 'Atendida' ? 'success' : 'primary') }}">
+                                    <span class="badge text-bg-{{ \App\Modulos\citas\models\Cita::COLOR_ESTADO[$cita->estado] ?? 'secondary' }}">
                                         {{ $cita->estado }}
                                     </span>
                                 </td>

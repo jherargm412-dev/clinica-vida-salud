@@ -72,7 +72,8 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <h2 class="h6 text-uppercase text-muted mb-3">Registro clínico</h2>
-                    <form method="POST" action="{{ route('atencion.guardar', $cita->id_cita) }}">
+                    <form method="POST" action="{{ route('atencion.guardar', $cita->id_cita) }}"
+                          class="needs-validation" novalidate>
                         @csrf
                         <div class="mb-3">
                             <label for="diagnostico" class="form-label">Diagnóstico <span class="text-danger">*</span></label>

@@ -21,11 +21,10 @@ class AgendaMedicaController extends Controller
     {
         $usuario = request()->user();
 
-        if ($usuario->rol?->nombre === 'Medico') {
+        if (Medico::obtenerPorIdUsuario((int) $usuario->id_usuario)) {
             return redirect()->route('agenda.mi');
         }
 
-        $this->verificarPersonalAdministrativo($usuario);
         $medicos = Medico::listarParaAgenda();
         $usuarios = Usuario::listarPorIds($medicos->pluck('id_usuario')->all())->keyBy('id_usuario');
 
@@ -39,7 +38,6 @@ class AgendaMedicaController extends Controller
     /** Consulta la agenda de un médico seleccionado por personal administrativo. */
     public function consultarAgenda(Request $request, int $idMedico): View
     {
-        $this->verificarPersonalAdministrativo($request->user());
         $medico = Medico::listarPorIds([$idMedico])->first();
 
         abort_unless($medico && $medico->activo, 404);
@@ -55,8 +53,6 @@ class AgendaMedicaController extends Controller
     /** Consulta únicamente la agenda del médico autenticado. */
     public function consultarMiAgenda(Request $request): View
     {
-        abort_unless($request->user()->rol?->nombre === 'Medico', 403);
-
         $medico = Medico::obtenerPorIdUsuario((int) $request->user()->id_usuario);
         abort_unless($medico && $medico->activo, 403);
 
@@ -138,8 +134,4 @@ class AgendaMedicaController extends Controller
         return [$fecha, $filtros['estado'] ?? null];
     }
 
-    private function verificarPersonalAdministrativo(Usuario $usuario): void
-    {
-        abort_unless(in_array($usuario->rol?->nombre, ['Administrador', 'Recepcionista'], true), 403);
-    }
 }

@@ -16,7 +16,8 @@
 
     <div class="card border-0 shadow-sm">
         <div class="card-body">
-            <form method="GET" action="{{ route('historial.buscar') }}" class="row g-2 align-items-end mb-3">
+            <form method="GET" action="{{ route('historial.buscar') }}"
+                  class="row g-2 align-items-end mb-3 needs-validation" novalidate>
                 <div class="col-12 col-lg-7">
                     <label for="texto" class="form-label">CI, nombre o apellido del paciente</label>
                     <input type="search" id="texto" name="texto" value="{{ old('texto', $texto) }}" maxlength="100"

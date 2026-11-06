@@ -1,6 +1,6 @@
 -- =====================================================================
 -- Sistema web de gestión de citas médicas - Clínica Vida Salud
--- Script de base de datos - Ciclo 1 (PostgreSQL)
+-- Script de base de datos - Ciclos 1 y 2 (PostgreSQL)
 -- Grupo 15
 --
 -- Uso:  1) CREATE DATABASE clinica_vida_salud;
@@ -15,6 +15,7 @@ BEGIN;
 -- ---------------------------------------------------------------------
 DROP TABLE IF EXISTS movimiento_caja     CASCADE;
 DROP TABLE IF EXISTS notificacion        CASCADE;
+DROP TABLE IF EXISTS atencion_medica     CASCADE;
 DROP TABLE IF EXISTS detalle_pago        CASCADE;
 DROP TABLE IF EXISTS pago                CASCADE;
 DROP TABLE IF EXISTS sesion_caja         CASCADE;
@@ -24,6 +25,7 @@ DROP TABLE IF EXISTS cita                CASCADE;
 DROP TABLE IF EXISTS horario_atencion    CASCADE;
 DROP TABLE IF EXISTS medico_especialidad CASCADE;
 DROP TABLE IF EXISTS bitacora            CASCADE;
+DROP TABLE IF EXISTS perfil_medico       CASCADE;
 DROP TABLE IF EXISTS paciente            CASCADE;
 DROP TABLE IF EXISTS medico              CASCADE;
 DROP TABLE IF EXISTS rol_permiso         CASCADE;
@@ -236,6 +238,61 @@ CREATE UNIQUE INDEX uq_cita_medico_horario
     WHERE estado <> 'Cancelada';
 
 -- ---------------------------------------------------------------------
+-- 4a. Perfil médico y atención clínica (CU07 y CU18)
+-- ---------------------------------------------------------------------
+CREATE TABLE perfil_medico (
+    id_perfil_medico                 SERIAL       PRIMARY KEY,
+    id_paciente                      INTEGER      NOT NULL,
+    tipo_sangre                      VARCHAR(3),
+    alergias                         VARCHAR(500),
+    enfermedades_cronicas            VARCHAR(500),
+    medicamentos                     VARCHAR(500),
+    nombre_contacto_emergencia       VARCHAR(500),
+    parentesco_contacto_emergencia   VARCHAR(500),
+    telefono_contacto_emergencia     VARCHAR(20),
+    fecha_actualizacion              TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_perfil_medico_paciente
+        FOREIGN KEY (id_paciente) REFERENCES paciente (id_paciente) ON DELETE RESTRICT,
+    CONSTRAINT uq_perfil_medico_paciente UNIQUE (id_paciente),
+    CONSTRAINT ck_perfil_medico_tipo_sangre CHECK (
+        tipo_sangre IS NULL
+        OR tipo_sangre IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')
+    ),
+    CONSTRAINT ck_perfil_medico_contacto_completo CHECK (
+        (
+            NULLIF(BTRIM(nombre_contacto_emergencia), '') IS NULL
+            AND NULLIF(BTRIM(parentesco_contacto_emergencia), '') IS NULL
+            AND NULLIF(BTRIM(telefono_contacto_emergencia), '') IS NULL
+        )
+        OR
+        (
+            NULLIF(BTRIM(nombre_contacto_emergencia), '') IS NOT NULL
+            AND NULLIF(BTRIM(parentesco_contacto_emergencia), '') IS NOT NULL
+            AND NULLIF(BTRIM(telefono_contacto_emergencia), '') IS NOT NULL
+        )
+    ),
+    CONSTRAINT ck_perfil_medico_telefono CHECK (
+        telefono_contacto_emergencia IS NULL
+        OR telefono_contacto_emergencia ~ '^[0-9+[:space:]-]{7,20}$'
+    )
+);
+
+CREATE TABLE atencion_medica (
+    id_atencion         SERIAL        PRIMARY KEY,
+    id_cita             INTEGER       NOT NULL,
+    id_medico           INTEGER       NOT NULL,
+    diagnostico         VARCHAR(500)  NOT NULL,
+    notas_clinicas      VARCHAR(2000),
+    fecha_hora_registro TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_atencion_medica_cita
+        FOREIGN KEY (id_cita) REFERENCES cita (id_cita) ON DELETE RESTRICT,
+    CONSTRAINT fk_atencion_medica_medico
+        FOREIGN KEY (id_medico) REFERENCES medico (id_medico) ON DELETE RESTRICT,
+    CONSTRAINT uq_atencion_medica_cita UNIQUE (id_cita),
+    CONSTRAINT ck_atencion_medica_diagnostico CHECK (BTRIM(diagnostico) <> '')
+);
+
+-- ---------------------------------------------------------------------
 -- 4b. Pagos: dependen de la cita
 -- ---------------------------------------------------------------------
 CREATE TABLE pago (
@@ -311,6 +368,7 @@ CREATE INDEX ix_cita_especialidad    ON cita (id_especialidad);
 CREATE INDEX ix_cita_estado          ON cita (estado);
 CREATE INDEX ix_usuario_apellidos    ON usuario (apellidos, nombres);
 CREATE INDEX ix_cita_pendiente_pago  ON cita (fecha_creacion) WHERE estado = 'Pendiente de pago';
+CREATE INDEX ix_atencion_medica_medico ON atencion_medica (id_medico);
 CREATE INDEX ix_detalle_pago_pago    ON detalle_pago (id_pago);
 CREATE INDEX ix_movimiento_caja_sesion ON movimiento_caja (id_sesion_caja);
 CREATE INDEX ix_notificacion_cita    ON notificacion (id_cita);

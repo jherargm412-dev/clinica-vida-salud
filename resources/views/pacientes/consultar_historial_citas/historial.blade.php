@@ -97,15 +97,9 @@
                                     <td>{{ $cita->medico?->nombre_completo ?? '—' }}</td>
                                     <td>{{ $cita->especialidad?->nombre ?? '—' }}</td>
                                     <td>
-                                        @php
-                                            $colorEstado = match ($cita->estado) {
-                                                'Atendida' => 'success',
-                                                'Cancelada', 'Inasistencia' => 'secondary',
-                                                'Pendiente de pago' => 'warning',
-                                                default => 'primary',
-                                            };
-                                        @endphp
-                                        <span class="badge text-bg-{{ $colorEstado }}">{{ $cita->estado }}</span>
+                                        <span class="badge text-bg-{{ \App\Modulos\citas\models\Cita::COLOR_ESTADO[$cita->estado] ?? 'secondary' }}">
+                                            {{ $cita->estado }}
+                                        </span>
                                     </td>
                                     <td class="text-nowrap">{{ $cita->fecha_creacion?->format('d/m/Y H:i') ?? '—' }}</td>
                                     <td>{{ $cita->estado === 'Cancelada' ? ($cita->motivo_cancelacion ?: '—') : '—' }}</td>

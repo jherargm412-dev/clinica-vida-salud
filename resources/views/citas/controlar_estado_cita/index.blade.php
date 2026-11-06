@@ -67,7 +67,7 @@
                                 <td class="text-nowrap">{{ $cita->fecha->format('d/m/Y') }}</td>
                                 <td class="text-nowrap">{{ substr($cita->hora_inicio, 0, 5) }}–{{ substr($cita->hora_fin, 0, 5) }}</td>
                                 <td>
-                                    <span class="badge {{ $cita->estado === 'Confirmada' ? 'text-bg-success' : 'text-bg-primary' }}">
+                                    <span class="badge text-bg-{{ \App\Modulos\citas\models\Cita::COLOR_ESTADO[$cita->estado] ?? 'secondary' }}">
                                         {{ $cita->estado }}
                                     </span>
                                 </td>
