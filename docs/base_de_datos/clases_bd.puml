@@ -6,7 +6,7 @@ skinparam ranksep 110
 skinparam classAttributeIconSize 0
 hide circle
 hide methods
-title Diagrama de clases de la base de datos - Ciclo 1
+title Diagrama de clases de la base de datos - Ciclo 2
 
 class Permiso {
   idPermiso : Integer
@@ -95,10 +95,69 @@ class Cita {
   fechaCreacion : DateTime
   motivoCancelacion : String
   fechaCancelacion : DateTime
+  canceladaPor : String
   idPaciente : Integer
   idMedico : Integer
   idEspecialidad : Integer
   idUsuarioCancelacion : Integer
+}
+class Tarifa {
+  idTarifa : Integer
+  monto : Decimal
+  vigenteDesde : Date
+  activo : Boolean
+  idEspecialidad : Integer
+}
+class MetodoPago {
+  idMetodoPago : Integer
+  nombre : String
+  enLinea : Boolean
+  activo : Boolean
+}
+class SesionCaja {
+  idSesionCaja : Integer
+  apertura : DateTime
+  montoInicial : Decimal
+  cierre : DateTime
+  montoContado : Decimal
+  diferencia : Decimal
+  estado : String
+  idUsuario : Integer
+}
+class Pago {
+  idPago : Integer
+  numeroComprobante : String
+  montoTotal : Decimal
+  fecha : DateTime
+  estado : String
+  idCita : Integer
+  idUsuario : Integer
+}
+class DetallePago {
+  idDetallePago : Integer
+  monto : Decimal
+  referenciaExterna : String
+  idSesionPasarela : String
+  estado : String
+  idPago : Integer
+  idMetodoPago : Integer
+}
+class MovimientoCaja {
+  idMovimientoCaja : Integer
+  tipo : String
+  monto : Decimal
+  fecha : DateTime
+  idSesionCaja : Integer
+  idDetallePago : Integer
+}
+class Notificacion {
+  idNotificacion : Integer
+  tipo : String
+  canal : String
+  programadaPara : DateTime
+  enviadaEn : DateTime
+  estado : String
+  idCita : Integer
 }
 
 Permiso "1" -- "0..*" RolPermiso
@@ -114,4 +173,13 @@ Medico "1" *-- "0..*" HorarioAtencion : tiene
 Medico "1" -- "0..*" Cita : atiende
 Paciente "1" -- "0..*" Cita : tiene
 Especialidad "1" -- "0..*" Cita : clasifica
+Especialidad "1" -- "0..*" Tarifa : tiene
+Cita "1" -- "0..1" Pago : tiene
+Cita "1" -- "0..*" Notificacion : tiene
+Usuario "1" -- "0..*" Pago : registra
+Pago "1" *-- "1..*" DetallePago : contiene
+DetallePago "0..*" -- "1" MetodoPago : clasifica
+DetallePago "1" -- "0..1" MovimientoCaja : genera
+Usuario "1" -- "0..*" SesionCaja : abre
+SesionCaja "1" *-- "0..*" MovimientoCaja : registra
 @enduml

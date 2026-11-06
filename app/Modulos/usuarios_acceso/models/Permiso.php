@@ -30,6 +30,7 @@ class Permiso extends Model
         'Citas'                    => ['disponibilidad.consultar', 'citas.registrar', 'citas.reprogramar', 'citas.cancelar', 'citas.controlar_estado'],
         'Agenda médica'            => ['agenda.consultar', 'citas.registrar_atencion'],
         'Reportes'                 => ['reportes.generar'],
+        'Pagos'                    => ['pagos.configurar', 'pagos.cobrar', 'pagos.pagar_propia', 'caja.gestionar'],
     ];
 
     /**

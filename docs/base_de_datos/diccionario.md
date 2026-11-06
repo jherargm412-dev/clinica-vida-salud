@@ -4,16 +4,19 @@ Tablas y columnas en `snake_case` (PostgreSQL). El script completo está en `dat
 
 ## Restricciones principales
 
-- Todas las FK son `ON DELETE RESTRICT`, salvo `horario_atencion.id_medico` → `ON DELETE CASCADE` (composición).
-- Únicos: `rol.nombre`; `permiso.clave` y `permiso.nombre`; `LOWER(TRIM(especialidad.nombre))`; `usuario.nombre_usuario` y `usuario.correo`; `medico.id_usuario`, `medico.codigo`, `medico.registro_profesional`; `paciente.id_usuario`, `paciente.codigo`, `paciente.ci`; `cita.codigo`.
-- CHECK: `usuario.intentos_fallidos` entre 0 y 3; `paciente.sexo` en ('M','F'); `paciente.fecha_nacimiento <= hoy`; `horario_atencion.dia_semana` entre 1 y 7, `hora_fin > hora_inicio`, `duracion_cita > 0`; `cita.hora_fin > hora_inicio`; `cita.estado` en ('Programada','Confirmada','Atendida','Cancelada','Inasistencia').
+- Todas las FK son `ON DELETE RESTRICT`, salvo las composiciones con `ON DELETE CASCADE`: `horario_atencion.id_medico`, `detalle_pago.id_pago` y `movimiento_caja.id_sesion_caja`.
+- Únicos: `rol.nombre`; `permiso.clave` y `permiso.nombre`; `LOWER(TRIM(especialidad.nombre))`; `usuario.nombre_usuario` y `usuario.correo`; `medico.id_usuario`, `medico.codigo`, `medico.registro_profesional`; `paciente.id_usuario`, `paciente.codigo`, `paciente.ci`; `cita.codigo`; `metodo_pago.nombre`; `pago.id_cita` y `pago.numero_comprobante`; `movimiento_caja.id_detalle_pago`.
+- CHECK: `usuario.intentos_fallidos` entre 0 y 3; `paciente.sexo` en ('M','F'); `paciente.fecha_nacimiento <= hoy`; `horario_atencion.dia_semana` entre 1 y 7, `hora_fin > hora_inicio`, `duracion_cita > 0`; `cita.hora_fin > hora_inicio`; `cita.estado` en ('Pendiente de pago','Programada','Confirmada','Atendida','Cancelada','Inasistencia'); montos de tarifa, pago, detalle y movimiento > 0; montos de caja >= 0; estados de `sesion_caja`, `pago`, `detalle_pago` y `notificacion` (ver cada tabla).
 - Índice único parcial `uq_cita_medico_horario (id_medico, fecha, hora_inicio) WHERE estado <> 'Cancelada'`: un médico no puede tener dos citas vigentes a la misma hora.
+- Índice único parcial `uq_tarifa_activa_especialidad (id_especialidad) WHERE activo = TRUE`: una sola tarifa activa por especialidad.
+- Índice único parcial `uq_sesion_caja_abierta (id_usuario) WHERE estado = 'Abierta'`: un recepcionista no puede tener dos cajas abiertas.
 - Validado en PHP (no en la BD): correo obligatorio para el personal, contraseña de 8 caracteres o más, horarios de un médico sin superposición, cuenta vinculada con el rol correcto (Médico/Paciente).
 
 ## Datos iniciales
 
 - Roles: Administrador, Recepcionista, Medico, Paciente.
-- 17 permisos (uno por caso de uso) asignados según el diagrama general: Administrador 8, Recepcionista 9, Medico 2, Paciente 4.
+- 21 permisos (uno por caso de uso; CU21 tiene dos: cobrar y pagar la propia) asignados según el diagrama general: Administrador todos, Recepcionista 11, Medico 2, Paciente 5.
+- Métodos de pago: Efectivo (no en línea) y Pago en línea (en línea), ambos activos.
 - Usuario `admin` / `Admin2026*` con rol Administrador.
 
 ## rol
@@ -136,7 +139,87 @@ Tablas y columnas en `snake_case` (PostgreSQL). El script completo está en `dat
 | hora_inicio | TIME | 8 bytes | No | No | Hora de inicio de la cita |
 | hora_fin | TIME | 8 bytes | No | No | Hora de fin de la cita |
 | motivo | VARCHAR(200) | 200 caracteres | Sí | No | Motivo de la consulta |
-| estado | VARCHAR(15) | 15 caracteres | No | No | Programada, Confirmada, Atendida, Cancelada o Inasistencia (por defecto Programada) |
+| estado | VARCHAR(20) | 20 caracteres | No | No | Pendiente de pago, Programada, Confirmada, Atendida, Cancelada o Inasistencia (por defecto Programada) |
 | fecha_creacion | TIMESTAMP | 8 bytes | No | No | Fecha y hora de registro de la cita (por defecto la actual) |
 | motivo_cancelacion | VARCHAR(200) | 200 caracteres | Sí | No | Motivo por el que se canceló la cita |
 | fecha_cancelacion | TIMESTAMP | 8 bytes | Sí | No | Fecha y hora de la cancelación |
+| cancelada_por | VARCHAR(20) | 20 caracteres | Sí | No | 'Sistema' si la canceló el sistema (CU21: pago no realizado a tiempo o cancelado); nulo si la canceló un usuario |
+
+## tarifa
+
+| Atributo | Tipo de Dato | Longitud | Nulo | Es llave | Descripción |
+|---|---|---|---|---|---|
+| id_tarifa | SERIAL | 4 bytes | No | Sí (PK) | Identificador único de la tarifa |
+| id_especialidad | INTEGER | 4 bytes | No | Sí (FK) | Especialidad a la que se aplica |
+| monto | NUMERIC(10,2) | 10 dígitos, 2 decimales | No | No | Monto de la consulta en Bs (mayor a 0) |
+| vigente_desde | DATE | 4 bytes | No | No | Fecha desde la que rige el monto (se actualiza al modificarlo) |
+| activo | BOOLEAN | 1 byte | No | No | Tarifa vigente; solo una activa por especialidad (por defecto TRUE) |
+
+## metodo_pago
+
+| Atributo | Tipo de Dato | Longitud | Nulo | Es llave | Descripción |
+|---|---|---|---|---|---|
+| id_metodo_pago | SERIAL | 4 bytes | No | Sí (PK) | Identificador único del método |
+| nombre | VARCHAR(30) | 30 caracteres | No | No | Efectivo o Pago en línea (único) |
+| en_linea | BOOLEAN | 1 byte | No | No | Indica si se cobra por la pasarela en línea (Stripe) |
+| activo | BOOLEAN | 1 byte | No | No | Indica si el método está habilitado; al menos uno activo (por defecto TRUE) |
+
+## sesion_caja
+
+| Atributo | Tipo de Dato | Longitud | Nulo | Es llave | Descripción |
+|---|---|---|---|---|---|
+| id_sesion_caja | SERIAL | 4 bytes | No | Sí (PK) | Identificador único de la sesión de caja |
+| id_usuario | INTEGER | 4 bytes | No | Sí (FK) | Recepcionista dueño de la caja |
+| apertura | TIMESTAMP | 8 bytes | No | No | Fecha y hora de apertura (por defecto la actual) |
+| monto_inicial | NUMERIC(10,2) | 10 dígitos, 2 decimales | No | No | Efectivo con el que se abre la caja (>= 0) |
+| cierre | TIMESTAMP | 8 bytes | Sí | No | Fecha y hora de cierre |
+| monto_contado | NUMERIC(10,2) | 10 dígitos, 2 decimales | Sí | No | Efectivo contado al cerrar (>= 0) |
+| diferencia | NUMERIC(10,2) | 10 dígitos, 2 decimales | Sí | No | Monto contado − monto esperado (sobrante > 0, faltante < 0) |
+| estado | VARCHAR(10) | 10 caracteres | No | No | Abierta o Cerrada (por defecto Abierta) |
+
+## pago
+
+| Atributo | Tipo de Dato | Longitud | Nulo | Es llave | Descripción |
+|---|---|---|---|---|---|
+| id_pago | SERIAL | 4 bytes | No | Sí (PK) | Identificador único del pago |
+| id_cita | INTEGER | 4 bytes | No | Sí (FK) | Cita que se paga (única: una cita tiene como máximo un pago) |
+| id_usuario | INTEGER | 4 bytes | No | Sí (FK) | Usuario que registró el cobro (recepcionista o paciente) |
+| numero_comprobante | VARCHAR(12) | 12 caracteres | Sí | No | Número de comprobante, p. ej. CP-0001 (único; se genera al quedar Pagado) |
+| monto_total | NUMERIC(10,2) | 10 dígitos, 2 decimales | No | No | Total según la tarifa al momento del cobro; no cambia si la tarifa cambia |
+| fecha | TIMESTAMP | 8 bytes | No | No | Fecha y hora del pago |
+| estado | VARCHAR(10) | 10 caracteres | No | No | Pendiente, Pagado o Anulado (por defecto Pendiente) |
+
+## detalle_pago
+
+| Atributo | Tipo de Dato | Longitud | Nulo | Es llave | Descripción |
+|---|---|---|---|---|---|
+| id_detalle_pago | SERIAL | 4 bytes | No | Sí (PK) | Identificador único del detalle |
+| id_pago | INTEGER | 4 bytes | No | Sí (FK) | Pago al que pertenece (composición) |
+| id_metodo_pago | INTEGER | 4 bytes | No | Sí (FK) | Método con el que se cobró esta parte |
+| monto | NUMERIC(10,2) | 10 dígitos, 2 decimales | No | No | Monto cobrado con este método (> 0) |
+| referencia_externa | VARCHAR(100) | 100 caracteres | Sí | No | Referencia de la pasarela (payment_intent de Stripe) |
+| id_sesion_pasarela | VARCHAR(255) | 255 caracteres | Sí | No | Id de la sesión de Stripe Checkout, para verificar el pago al volver |
+| estado | VARCHAR(10) | 10 caracteres | No | No | Pendiente, Aprobado, Rechazado o Anulado (por defecto Pendiente) |
+
+## movimiento_caja
+
+| Atributo | Tipo de Dato | Longitud | Nulo | Es llave | Descripción |
+|---|---|---|---|---|---|
+| id_movimiento_caja | SERIAL | 4 bytes | No | Sí (PK) | Identificador único del movimiento |
+| id_sesion_caja | INTEGER | 4 bytes | No | Sí (FK) | Caja en la que ingresó el efectivo (composición) |
+| id_detalle_pago | INTEGER | 4 bytes | No | Sí (FK) | Detalle en efectivo que lo generó (único) |
+| tipo | VARCHAR(10) | 10 caracteres | No | No | Ingreso |
+| monto | NUMERIC(10,2) | 10 dígitos, 2 decimales | No | No | Monto del movimiento (> 0) |
+| fecha | TIMESTAMP | 8 bytes | No | No | Fecha y hora del movimiento (por defecto la actual) |
+
+## notificacion
+
+| Atributo | Tipo de Dato | Longitud | Nulo | Es llave | Descripción |
+|---|---|---|---|---|---|
+| id_notificacion | SERIAL | 4 bytes | No | Sí (PK) | Identificador único de la notificación |
+| id_cita | INTEGER | 4 bytes | No | Sí (FK) | Cita sobre la que se avisa |
+| tipo | VARCHAR(30) | 30 caracteres | No | No | Tipo de aviso, p. ej. Cita programada |
+| canal | VARCHAR(10) | 10 caracteres | No | No | Push o Correo |
+| programada_para | TIMESTAMP | 8 bytes | No | No | Cuándo debe enviarse (por defecto la actual) |
+| enviada_en | TIMESTAMP | 8 bytes | Sí | No | Cuándo se envió |
+| estado | VARCHAR(10) | 10 caracteres | No | No | Pendiente, Enviada o Fallida (por defecto Pendiente) |

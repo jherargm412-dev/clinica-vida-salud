@@ -65,6 +65,12 @@ return [
             'transport' => 'resend',
         ],
 
+        // Brevo por su API HTTP (no SMTP). El transporte "brevo" se registra en AppServiceProvider.
+        // Uso: MAIL_MAILER=brevo y BREVO_API_KEY en el .env
+        'brevo' => [
+            'transport' => 'brevo',
+        ],
+
         'sendmail' => [
             'transport' => 'sendmail',
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),

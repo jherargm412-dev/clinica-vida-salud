@@ -1,0 +1,13 @@
+@startuml
+title CU20 Gestionar Tarifas y Métodos de Pago - Diagrama de casos de uso
+left to right direction
+skinparam shadowing false
+
+actor Administrador
+
+rectangle "Sistema de gestión de citas médicas" {
+  usecase "CU20 Gestionar Tarifas\ny Métodos de Pago" as CU20
+}
+
+Administrador -- CU20
+@enduml

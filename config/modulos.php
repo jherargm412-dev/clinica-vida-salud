@@ -38,4 +38,7 @@ return [
     ['titulo' => 'Agenda médica',       'icono' => 'bi-calendar3',         'cu' => 'CU17-18',
         'permisos' => ['agenda.consultar', 'citas.registrar_atencion'], 'ruta' => null],
     ['titulo' => 'Reportes',            'icono' => 'bi-bar-chart',         'cu' => 'CU19', 'permisos' => ['reportes.generar'],         'ruta' => null],
+
+    // Pagos
+    ['titulo' => 'Tarifas y métodos de pago', 'icono' => 'bi-cash-coin',  'cu' => 'CU20', 'permisos' => ['pagos.configurar'], 'ruta' => 'tarifas.index'],
 ];
