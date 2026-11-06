@@ -1,0 +1,102 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam dpi 200
+skinparam linetype polyline
+hide circle
+
+skinparam class {
+  BackgroundColor #EEEEEE
+  BorderColor #333333
+}
+
+title DIAGRAMA DE CLASE DE ANÁLISIS - CU16 Controlar Estado y Asistencia de Cita
+
+class "Recepcionista" as R <<actor>>
+
+class "UI_estadoCita" as UI <<boundary>> {
+  + mostrarCitasGestionables(): void
+  + buscarCitas(texto, fecha): void
+  + seleccionarCita(idCita): void
+  + confirmarCita(idCita): void
+  + registrarAtencion(idCita): void
+  + registrarInasistencia(idCita): void
+  + mostrarMensaje(mensaje): void
+}
+
+class "EstadoCitaController" as C <<control>> {
+  + listarCitasGestionables(): List<Cita>
+  + buscarCitasGestionables(texto, fecha): List<Cita>
+  + obtenerCitaGestionable(idCita): Cita
+  + cambiarEstadoCita(idCita, nuevoEstado): Boolean
+}
+
+class "Cita" as CI <<entity>> {
+  - idCita: Integer
+  - codigo: String
+  - fecha: Date
+  - horaInicio: Time
+  - horaFin: Time
+  - estado: String
+  - fechaCreacion: DateTime
+  - motivo: String
+  - motivoCancelacion: String
+  - fechaCancelacion: DateTime
+  - idPaciente: Integer
+  - idMedico: Integer
+  + listarGestionables(): List<Cita>
+  + buscarGestionables(texto, fecha): List<Cita>
+  + obtenerDetallePorId(idCita): Cita
+  + cambiarEstado(idCita, nuevoEstado): Boolean
+}
+
+class "Paciente" as P <<entity>> {
+  - idPaciente: Integer
+  - codigo: String
+  - ci: String
+  - activo: Boolean
+  + listarPorIds(idsPaciente): List<Paciente>
+  + obtenerPorId(idPaciente): Paciente
+}
+
+class "Medico" as M <<entity>> {
+  - idMedico: Integer
+  - codigo: String
+  - registroProfesional: String
+  - telefono: String
+  - activo: Boolean
+  + listarPorIds(idsMedico): List<Medico>
+  + obtenerPorId(idMedico): Medico
+}
+
+class "Bitacora" as B <<entity>> {
+  - idBitacora: Integer
+  - fechaHora: DateTime
+  - accion: String
+  - tablaAfectada: String
+  - detalle: String
+  - ip: String
+  - idUsuario: Integer
+  + registrarAccion(idUsuario, accion, tablaAfectada, detalle): void
+}
+
+class "Usuario" as U <<entity>> {
+  - idUsuario: Integer
+  - nombreUsuario: String
+  - nombres: String
+  - apellidos: String
+}
+
+R -- UI
+UI -- C
+C -- CI
+C -- P
+C -- M
+C -- B
+
+P "1" -- "0..*" CI : tiene
+M "1" -- "0..*" CI : atiende
+U "0..1" -- "0..*" B : registra
+
+@enduml

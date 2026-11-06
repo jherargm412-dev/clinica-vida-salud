@@ -1,0 +1,51 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam linetype polyline
+skinparam dpi 200
+
+title DIAGRAMA DE COMUNICACIÓN - CU17 Consultar Agenda Médica
+
+actor "Administrador" as A
+actor "Recepcionista" as R
+actor "Médico" as MED
+boundary "UI_agendaMedica" as UI
+control "AgendaMedicaController" as C
+entity "Medico" as M
+entity "Cita" as CI
+entity "Paciente" as P
+entity "Especialidad" as E
+entity "Usuario" as U
+
+A -- UI : 1: mostrarAgenda() →\n2: seleccionarMedico(idMedico) →\n3: consultarAgenda(fecha, estado) →
+
+R -- UI : 1: mostrarAgenda() →\n2: seleccionarMedico(idMedico) →\n3: consultarAgenda(fecha, estado) →
+
+MED -- UI : 4: mostrarMiAgenda() →\n5: filtrarMiAgenda(fecha, estado) →
+
+UI -- C : 1.1: listarMedicosParaAgenda() →\n3.1: consultarAgenda(idMedico, fecha, estado, permisoVerMotivo) →\n4.1: consultarMiAgenda(idUsuario, fecha, null, permisoVerMotivo) →\n5.1: consultarMiAgenda(idUsuario, fecha, estado, permisoVerMotivo) →
+
+C -- M : 1.2: listarParaAgenda() →\n4.2: obtenerPorIdUsuario(idUsuario) →\n5.2: obtenerPorIdUsuario(idUsuario) →\n3.2: listarPorIds(idsMedico) →
+
+C -- CI : 3.3: listarPorMedicoFechaEstado(idMedico, fecha, estado) →\n4.3: listarPorMedicoFechaEstado(idMedico, fecha, null) →\n5.3: listarPorMedicoFechaEstado(idMedico, fecha, estado) →
+
+C -- P : 3.4: listarPorIds(idsPaciente) →\n4.4: listarPorIds(idsPaciente) →\n5.4: listarPorIds(idsPaciente) →
+
+C -- E : 3.5: listarPorIds(idsEspecialidad) →\n4.5: listarPorIds(idsEspecialidad) →\n5.5: listarPorIds(idsEspecialidad) →
+
+C -- U : 1.3: listarPorIds(idsUsuarioMedico) →\n3.6: listarPorIds(idsUsuarioPacienteYMedico) →\n4.6: listarPorIds(idsUsuarioPacienteYMedico) →\n5.6: listarPorIds(idsUsuarioPacienteYMedico) →
+
+note bottom of C
+  Médico.idUsuario y Paciente.idUsuario permiten
+  obtener nombres y apellidos desde Usuario.
+  permisoVerMotivo se determina según los permisos
+  del usuario; si no está autorizado, se omite el motivo.
+end note
+
+note bottom of CI
+  La agenda incluye Pendiente de pago mientras
+  se mantenga la reserva temporal de CU21.
+end note
+
+@enduml

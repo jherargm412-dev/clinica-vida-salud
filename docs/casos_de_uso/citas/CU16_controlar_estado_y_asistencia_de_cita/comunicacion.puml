@@ -1,0 +1,37 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam linetype polyline
+skinparam dpi 200
+
+title DIAGRAMA DE COMUNICACIÓN - CU16 Controlar Estado y Asistencia de Cita
+
+actor "Recepcionista" as R
+boundary "UI_estadoCita" as UI
+control "EstadoCitaController" as C
+entity "Cita" as CI
+entity "Paciente" as P
+entity "Medico" as M
+entity "Bitacora" as B
+
+R -- UI : 1: mostrarCitasGestionables() →\n2: buscarCitas(texto, fecha) →\n3: seleccionarCita(idCita) →\n4: confirmarCita(idCita) →\n5: registrarAtencion(idCita) →\n6: registrarInasistencia(idCita) →
+
+UI -- C : 1.1: listarCitasGestionables() →\n2.1: buscarCitasGestionables(texto, fecha) →\n3.1: obtenerCitaGestionable(idCita) →\n4.1: cambiarEstadoCita(idCita, "Confirmada") →\n5.1: cambiarEstadoCita(idCita, "Atendida") →\n6.1: cambiarEstadoCita(idCita, "Inasistencia") →
+
+C -- CI : 1.2: listarGestionables() →\n2.2: buscarGestionables(texto, fecha) →\n3.2: obtenerDetallePorId(idCita) →\n4.2: cambiarEstado(idCita, nuevoEstado) →\n5.2: cambiarEstado(idCita, nuevoEstado) →\n6.2: cambiarEstado(idCita, nuevoEstado) →
+
+C -- P : 1.3: listarPorIds(idsPaciente) →\n2.3: listarPorIds(idsPaciente) →\n3.3: obtenerPorId(idPaciente) →
+
+C -- M : 1.4: listarPorIds(idsMedico) →\n2.4: listarPorIds(idsMedico) →\n3.4: obtenerPorId(idMedico) →
+
+C -- B : 4.3: registrarAccion(idUsuario, "CONFIRMAR_CITA", "Cita", detalle) →\n5.3: registrarAccion(idUsuario, "REGISTRAR_ATENCION", "Cita", detalle) →\n6.3: registrarAccion(idUsuario, "REGISTRAR_INASISTENCIA", "Cita", detalle) →
+
+note bottom of CI
+  cambiarEstado valida la transición:
+  Programada → Confirmada, Atendida o Inasistencia
+  Confirmada → Atendida o Inasistencia
+  Solo se actualiza y audita si la transición es válida.
+end note
+
+@enduml

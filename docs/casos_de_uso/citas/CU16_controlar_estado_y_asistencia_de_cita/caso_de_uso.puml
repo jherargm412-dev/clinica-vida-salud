@@ -1,0 +1,19 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam dpi 200
+skinparam usecase {
+  BackgroundColor #E8F1FB
+  BorderColor #333333
+}
+
+actor "Recepcionista" as R
+
+rectangle "CU16 Controlar Estado y Asistencia de Cita" {
+  usecase "CU16\nControlar Estado y\nAsistencia de Cita" as CU16
+}
+
+R --> CU16
+
+@enduml

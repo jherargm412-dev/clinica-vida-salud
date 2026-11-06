@@ -1,0 +1,64 @@
+@startuml
+autonumber
+autoactivate on
+skinparam shadowing false
+skinparam dpi 200
+
+title DIAGRAMA DE SECUENCIA - CU16 Controlar Estado y Asistencia de Cita
+
+actor "Recepcionista" as R
+boundary "UI_estadoCita" as UI
+control "EstadoCitaController" as C
+entity "Cita" as CI
+entity "Paciente" as P
+entity "Medico" as M
+entity "Bitacora" as B
+
+R -> UI : mostrarCitasGestionables()
+UI -> C : listarCitasGestionables()
+C -> CI : listarGestionables()
+CI --> C : citas
+C -> P : listarPorIds(idsPaciente)
+P --> C : datosPacientes
+C -> M : listarPorIds(idsMedico)
+M --> C : datosMedicos
+C --> UI : mostrarCitas(citas, datosPacientes, datosMedicos)
+
+opt Buscar cita
+    R -> UI : buscarCitas(texto, fecha)
+    UI -> C : buscarCitasGestionables(texto, fecha)
+    C -> CI : buscarGestionables(texto, fecha)
+    CI --> C : citasEncontradas
+    C --> UI : mostrarResultados(citasEncontradas)
+end
+
+R -> UI : seleccionarCita(idCita)
+UI -> C : obtenerCitaGestionable(idCita)
+C -> CI : obtenerDetallePorId(idCita)
+CI --> C : datosCita
+C -> P : obtenerPorId(idPaciente)
+P --> C : datosPaciente
+C -> M : obtenerPorId(idMedico)
+M --> C : datosMedico
+C --> UI : mostrarDetalleCita(datosCita, datosPaciente, datosMedico)
+
+alt Confirmar cita
+    R -> UI : confirmarCita(idCita)
+else Registrar atención
+    R -> UI : registrarAtencion(idCita)
+else Registrar inasistencia
+    R -> UI : registrarInasistencia(idCita)
+end
+
+UI -> C : cambiarEstadoCita(idCita, nuevoEstado)
+C -> CI : cambiarEstado(idCita, nuevoEstado)
+CI --> C : resultadoCambio
+
+alt Transición válida
+    C -> B : registrarAccion(idUsuario, accion, "Cita", detalle)
+    C --> UI : mostrarEstadoActualizado(nuevoEstado)
+else Transición inválida
+    C --> UI : mostrarMensaje("La cita no puede cambiar a ese estado")
+end
+
+@enduml
