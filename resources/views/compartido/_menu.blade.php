@@ -41,13 +41,18 @@
         @endif
 
         @foreach ($grupo['opciones'] as $opcion)
+            @php
+                $tituloOpcion = ($opcion['cu'] ?? null) === 'CU08' && auth()->user()->rol?->nombre === 'Paciente'
+                    ? 'Mis citas'
+                    : $opcion['titulo'];
+            @endphp
             @if ($opcion['ruta'])
                 <a class="nav-link {{ $estaActiva($opcion) ? 'active' : '' }}" href="{{ route($opcion['ruta']) }}">
-                    <i class="bi {{ $opcion['icono'] }}"></i> {{ $opcion['titulo'] }}
+                    <i class="bi {{ $opcion['icono'] }}"></i> {{ $tituloOpcion }}
                 </a>
             @else
                 <span class="nav-link disabled" title="Próximamente">
-                    <i class="bi {{ $opcion['icono'] }}"></i> {{ $opcion['titulo'] }}
+                    <i class="bi {{ $opcion['icono'] }}"></i> {{ $tituloOpcion }}
                 </span>
             @endif
         @endforeach

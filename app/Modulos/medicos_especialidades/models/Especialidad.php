@@ -101,4 +101,14 @@ class Especialidad extends Model
     {
         return self::find($idEspecialidad);
     }
+
+    /** CU08: obtiene especialidades asociadas a las citas de un historial. */
+    public static function listarPorIds(array $idsEspecialidad): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($idsEspecialidad === []) {
+            return self::query()->whereRaw('1 = 0')->get();
+        }
+
+        return self::query()->whereIn('id_especialidad', $idsEspecialidad)->get();
+    }
 }

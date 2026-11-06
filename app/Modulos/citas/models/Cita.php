@@ -67,6 +67,17 @@ class Cita extends Model
         return $this->hasOne(Pago::class, 'id_cita', 'id_cita');
     }
 
+    /** CU08: lista todas las citas del paciente, opcionalmente filtradas por estado. */
+    public static function listarPorPaciente(int $idPaciente, ?string $estado = null): Builder
+    {
+        return self::query()
+            ->where('id_paciente', $idPaciente)
+            ->when($estado !== null, fn ($q) => $q->where('estado', $estado))
+            ->orderByDesc('fecha')
+            ->orderByDesc('hora_inicio')
+            ->orderByDesc('fecha_creacion');
+    }
+
     // ---------------------------------------------------------------
     // CU21 Pagar cita: reserva de 10 minutos
     // ---------------------------------------------------------------

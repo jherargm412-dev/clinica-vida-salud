@@ -2,6 +2,7 @@
 
 namespace App\Modulos\usuarios_acceso\models;
 
+use App\Modulos\compartido\Texto;
 use App\Modulos\medicos_especialidades\models\Medico;
 use App\Modulos\pacientes\models\Paciente;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -82,6 +83,29 @@ class Usuario extends Authenticatable
     public static function obtenerPorId(int $idUsuario): ?self
     {
         return self::query()->find($idUsuario);
+    }
+
+    /** CU08: busca cuentas asociadas a pacientes por nombre o apellido, sin excluir inactivos. */
+    public static function buscarPorNombreApellido(string $texto): \Illuminate\Database\Eloquent\Collection
+    {
+        $buscado = '%' . Texto::sinTildes(trim($texto)) . '%';
+
+        return self::query()
+            ->whereHas('paciente')
+            ->whereRaw(Texto::sqlSinTildes("nombres || ' ' || apellidos") . ' ILIKE ?', [$buscado])
+            ->orderBy('apellidos')
+            ->orderBy('nombres')
+            ->get();
+    }
+
+    /** CU08: obtiene en una sola consulta las cuentas de los pacientes y médicos del historial. */
+    public static function listarPorIds(array $idsUsuario): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($idsUsuario === []) {
+            return self::query()->whereRaw('1 = 0')->get();
+        }
+
+        return self::query()->whereIn('id_usuario', $idsUsuario)->get();
     }
 
     // ---------------------------------------------------------------

@@ -47,6 +47,16 @@ class Medico extends Model
         return self::with('usuario')->find($idMedico);
     }
 
+    /** CU08: obtiene médicos asociados a las citas de un historial. */
+    public static function listarPorIds(array $idsMedico): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($idsMedico === []) {
+            return self::query()->whereRaw('1 = 0')->get();
+        }
+
+        return self::query()->whereIn('id_medico', $idsMedico)->get();
+    }
+
     public function tieneEspecialidad(int $idEspecialidad): bool
     {
         return $this->especialidades()
