@@ -55,8 +55,8 @@ return [
             'permisos' => ['citas.controlar_estado'], 'ruta' => 'citas.estado.index'],
 
         // Agenda médica
-        ['grupo' => 'agenda_medica', 'titulo' => 'Agenda médica', 'icono' => 'bi-calendar3', 'cu' => 'CU17-18',
-            'permisos' => ['agenda.consultar', 'citas.registrar_atencion'], 'ruta' => null],
+        ['grupo' => 'agenda_medica', 'titulo' => 'Agenda médica', 'icono' => 'bi-calendar3', 'cu' => 'CU17',
+            'permisos' => ['agenda.consultar'], 'ruta' => 'agenda.index'],
 
         // Reportes
         ['grupo' => 'reportes', 'titulo' => 'Reportes', 'icono' => 'bi-bar-chart', 'cu' => 'CU19', 'permisos' => ['reportes.generar'], 'ruta' => null],
