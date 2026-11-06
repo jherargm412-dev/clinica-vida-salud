@@ -155,6 +155,12 @@ a.cvs-paso-contenido:hover .cvs-paso-nombre { text-decoration: underline; }
 [data-bs-theme="dark"] .cvs-iniciales { background: rgba(45, 212, 191, .12); color: #2dd4bf; }
 [data-bs-theme="dark"] .cvs-paso.actual .cvs-paso-circulo { color: #2dd4bf; border-color: #2dd4bf; }
 
+/* Horarios de atención (CU11): letras de los días en la lista */
+.cvs-dia-chip {
+    width: 24px; height: 24px; border-radius: 50%; display: inline-grid; place-items: center; font-size: .75rem; font-weight: 600;
+    border: 1px solid var(--bs-border-color); color: var(--bs-secondary-color);
+}
+.cvs-dia-chip.activo { background: var(--cvs-primario); border-color: var(--cvs-primario); color: #fff; }
 
 /* Disponibilidad (CU12): semana de cada médico, una celda por día */
 .cvs-semana th, .cvs-semana td { padding: .5rem .35rem; }

@@ -130,4 +130,75 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 1000);
     });
+
+    // 8. Semana de horarios (CU11 "Asignar horario"): <form data-semana> con una fila <tr data-dia="1..7"> por día.
+    //    - Marcar "Atiende" agrega un tramo si no tiene; desmarcarlo deshabilita sus campos (no se envían).
+    //    - "Otro tramo" agrega una fila desde <template id="plantilla-tramo">; "Quitar" la elimina.
+    //    - "Copiar el lunes" copia los tramos del lunes a los demás días marcados.
+    document.querySelectorAll('form[data-semana]').forEach((form) => {
+        const plantilla = form.querySelector('#plantilla-tramo');
+        let contador = 1000;   // números para los tramos nuevos (los existentes usan 0, 1, 2...)
+
+        const agregarTramo = (fila, valores = {}) => {
+            const html = plantilla.innerHTML
+                .replaceAll('__DIA__', fila.dataset.dia)
+                .replaceAll('__N__', String(contador++));
+            const contenedor = fila.querySelector('[data-tramos]');
+            contenedor.insertAdjacentHTML('beforeend', html);
+            const tramo = contenedor.lastElementChild;
+            Object.entries(valores).forEach(([campo, valor]) => {
+                tramo.querySelector(`[data-campo="${campo}"]`).value = valor;
+            });
+            return tramo;
+        };
+
+        const actualizarDia = (fila) => {
+            const atiende = fila.querySelector('[data-atiende]').checked;
+            fila.querySelectorAll('[data-tramo] input').forEach((campo) => { campo.disabled = !atiende; });
+            fila.querySelector('[data-tramos]').classList.toggle('d-none', !atiende);
+            fila.querySelector('[data-agregar-tramo]').classList.toggle('d-none', !atiende);
+            fila.querySelector('[data-no-atiende]').classList.toggle('d-none', atiende);
+        };
+
+        form.querySelectorAll('tr[data-dia]').forEach((fila) => {
+            fila.querySelector('[data-atiende]').addEventListener('change', (evento) => {
+                if (evento.target.checked && !fila.querySelector('[data-tramo]')) {
+                    agregarTramo(fila);
+                }
+                actualizarDia(fila);
+            });
+            fila.querySelector('[data-agregar-tramo]').addEventListener('click', () => agregarTramo(fila));
+            fila.addEventListener('click', (evento) => {
+                if (!evento.target.closest('[data-quitar-tramo]')) return;
+                evento.target.closest('[data-tramo]').remove();
+                if (!fila.querySelector('[data-tramo]')) {
+                    fila.querySelector('[data-atiende]').checked = false;   // sin tramos = no atiende
+                    actualizarDia(fila);
+                }
+            });
+            actualizarDia(fila);
+        });
+
+        form.querySelector('[data-copiar-lunes]')?.addEventListener('click', (evento) => {
+            const lunes = form.querySelector('tr[data-dia="1"]');
+            const tramosLunes = [...lunes.querySelectorAll('[data-tramo]')].map((tramo) => ({
+                hora_inicio: tramo.querySelector('[data-campo="hora_inicio"]').value,
+                hora_fin: tramo.querySelector('[data-campo="hora_fin"]').value,
+                duracion_cita: tramo.querySelector('[data-campo="duracion_cita"]').value,
+            }));
+            const destinos = [...form.querySelectorAll('tr[data-dia]:not([data-dia="1"])')]
+                .filter((fila) => fila.querySelector('[data-atiende]').checked);
+
+            if (!lunes.querySelector('[data-atiende]').checked || tramosLunes.length === 0 || destinos.length === 0) {
+                alert(evento.currentTarget.dataset.aviso);
+                return;
+            }
+            destinos.forEach((fila) => {
+                fila.querySelectorAll('[data-tramo]').forEach((tramo) => tramo.remove());
+                tramosLunes.forEach((valores) => agregarTramo(fila, valores));
+                actualizarDia(fila);
+            });
+        });
+    });
+
 });
