@@ -63,6 +63,7 @@ class Bitacora extends Model
         'sesion'     => 'sesión',
         'atencion'   => 'atención',
         'metodo'     => 'método',
+        'recuperacion' => 'recuperación',
     ];
 
     /** Frases a las que les falta el "de" (ej. INICIO_SESION -> "Inicio de sesión"). */
@@ -72,6 +73,7 @@ class Bitacora extends Model
         'bloqueo cuenta'   => 'bloqueo de cuenta',
         'horario atención' => 'horario de atención',
         'método pago'      => 'método de pago',
+        'solicitar recuperación' => 'solicitar recuperación de contraseña',
     ];
 
     /** "REGISTRAR_ESPECIALIDAD" -> "Registrar especialidad". Uso: $registro->accion_legible */

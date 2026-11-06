@@ -5,7 +5,7 @@ Tablas y columnas en `snake_case` (PostgreSQL). El script completo está en `dat
 ## Restricciones principales
 
 - Todas las FK son `ON DELETE RESTRICT`, salvo las composiciones con `ON DELETE CASCADE`: `horario_atencion.id_medico`, `detalle_pago.id_pago` y `movimiento_caja.id_sesion_caja`.
-- Únicos: `rol.nombre`; `permiso.clave` y `permiso.nombre`; `LOWER(TRIM(especialidad.nombre))`; `usuario.nombre_usuario` y `usuario.correo`; `medico.id_usuario`, `medico.codigo`, `medico.registro_profesional`; `paciente.id_usuario`, `paciente.codigo`, `paciente.ci`; `cita.codigo`; `metodo_pago.nombre`; `pago.id_cita` y `pago.numero_comprobante`; `movimiento_caja.id_detalle_pago`.
+- Únicos: `rol.nombre`; `permiso.clave` y `permiso.nombre`; `LOWER(TRIM(especialidad.nombre))`; `usuario.nombre_usuario` y `usuario.correo`; `medico.id_usuario`, `medico.codigo`, `medico.registro_profesional`; `paciente.id_usuario`, `paciente.codigo`, `paciente.ci`; `cita.codigo`; `metodo_pago.nombre`; `pago.id_cita` y `pago.numero_comprobante`; `movimiento_caja.id_detalle_pago`; `recuperacion_contrasena.token`.
 - CHECK: `usuario.intentos_fallidos` entre 0 y 3; `paciente.sexo` en ('M','F'); `paciente.fecha_nacimiento <= hoy`; `horario_atencion.dia_semana` entre 1 y 7, `hora_fin > hora_inicio`, `duracion_cita > 0`; `cita.hora_fin > hora_inicio`; `cita.estado` en ('Pendiente de pago','Programada','Confirmada','Atendida','Cancelada','Inasistencia'); montos de tarifa, pago, detalle y movimiento > 0; montos de caja >= 0; estados de `sesion_caja`, `pago`, `detalle_pago` y `notificacion` (ver cada tabla).
 - Índice único parcial `uq_cita_medico_horario (id_medico, fecha, hora_inicio) WHERE estado <> 'Cancelada'`: un médico no puede tener dos citas vigentes a la misma hora.
 - Índice único parcial `uq_tarifa_activa_especialidad (id_especialidad) WHERE activo = TRUE`: una sola tarifa activa por especialidad.
@@ -105,6 +105,19 @@ Tablas y columnas en `snake_case` (PostgreSQL). El script completo está en `dat
 | tabla_afectada | VARCHAR(50) | 50 caracteres | Sí | No | Tabla sobre la que se realizó la acción |
 | detalle | TEXT | Variable | Sí | No | Descripción de la acción o del cambio realizado |
 | ip | VARCHAR(45) | 45 caracteres | No | No | Dirección IP de origen (IPv4 o IPv6) |
+
+## recuperacion_contrasena
+
+Enlaces de un solo uso de CU02 "Recuperar contraseña". Base existente: `database/sql/actualizacion_recuperar_contrasena.sql`.
+
+| Atributo | Tipo de Dato | Longitud | Nulo | Es llave | Descripción |
+|---|---|---|---|---|---|
+| id_recuperacion | SERIAL | 4 bytes | No | Sí (PK) | Identificador único de la solicitud |
+| id_usuario | INTEGER | 4 bytes | No | Sí (FK) | Cuenta que pidió restablecer su contraseña |
+| token | VARCHAR(64) | 64 caracteres | No | No (único) | Hash SHA-256 del token enviado por correo (el token real no se guarda) |
+| fecha_solicitud | TIMESTAMP | 8 bytes | No | No | Fecha y hora de la solicitud |
+| fecha_expiracion | TIMESTAMP | 8 bytes | No | No | Vencimiento del enlace (30 minutos después; CHECK > fecha_solicitud) |
+| usado | BOOLEAN | 1 byte | No | No | TRUE si ya se usó o fue reemplazado por un enlace nuevo (por defecto FALSE) |
 
 ## medico_especialidad
 

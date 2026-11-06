@@ -46,6 +46,14 @@ class Bitacora {
   ip : String
   idUsuario : Integer
 }
+class RecuperacionContrasena {
+  idRecuperacion : Integer
+  token : String
+  fechaSolicitud : DateTime
+  fechaExpiracion : DateTime
+  usado : Boolean
+  idUsuario : Integer
+}
 class Medico {
   idMedico : Integer
   codigo : String
@@ -164,6 +172,7 @@ Permiso "1" -- "0..*" RolPermiso
 RolPermiso "1..*" -- "1" Rol
 Rol "1" -- "0..*" Usuario : tiene
 Usuario "0..1" -- "0..*" Bitacora : registra
+Usuario "1" -- "0..*" RecuperacionContrasena : solicita
 Usuario "1" -- "0..1" Medico : tiene
 Usuario "1" -- "0..1" Paciente : tiene
 Usuario "0..1" -- "0..*" Cita : cancela

@@ -62,7 +62,8 @@ class AuthController extends Controller
         if ($usuario->bloqueado) {
             Bitacora::registrar('INICIO_SESION_FALLIDO', 'usuario', 'Cuenta bloqueada', $usuario->id_usuario);
 
-            return $this->rechazar('La cuenta está bloqueada por intentos fallidos. Comuníquese con el administrador.');
+            return $this->rechazar('La cuenta está bloqueada por intentos fallidos. Restablezca su contraseña con '
+                . '"¿Olvidó su contraseña?" o comuníquese con el administrador.');
         }
 
         // Rol deshabilitado
@@ -83,7 +84,7 @@ class AuthController extends Controller
                     'Cuenta bloqueada tras ' . self::MAX_INTENTOS . ' intentos fallidos', $usuario->id_usuario);
 
                 return $this->rechazar('La cuenta fue bloqueada por ' . self::MAX_INTENTOS
-                    . ' intentos fallidos. Comuníquese con el administrador.');
+                    . ' intentos fallidos. Restablezca su contraseña con "¿Olvidó su contraseña?" o comuníquese con el administrador.');
             }
 
             $usuario->save();
