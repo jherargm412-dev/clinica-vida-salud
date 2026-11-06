@@ -1,0 +1,90 @@
+@startuml
+autonumber
+autoactivate on
+skinparam shadowing false
+skinparam dpi 200
+
+title DIAGRAMA DE SECUENCIA - CU07 Gestionar Perfil Médico
+
+actor "Paciente" as PA
+boundary "UI_perfil_medico" as UI
+control "PerfilMedicoController" as C
+entity "Usuario" as U
+entity "Paciente" as P
+entity "PerfilMedico" as PM
+entity "Bitacora" as B
+
+== 1. Abrir perfil médico ==
+
+PA -> UI : abrirMiPerfilMedico()
+UI -> C : mostrarPerfilMedico(idUsuario)
+C -> U : obtenerPorId(idUsuario)
+C -> P : obtenerPorIdUsuario(idUsuario)
+
+alt La cuenta está asociada a un paciente
+    P --> C : paciente
+    C -> PM : obtenerPorIdPaciente(idPaciente)
+
+    alt El perfil médico ya existe
+        PM --> C : datosPerfil
+    else Es la primera consulta del paciente
+        PM --> C : perfilNoEncontrado
+        C -> C : prepararPerfilVacio()
+    end
+
+    C --> UI : mostrarFormulario(datosPerfil)
+else La cuenta no está asociada a un paciente
+    P --> C : pacienteNoEncontrado
+    C --> UI : mostrarError("Su cuenta no está asociada a un paciente, contacte a la clínica")
+end
+
+== 2. Guardar perfil médico ==
+
+opt El paciente presiona "Guardar"
+    PA -> UI : guardarPerfilMedico(datos)
+    UI -> C : actualizarPerfilMedico(idUsuario, datos)
+    C -> U : obtenerPorId(idUsuario)
+    C -> P : obtenerPorIdUsuario(idUsuario)
+
+    alt La cuenta está asociada a un paciente
+        P --> C : paciente
+        C -> PM : validarDatos(datos)
+
+        alt Los datos son válidos
+            PM --> C : valido
+            C -> PM : guardarOActualizar(idPaciente, datos)
+            PM --> C : perfilGuardado
+            C -> B : registrarAccion(idUsuario, "ACTUALIZAR", "PerfilMedico", "Actualización de perfil médico")
+            C -> PM : obtenerPorIdPaciente(idPaciente)
+            PM --> C : datosPerfilActualizados
+            C --> UI : mostrarPerfilActualizado(datosPerfilActualizados)
+        else Los datos no son válidos
+            PM --> C : erroresValidacion
+            C --> UI : mostrarErroresValidacion(erroresValidacion)
+        end
+
+    else La cuenta no está asociada a un paciente
+        P --> C : pacienteNoEncontrado
+        C --> UI : mostrarError("Su cuenta no está asociada a un paciente, contacte a la clínica")
+    end
+end
+
+== 3. Cancelar edición ==
+
+opt El paciente presiona "Cancelar"
+    PA -> UI : cancelarEdicion()
+    UI -> C : mostrarPerfilMedico(idUsuario)
+    C -> P : obtenerPorIdUsuario(idUsuario)
+
+    alt La cuenta está asociada a un paciente
+        P --> C : paciente
+        C -> PM : obtenerPorIdPaciente(idPaciente)
+        PM --> C : datosPerfilGuardados
+        C --> UI : mostrarFormulario(datosPerfilGuardados)
+    else La cuenta no está asociada a un paciente
+        P --> C : pacienteNoEncontrado
+        C --> UI : mostrarError("Su cuenta no está asociada a un paciente, contacte a la clínica")
+    end
+end
+
+@enduml

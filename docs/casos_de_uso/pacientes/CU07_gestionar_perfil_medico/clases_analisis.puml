@@ -1,0 +1,86 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam dpi 200
+skinparam linetype polyline
+hide circle
+
+skinparam class {
+  BackgroundColor #EEEEEE
+  BorderColor #333333
+}
+
+title DIAGRAMA DE CLASE DE ANÁLISIS - CU07 Gestionar Perfil Médico
+
+class "Paciente" as PA <<actor>>
+
+class "UI_perfil_medico" as UI <<boundary>> {
+  + abrirMiPerfilMedico(): void
+  + mostrarFormulario(datosPerfil): void
+  + guardarPerfilMedico(datos): void
+  + mostrarPerfilActualizado(datosPerfil): void
+}
+
+class "PerfilMedicoController" as C <<control>> {
+  + mostrarPerfilMedico(idUsuario): void
+  + actualizarPerfilMedico(idUsuario, datos): void
+}
+
+class "Usuario" as U <<entity>> {
+  - idUsuario: Integer
+  - nombreUsuario: String
+  - correo: String
+  - nombres: String
+  - apellidos: String
+}
+
+class "Paciente" as P <<entity>> {
+  - idPaciente: Integer
+  - codigo: String
+  - ci: String
+  - fechaNacimiento: Date
+  - sexo: String
+  - telefono: String
+  - direccion: String
+  - activo: Boolean
+  + obtenerPorIdUsuario(idUsuario): Paciente
+}
+
+class "PerfilMedico" as PM <<entity>> {
+  - idPerfilMedico: Integer
+  - tipoSangre: String
+  - alergias: String
+  - enfermedadesCronicas: String
+  - medicamentos: String
+  - nombreContactoEmergencia: String
+  - parentescoContactoEmergencia: String
+  - telefonoContactoEmergencia: String
+  - fechaActualizacion: DateTime
+  + obtenerPorIdPaciente(idPaciente): PerfilMedico
+  + validarDatos(datos): Boolean
+  + guardarOActualizar(idPaciente, datos): PerfilMedico
+}
+
+class "Bitacora" as B <<entity>> {
+  - idBitacora: Integer
+  - fechaHora: DateTime
+  - accion: String
+  - tablaAfectada: String
+  - detalle: String
+  - ip: String
+  + registrarAccion(idUsuario, accion, tablaAfectada, detalle): void
+}
+
+PA -- UI
+UI -- C
+C -- U
+C -- P
+C -- PM
+C -- B
+
+U "1" -- "0..1" P : tiene
+P "1" -- "0..1" PM : tiene
+U "1" -- "0..*" B : registra
+
+@enduml

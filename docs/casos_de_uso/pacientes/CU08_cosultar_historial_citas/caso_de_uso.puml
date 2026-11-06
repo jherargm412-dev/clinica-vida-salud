@@ -1,0 +1,21 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam dpi 200
+skinparam usecase {
+  BackgroundColor #E8F1FB
+  BorderColor #333333
+}
+
+actor "Recepcionista" as R
+actor "Paciente" as P
+
+rectangle "Sistema Web de Gestión de Citas Médicas" {
+  usecase "CU08\nConsultar Historial de Citas" as CU08
+}
+
+R -- CU08
+P -- CU08
+
+@enduml

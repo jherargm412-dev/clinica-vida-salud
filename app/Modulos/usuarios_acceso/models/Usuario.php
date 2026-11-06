@@ -78,6 +78,12 @@ class Usuario extends Authenticatable
         return $this->hasOne(Paciente::class, 'id_usuario', 'id_usuario');
     }
 
+    /** CU07: busca la cuenta por su identificador. */
+    public static function obtenerPorId(int $idUsuario): ?self
+    {
+        return self::query()->find($idUsuario);
+    }
+
     // ---------------------------------------------------------------
     // Métodos de negocio
     // ---------------------------------------------------------------

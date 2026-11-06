@@ -1,0 +1,86 @@
+@startuml
+autonumber
+autoactivate on
+skinparam shadowing false
+skinparam dpi 200
+
+title DIAGRAMA DE SECUENCIA - CU18 Registrar Atención de Cita
+
+actor "Médico" as MED
+boundary "UI_atencionCita" as UI
+control "AtencionCitaController" as C
+entity "Medico" as M
+entity "Cita" as CI
+entity "AtencionMedica" as AM
+entity "Paciente" as P
+entity "Usuario" as U
+entity "PerfilMedico" as PM
+entity "Bitacora" as B
+
+MED -> UI : mostrarCitasParaAtender()
+UI -> C : listarCitasAtendibles(idUsuario)
+C -> M : obtenerPorIdUsuario(idUsuario)
+M --> C : medico
+C -> CI : listarPorMedicoYEstados(idMedico, estados)
+CI --> C : citas
+C -> AM : listarIdsPorCitas(idsCita)
+AM --> C : citasConAtencionRegistrada
+C -> P : listarPorIds(idsPaciente)
+P --> C : pacientes
+C -> U : listarPorIds(idsUsuarioPaciente)
+U --> C : nombresPacientes
+
+alt Hay citas atendibles
+    C --> UI : mostrarCitas(citasSinAtencion, pacientes, nombresPacientes)
+    MED -> UI : seleccionarCita(idCita)
+    UI -> C : obtenerDatosCita(idCita, idUsuario)
+    C -> CI : obtenerDetallePorId(idCita)
+    CI --> C : datosCita
+    C -> CI : validarPuedeRegistrarAtencion(idCita, idMedico)
+    CI --> C : asignacionYEstadoValidos
+
+    alt Cita asignada y estado válido
+        C -> P : obtenerPorId(idPaciente)
+        P --> C : datosPaciente
+        C -> U : obtenerPorId(idUsuarioPaciente)
+        U --> C : nombrePaciente
+        C -> PM : obtenerPorIdPaciente(idPaciente)
+        PM --> C : perfilMedicoOVacio
+        C -> AM : existePorIdCita(idCita)
+        AM --> C : noExisteAtencion
+        C --> UI : mostrarDatosPacienteYCita(datosCita, datosPaciente, nombrePaciente, perfilMedicoOVacio)
+
+        MED -> UI : ingresarDiagnosticoYNotas(diagnostico, notasClinicas)
+        MED -> UI : guardarAtencion()
+        UI -> C : guardarAtencion(idCita, idUsuario, diagnostico, notasClinicas)
+        C -> CI : validarPuedeRegistrarAtencion(idCita, idMedico)
+        CI --> C : validacionActualizada
+
+        alt Datos válidos, sin registro previo y cita aún elegible
+            C -> AM : guardar(idCita, idMedico, diagnostico, notasClinicas)
+            AM --> C : atencionGuardada
+
+            alt Estado actual Programada o Confirmada
+                C -> CI : marcarAtendida(idCita)
+                CI --> C : citaAtendida
+            else Estado actual Atendida
+                note right of C
+                  Se conserva Atendida;
+                  la recepcionista pudo marcarla
+                  previamente desde CU16.
+                end note
+            end
+
+            C -> B : registrarAccion(idUsuario, "REGISTRAR_ATENCION", "AtencionMedica", detalleSinDatosClinicos)
+            C --> UI : mostrarAtencionRegistrada()
+        else Datos inválidos, registro existente o estado no permitido
+            C --> UI : mostrarMensajeDeValidacion()
+        end
+    else Cita no asignada o estado no válido
+        C --> UI : mostrarMensaje("La cita no permite registrar la atención")
+    end
+else No hay citas atendibles
+    C --> UI : mostrarMensaje("No hay citas pendientes de atención")
+end
+
+@enduml

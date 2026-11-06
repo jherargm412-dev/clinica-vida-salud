@@ -32,6 +32,12 @@ class Bitacora extends Model
         ]);
     }
 
+    /** CU07: registra una acción identificando explícitamente la cuenta que la realizó. */
+    public static function registrarAccion(int $idUsuario, string $accion, string $tablaAfectada, string $detalle): void
+    {
+        self::registrar($accion, $tablaAfectada, $detalle, $idUsuario);
+    }
+
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'id_usuario', 'id_usuario');

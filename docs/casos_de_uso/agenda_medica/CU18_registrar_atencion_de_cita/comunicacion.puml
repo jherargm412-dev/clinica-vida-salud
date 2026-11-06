@@ -1,0 +1,52 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam linetype polyline
+skinparam dpi 200
+
+title DIAGRAMA DE COMUNICACIÓN - CU18 Registrar Atención de Cita
+
+actor "Médico" as MED
+boundary "UI_atencionCita" as UI
+control "AtencionCitaController" as C
+entity "Medico" as M
+entity "Cita" as CI
+entity "Paciente" as P
+entity "Usuario" as U
+entity "PerfilMedico" as PM
+entity "AtencionMedica" as AM
+entity "Bitacora" as B
+
+MED -- UI : 1: mostrarCitasParaAtender() →\n2: seleccionarCita(idCita) →\n3: guardarAtencion(diagnostico, notasClinicas) →
+
+UI -- C : 1.1: listarCitasAtendibles(idUsuario) →\n2.1: obtenerDatosCita(idCita, idUsuario) →\n3.1: guardarAtencion(idCita, idUsuario, diagnostico, notasClinicas) →
+
+C -- M : 1.2: obtenerPorIdUsuario(idUsuario) →
+
+C -- CI : 1.3: listarPorMedicoYEstados(idMedico, estados) →\n2.2: obtenerDetallePorId(idCita) →\n2.3: validarPuedeRegistrarAtencion(idCita, idMedico) →\n3.2: validarPuedeRegistrarAtencion(idCita, idMedico) →\n3.5: marcarAtendida(idCita) →
+
+C -- AM : 1.4: listarIdsPorCitas(idsCita) →\n2.4: existePorIdCita(idCita) →\n3.3: guardar(idCita, idMedico, diagnostico, notasClinicas) →
+
+C -- P : 1.5: listarPorIds(idsPaciente) →\n2.5: obtenerPorId(idPaciente) →
+
+C -- U : 1.6: listarPorIds(idsUsuarioPaciente) →\n2.6: obtenerPorId(idUsuarioPaciente) →
+
+C -- PM : 2.7: obtenerPorIdPaciente(idPaciente) →
+
+C -- B : 3.6: registrarAccion(idUsuario, "REGISTRAR_ATENCION", "AtencionMedica", "Atención registrada para la cita " + codigoCita) →
+
+note bottom of CI
+  listarPorMedicoYEstados considera Programada,
+  Confirmada y Atendida. El controlador excluye las
+  citas Atendida que ya tengan un registro clínico.
+  marcarAtendida se invoca solo si el estado actual
+  es Programada o Confirmada.
+end note
+
+note bottom of B
+  La bitácora no almacena el diagnóstico
+  ni las notas clínicas.
+end note
+
+@enduml

@@ -1,0 +1,36 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam actorStyle uml
+skinparam linetype polyline
+skinparam dpi 200
+
+title DIAGRAMA DE COMUNICACIÓN - CU08 Consultar Historial de Citas
+
+actor "Recepcionista" as R
+actor "Paciente" as PA
+boundary "UI_historialCitas" as UI
+control "HistorialCitasController" as C
+entity "Paciente" as P
+entity "Usuario" as U
+entity "Cita" as CI
+entity "Medico" as M
+entity "Especialidad" as E
+
+R -- UI : 1: mostrarBuscadorPacientes() →\n2: buscarPaciente(texto) →\n3: seleccionarPaciente(idPaciente) →\n4: filtrarPorEstado(estado) →\n5: limpiarFiltro() →
+
+PA -- UI : 6: mostrarMisCitas() →\n7: filtrarMisCitas(estado) →\n8: limpiarFiltro() →
+
+UI -- C : 1.1: mostrarBuscadorPacientes() →\n2.1: buscarPacientes(texto) →\n3.1: consultarHistorialPaciente(idPaciente, estado) →\n4.1: consultarHistorialPaciente(idPaciente, estado) →\n5.1: consultarHistorialPaciente(idPaciente, null) →\n6.1: consultarMisCitas(idUsuario, estado) →\n7.1: consultarMisCitas(idUsuario, estado) →\n8.1: consultarMisCitas(idUsuario, null) →
+
+C -- P : 2.2: buscarPorCI(texto) →\n2.4: listarPorIdsUsuario(idsUsuario) →\n3.2: obtenerPorId(idPaciente) →\n6.2: obtenerPorIdUsuario(idUsuario) →\n3.6: listarPorIds(idsPaciente) →
+
+C -- U : 2.3: buscarPorNombreApellido(texto) →\n3.3: obtenerPorId(idUsuario) →\n3.7: listarPorIds(idsUsuarioPacienteYMedico) →
+
+C -- CI : 3.4: listarPorPaciente(idPaciente, estado) →\n4.2: listarPorPaciente(idPaciente, estado) →\n5.2: listarPorPaciente(idPaciente, null) →\n6.3: listarPorPaciente(idPaciente, null) →\n7.3: listarPorPaciente(idPaciente, estado) →\n8.3: listarPorPaciente(idPaciente, null) →
+
+C -- M : 3.5: listarPorIds(idsMedico) →
+
+C -- E : 3.8: listarPorIds(idsEspecialidad) →
+
+@enduml

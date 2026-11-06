@@ -5,6 +5,7 @@
 */
 
 use App\Modulos\pacientes\controller\gestionar_paciente\PacienteController;
+use App\Modulos\pacientes\controller\gestionar_perfil_medico\PerfilMedicoController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'cuenta.activa'])->group(function () {
@@ -20,6 +21,11 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
         Route::post('/pacientes/{paciente}/activar', [PacienteController::class, 'activarPaciente'])->name('pacientes.activar');
     });
 
-    // CU07 Gestionar perfil médico   -> middleware('permiso:perfil_medico.gestionar')
+    // CU07 Gestionar perfil médico
+    Route::middleware('permiso:perfil_medico.gestionar')->group(function () {
+        Route::get('/mi-perfil-medico', [PerfilMedicoController::class, 'mostrarPerfilMedico'])->name('perfil_medico.mostrar');
+        Route::post('/mi-perfil-medico', [PerfilMedicoController::class, 'actualizarPerfilMedico'])->name('perfil_medico.actualizar');
+    });
+
     // CU08 Consultar historial       -> middleware('permiso:historial.consultar')
 });

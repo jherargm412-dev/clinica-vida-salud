@@ -1,0 +1,67 @@
+@startuml
+autonumber
+autoactivate on
+skinparam shadowing false
+skinparam dpi 200
+
+title DIAGRAMA DE SECUENCIA - CU17 Consultar Agenda Médica
+
+actor "Administrador / Recepcionista" as AR
+actor "Médico" as MED
+boundary "UI_agendaMedica" as UI
+control "AgendaMedicaController" as C
+entity "Medico" as M
+entity "Cita" as CI
+entity "Paciente" as P
+entity "Especialidad" as E
+entity "Usuario" as U
+
+alt Administrador o recepcionista
+    AR -> UI : mostrarAgenda()
+    UI -> C : listarMedicosParaAgenda()
+    C -> M : listarParaAgenda()
+    M --> C : medicos
+    C -> U : listarPorIds(idsUsuarioMedico)
+    U --> C : nombresMedicos
+    C --> UI : mostrarMedicos(medicos, nombresMedicos)
+    AR -> UI : seleccionarMedico(idMedico)
+else Médico
+    MED -> UI : mostrarMiAgenda()
+    UI -> C : identificarMedico(idUsuario)
+    C -> M : obtenerPorIdUsuario(idUsuario)
+    M --> C : medico
+end
+
+loop Consultar agenda o actualizar filtros
+    alt Administrador o recepcionista
+        AR -> UI : indicarFechaYEstado(fecha, estado)
+        UI -> C : consultarAgenda(idMedico, fecha, estado, permisoVerMotivo)
+    else Médico
+        MED -> UI : indicarFechaYEstado(fecha, estado)
+        UI -> C : consultarMiAgenda(idUsuario, fecha, estado, permisoVerMotivo)
+    end
+
+    C -> CI : listarPorMedicoFechaEstado(idMedico, fecha, estado)
+    CI --> C : citas
+
+    alt Hay citas
+        C -> P : listarPorIds(idsPaciente)
+        P --> C : pacientes
+        C -> M : listarPorIds(idsMedico)
+        M --> C : medicos
+        C -> E : listarPorIds(idsEspecialidad)
+        E --> C : especialidades
+        C -> U : listarPorIds(idsUsuarioPacienteYMedico)
+        U --> C : nombres
+
+        alt El usuario tiene permiso para ver el motivo
+            C --> UI : mostrarAgenda(citas, pacientes, medicos, especialidades, nombres, motivos)
+        else El usuario no tiene permiso para ver el motivo
+            C --> UI : mostrarAgenda(citas, pacientes, medicos, especialidades, nombres)
+        end
+    else No hay citas para los filtros
+        C --> UI : mostrarMensaje("No hay citas para los criterios seleccionados")
+    end
+end
+
+@enduml
