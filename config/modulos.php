@@ -38,7 +38,7 @@ return [
         // Pacientes
         ['grupo' => 'pacientes', 'titulo' => 'Pacientes',          'icono' => 'bi-person-vcard',  'cu' => 'CU06', 'permisos' => ['pacientes.gestionar'],     'ruta' => 'pacientes.index'],
         ['grupo' => 'pacientes', 'titulo' => 'Perfil médico',      'icono' => 'bi-heart-pulse',   'cu' => 'CU07', 'permisos' => ['perfil_medico.gestionar'], 'ruta' => 'perfil_medico.mostrar'],
-        ['grupo' => 'pacientes', 'titulo' => 'Historial de citas', 'icono' => 'bi-clock-history', 'cu' => 'CU08', 'permisos' => ['historial.consultar'],     'ruta' => null],
+        ['grupo' => 'pacientes', 'titulo' => 'Historial de citas', 'icono' => 'bi-clock-history', 'cu' => 'CU08', 'permisos' => ['historial.consultar'],     'ruta' => 'historial.index'],
 
         // Médicos, especialidades y horarios
         ['grupo' => 'medicos_especialidades', 'titulo' => 'Especialidades',       'icono' => 'bi-clipboard2-pulse', 'cu' => 'CU09', 'permisos' => ['especialidades.gestionar'], 'ruta' => 'especialidades.index'],

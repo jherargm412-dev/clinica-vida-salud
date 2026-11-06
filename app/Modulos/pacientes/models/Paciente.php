@@ -103,6 +103,43 @@ class Paciente extends Model
             ->first();
     }
 
+    /** CU08: busca pacientes por CI, incluyendo pacientes inactivos. */
+    public static function buscarPorCI(string $texto): Builder
+    {
+        return self::query()
+            ->with('usuario')
+            ->whereRaw('UPPER(TRIM(ci)) LIKE ?', ['%' . mb_strtoupper(trim($texto)) . '%'])
+            ->orderBy('codigo');
+    }
+
+    /** CU08: obtiene pacientes seleccionados por su identificador. */
+    public static function listarPorIds(array $idsPaciente): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($idsPaciente === []) {
+            return self::query()->whereRaw('1 = 0')->get();
+        }
+
+        return self::query()
+            ->with('usuario')
+            ->whereIn('id_paciente', $idsPaciente)
+            ->orderBy('codigo')
+            ->get();
+    }
+
+    /** CU08: obtiene pacientes asociados a las cuentas encontradas por nombre o apellido. */
+    public static function listarPorIdsUsuario(array $idsUsuario): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($idsUsuario === []) {
+            return self::query()->whereRaw('1 = 0')->get();
+        }
+
+        return self::query()
+            ->with('usuario')
+            ->whereIn('id_usuario', $idsUsuario)
+            ->orderBy('codigo')
+            ->get();
+    }
+
     /** CU06 (secuencia 4, actualizarPaciente): actualiza los datos propios de la ficha. */
     public static function actualizarPaciente(int $idPaciente, array $datos): void
     {

@@ -4,6 +4,7 @@
 | Paquete pacientes: CU06, CU07, CU08
 */
 
+use App\Modulos\pacientes\controller\consultar_historial_citas\HistorialCitasController;
 use App\Modulos\pacientes\controller\gestionar_paciente\PacienteController;
 use App\Modulos\pacientes\controller\gestionar_perfil_medico\PerfilMedicoController;
 use Illuminate\Support\Facades\Route;
@@ -27,5 +28,13 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
         Route::post('/mi-perfil-medico', [PerfilMedicoController::class, 'actualizarPerfilMedico'])->name('perfil_medico.actualizar');
     });
 
-    // CU08 Consultar historial       -> middleware('permiso:historial.consultar')
+    // CU08 Consultar historial de citas
+    Route::middleware('permiso:historial.consultar')->group(function () {
+        Route::get('/historial-citas', [HistorialCitasController::class, 'mostrarBuscadorPacientes'])->name('historial.index');
+        Route::get('/historial-citas/buscar', [HistorialCitasController::class, 'buscarPacientes'])->name('historial.buscar');
+        Route::get('/historial-citas/pacientes/{idPaciente}', [HistorialCitasController::class, 'seleccionarPaciente'])
+            ->whereNumber('idPaciente')
+            ->name('historial.paciente');
+        Route::get('/mis-citas', [HistorialCitasController::class, 'mostrarMisCitas'])->name('historial.mis_citas');
+    });
 });
