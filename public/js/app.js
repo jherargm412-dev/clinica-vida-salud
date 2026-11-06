@@ -100,4 +100,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     pintarIconos();
+
+    // 7. Cuenta regresiva (CU21: tiempo para pagar una cita):
+    //    <span data-cuenta-regresiva="600" data-recargar>10:00</span>
+    //    Muestra mm:ss; al llegar a 0 dice "Vencido" y, si tiene data-recargar, recarga la página
+    //    (el servidor libera el horario y muestra el mensaje de tiempo vencido).
+    document.querySelectorAll('[data-cuenta-regresiva]').forEach((reloj) => {
+        let segundos = parseInt(reloj.dataset.cuentaRegresiva, 10) || 0;
+        const pintar = () => {
+            if (segundos <= 0) {
+                reloj.textContent = 'Vencido';
+                reloj.classList.add('text-danger');
+                return false;
+            }
+            const m = String(Math.floor(segundos / 60)).padStart(2, '0');
+            const s = String(segundos % 60).padStart(2, '0');
+            reloj.textContent = `${m}:${s}`;
+            reloj.classList.toggle('text-danger', segundos <= 60);
+            return true;
+        };
+        pintar();
+        const intervalo = setInterval(() => {
+            segundos--;
+            if (!pintar()) {
+                clearInterval(intervalo);
+                if (reloj.hasAttribute('data-recargar')) {
+                    setTimeout(() => window.location.reload(), 1500);
+                }
+            }
+        }, 1000);
+    });
 });

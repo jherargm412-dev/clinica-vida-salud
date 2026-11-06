@@ -41,5 +41,7 @@ return [
 
     // Pagos
     ['titulo' => 'Tarifas y métodos de pago', 'icono' => 'bi-cash-coin',  'cu' => 'CU20', 'permisos' => ['pagos.configurar'], 'ruta' => 'tarifas.index'],
+    ['titulo' => 'Pagar cita',          'icono' => 'bi-credit-card',       'cu' => 'CU21',
+        'permisos' => ['pagos.cobrar', 'pagos.pagar_propia'], 'ruta' => 'pagos.index'],
     ['titulo' => 'Caja',                'icono' => 'bi-safe',              'cu' => 'CU22', 'permisos' => ['caja.gestionar'],           'ruta' => 'caja.index'],
 ];

@@ -90,3 +90,68 @@ body { background: var(--cvs-fondo); }
 [data-bs-theme="dark"] .form-control:focus, [data-bs-theme="dark"] .form-select:focus { border-color: #2dd4bf; }
 [data-bs-theme="dark"] .cvs-login .panel-marca { background: linear-gradient(160deg, #0b3d39, #0d1117); }
 
+
+/* ---------------------------------------------------------------
+   Asistente "Registrar cita" (CU13) y pantalla de pago (CU21)
+   --------------------------------------------------------------- */
+/* Barra de pasos: círculos numerados unidos por una línea */
+.cvs-pasos { display: flex; list-style: none; margin: 0; padding: 0; }
+.cvs-paso { flex: 1; position: relative; text-align: center; }
+.cvs-paso + .cvs-paso::before {           /* línea que une con el paso anterior */
+    content: ""; position: absolute; top: 16px; right: calc(50% + 22px); left: calc(-50% + 22px);
+    height: 2px; background: var(--bs-border-color);
+}
+.cvs-paso.hecho + .cvs-paso::before { background: var(--cvs-primario); }
+.cvs-paso-contenido { display: inline-flex; flex-direction: column; align-items: center; gap: .4rem; color: var(--bs-secondary-color); }
+.cvs-paso-circulo {
+    width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 600;
+    border: 2px solid var(--bs-border-color); background: var(--bs-body-bg);
+}
+.cvs-paso-nombre { font-size: .875rem; }
+.cvs-paso.hecho .cvs-paso-circulo { background: var(--cvs-primario); border-color: var(--cvs-primario); color: #fff; }
+.cvs-paso.hecho .cvs-paso-contenido, .cvs-paso.actual .cvs-paso-contenido { color: var(--bs-body-color); }
+.cvs-paso.actual .cvs-paso-circulo { border-color: var(--cvs-primario); color: var(--cvs-primario); }
+.cvs-paso.actual .cvs-paso-nombre { font-weight: 600; }
+a.cvs-paso-contenido:hover .cvs-paso-nombre { text-decoration: underline; }
+@media (max-width: 575.98px) { .cvs-paso-nombre { display: none; } .cvs-paso.actual .cvs-paso-nombre { display: block; } }
+
+/* Tarjetas que se eligen (especialidad, médico) */
+.cvs-opcion {
+    display: flex; flex-direction: column; padding: 1rem 1.1rem; border: 1px solid var(--bs-border-color);
+    border-radius: .75rem; color: var(--bs-body-color); text-decoration: none; background: var(--bs-body-bg);
+    transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.cvs-opcion:hover { border-color: var(--cvs-primario); box-shadow: 0 .4rem 1rem rgba(15, 118, 110, .12); transform: translateY(-2px); color: var(--bs-body-color); }
+.cvs-iniciales {
+    width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+    background: #e6f4f2; color: var(--cvs-primario); font-weight: 600;
+}
+
+/* Selector de días */
+.cvs-dias { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .5rem; }
+.cvs-dia {
+    display: flex; flex-direction: column; align-items: center; padding: .6rem .25rem; border-radius: .75rem;
+    border: 1px solid var(--bs-border-color); color: var(--bs-body-color); text-decoration: none; text-align: center;
+}
+.cvs-dia:hover { border-color: var(--cvs-primario); color: var(--bs-body-color); }
+.cvs-dia.elegido { background: var(--cvs-primario); border-color: var(--cvs-primario); color: #fff; }
+.cvs-dia.sin-cupos { opacity: .45; pointer-events: none; }
+.cvs-hora { min-width: 84px; }
+/* Hora ocupada por otra cita: rojo suave, tachada y sin poder elegirse */
+.cvs-hora.ocupada {
+    color: #b42318; background: rgba(220, 53, 69, .08); border: 1px solid rgba(220, 53, 69, .35);
+    text-decoration: line-through; cursor: not-allowed;
+}
+.cvs-muestra-ocupada {
+    display: inline-block; width: .8rem; height: .8rem; border-radius: .2rem; vertical-align: -.05rem;
+    background: rgba(220, 53, 69, .15); border: 1px solid rgba(220, 53, 69, .45);
+}
+[data-bs-theme="dark"] .cvs-hora.ocupada { color: #f87171; background: rgba(248, 113, 113, .1); border-color: rgba(248, 113, 113, .4); }
+@media (max-width: 767.98px) { .cvs-dias { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* Formulario de pago de Stripe incrustado */
+.cvs-checkout { min-height: 420px; }
+
+[data-bs-theme="dark"] .cvs-iniciales { background: rgba(45, 212, 191, .12); color: #2dd4bf; }
+[data-bs-theme="dark"] .cvs-paso.actual .cvs-paso-circulo { color: #2dd4bf; border-color: #2dd4bf; }
+

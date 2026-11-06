@@ -30,4 +30,21 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
         Route::post('/caja/cerrar', [CajaController::class, 'cerrarCaja'])->name('caja.cerrar');
         Route::get('/caja/cierres/{sesionCaja}', [CajaController::class, 'mostrarResumenCierre'])->name('caja.cierre');
     });
+
+    // CU21 Pagar cita: Recepcionista (pagos.cobrar) o Paciente (pagos.pagar_propia, solo sus citas).
+    // El controlador decide qué puede hacer cada uno.
+    Route::middleware('permiso:pagos.cobrar,pagos.pagar_propia')->group(function () {
+        Route::get('/pagos', [PagoController::class, 'listarPendientes'])->name('pagos.index');
+        Route::get('/pagos/citas/{cita}', [PagoController::class, 'mostrarPago'])->name('pagos.pagar');
+        Route::post('/pagos/citas/{cita}/forma', [PagoController::class, 'iniciarCobro'])->name('pagos.forma');
+        Route::post('/pagos/citas/{cita}/efectivo', [PagoController::class, 'registrarPagoEfectivo'])->name('pagos.efectivo');
+        Route::post('/pagos/citas/{cita}/en-linea', [PagoController::class, 'iniciarPagoEnLinea'])->name('pagos.en_linea');
+        // retorno: la return_url del formulario incrustado de Stripe (llega con ?session_id=...)
+        // cancelado: el enlace "No pagar en línea" junto al formulario (5a)
+        Route::get('/pagos/citas/{cita}/retorno', [PagoController::class, 'confirmarPagoEnLinea'])->name('pagos.retorno');
+        Route::get('/pagos/citas/{cita}/cancelado', [PagoController::class, 'pagoEnLineaCancelado'])->name('pagos.cancelado');
+        Route::post('/pagos/citas/{cita}/confirmar', [PagoController::class, 'confirmarPagoEfectivo'])->name('pagos.confirmar');
+        Route::post('/pagos/citas/{cita}/cancelar', [PagoController::class, 'cancelarPago'])->name('pagos.cancelar');
+        Route::get('/pagos/citas/{cita}/comprobante', [PagoController::class, 'mostrarComprobante'])->name('pagos.comprobante');
+    });
 });
