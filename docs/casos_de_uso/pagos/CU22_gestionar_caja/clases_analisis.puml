@@ -1,0 +1,85 @@
+@startuml
+title CU22 Gestionar Caja - Diagrama de clases de análisis
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 35
+skinparam ranksep 120
+hide circle
+
+class UI_Caja <<boundary>> {
+  + mostrarCaja()
+  + abrirCaja(montoInicial)
+  + consultarCaja()
+  + cerrarCaja(montoContado)
+  + confirmarCierre()
+  + mostrarFormularioApertura()
+  + mostrarResumenCaja(sesion, ingresos, totalIngresos, montoEsperado)
+  + mostrarConfirmacionCierre(montoEsperado, montoContado, diferencia)
+  + mostrarResumenCierre(resumenCierre)
+}
+
+class Ctrl_Caja <<control>> {
+  + obtenerCajaActual()
+  + registrarApertura(montoInicial)
+  + obtenerResumenCaja(idSesionCaja)
+  + registrarCierre(idSesionCaja, montoContado)
+  - validarMonto(monto)
+  - calcularMontoEsperado(montoInicial, totalIngresos)
+  - calcularDiferencia(montoContado, montoEsperado)
+}
+
+class SesionCaja <<entity>> {
+  - idSesionCaja: Integer
+  - apertura: DateTime
+  - montoInicial: Decimal
+  - cierre: DateTime
+  - montoContado: Decimal
+  - diferencia: Decimal
+  - estado: String
+  --
+  + obtenerAbiertaPorUsuario(idUsuario)
+  + insertarSesion(idUsuario, montoInicial)
+  + cerrarSesion(idSesionCaja, montoContado, diferencia)
+}
+
+class MovimientoCaja <<entity>> {
+  - idMovimientoCaja: Integer
+  - tipo: String
+  - monto: Decimal
+  - fecha: DateTime
+  --
+  + listarPorSesion(idSesionCaja)
+  + sumarPorSesion(idSesionCaja)
+}
+
+class Pago <<entity>> {
+  - idPago: Integer
+  - numeroComprobante: String
+  - montoTotal: Decimal
+  - fecha: DateTime
+  - estado: String
+  --
+  + existePagoEfectivoEnCurso(idUsuario)
+}
+
+class Bitacora <<entity>> {
+  - idBitacora: Integer
+  - fechaHora: DateTime
+  - accion: String
+  - tablaAfectada: String
+  - detalle: String
+  - ip: String
+  --
+  + registrar(idUsuario, accion, detalle, ip)
+}
+
+UI_Caja -- Ctrl_Caja
+Ctrl_Caja -- SesionCaja
+Ctrl_Caja -- MovimientoCaja
+Ctrl_Caja -- Pago
+Ctrl_Caja -- Bitacora
+
+SesionCaja "1" *-[norank]- "0..*" MovimientoCaja : registra
+@enduml

@@ -21,4 +21,13 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
         Route::post('/tarifas/{tarifa}/desactivar', [TarifaMetodoPagoController::class, 'desactivar'])->name('tarifas.desactivar');
         Route::post('/metodos-pago/{metodoPago}/estado', [TarifaMetodoPagoController::class, 'cambiarEstadoMetodo'])->name('metodos_pago.estado');
     });
+
+    // CU22 Gestionar caja (cada usuario trabaja con su propia caja)
+    Route::middleware('permiso:caja.gestionar')->group(function () {
+        Route::get('/caja', [CajaController::class, 'mostrarCaja'])->name('caja.index');
+        Route::post('/caja/abrir', [CajaController::class, 'abrirCaja'])->name('caja.abrir');
+        Route::get('/caja/cerrar', [CajaController::class, 'prepararCierre'])->name('caja.cerrar.confirmar');
+        Route::post('/caja/cerrar', [CajaController::class, 'cerrarCaja'])->name('caja.cerrar');
+        Route::get('/caja/cierres/{sesionCaja}', [CajaController::class, 'mostrarResumenCierre'])->name('caja.cierre');
+    });
 });
