@@ -63,8 +63,8 @@ class PerfilMedicoController extends Controller
             PerfilMedico::guardarOActualizar($paciente->id_paciente, $datos);
             Bitacora::registrarAccion(
                 $usuario->id_usuario,
-                'ACTUALIZAR',
-                'PerfilMedico',
+                'ACTUALIZAR_PERFIL_MEDICO',
+                'perfil_medico',
                 'Actualización de perfil médico'
             );
         });

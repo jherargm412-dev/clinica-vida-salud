@@ -25,7 +25,8 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
 
-                <form method="POST" action="{{ route('perfil_medico.actualizar') }}">
+                <form method="POST" action="{{ route('perfil_medico.actualizar') }}"
+                      class="needs-validation" novalidate>
                     @csrf
 
                     <h2 class="h6 text-muted text-uppercase mb-3">Información médica</h2>
@@ -78,7 +79,8 @@
                         </div>
                         <div class="col-md-6">
                             <label for="telefono_contacto_emergencia" class="form-label">Teléfono</label>
-                            <input type="text" id="telefono_contacto_emergencia" name="telefono_contacto_emergencia" maxlength="20"
+                            <input type="tel" id="telefono_contacto_emergencia" name="telefono_contacto_emergencia"
+                                   minlength="7" maxlength="20" pattern="[0-9+\s-]{7,20}" inputmode="tel"
                                    value="{{ old('telefono_contacto_emergencia', $perfil->telefono_contacto_emergencia) }}"
                                    class="form-control @error('telefono_contacto_emergencia') is-invalid @enderror">
                             @error('telefono_contacto_emergencia') <div class="invalid-feedback">{{ $message }}</div> @enderror

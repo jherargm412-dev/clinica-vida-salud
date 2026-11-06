@@ -103,7 +103,7 @@ class AtencionCitaController extends Controller
                 in_array($cita->estado, ['Programada', 'Confirmada'], true)
                 && ! Cita::marcarAtendida($idCita)
             ) {
-                return 'no_elegible';
+                return 'cita_futura';
             }
 
             AtencionMedica::guardar(
@@ -116,7 +116,7 @@ class AtencionCitaController extends Controller
             Bitacora::registrarAccion(
                 (int) $usuario->id_usuario,
                 'REGISTRAR_ATENCION',
-                'AtencionMedica',
+                'atencion_medica',
                 'Atención registrada para la cita '.$cita->codigo
             );
 
@@ -133,14 +133,17 @@ class AtencionCitaController extends Controller
                 ->with('error', 'La atención de esta cita ya fue registrada.');
         }
 
+        if ($resultado === 'cita_futura') {
+            return redirect()->route('atencion.index')
+                ->with('error', 'No se puede registrar la atención antes del inicio de la cita.');
+        }
+
         return redirect()->route('atencion.index')
             ->with('ok', 'La atención fue registrada correctamente.');
     }
 
     private function obtenerMedicoAutenticado(Usuario $usuario): Medico
     {
-        abort_unless($usuario->rol?->nombre === 'Medico', 403);
-
         $medico = Medico::obtenerPorIdUsuario((int) $usuario->id_usuario);
         abort_unless($medico && $medico->activo, 403);
 

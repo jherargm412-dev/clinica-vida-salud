@@ -4,6 +4,10 @@
 @section('titulo', 'Gestionar cita ' . $cita->codigo)
 
 @section('contenido')
+    @php
+        $puedeRegistrarAsistencia = now()->greaterThanOrEqualTo($cita->fecha->toDateString().' '.$cita->hora_inicio);
+    @endphp
+
     <div class="mb-3">
         <a href="{{ route('citas.estado.index') }}" class="text-decoration-none">
             <i class="bi bi-arrow-left"></i> Volver a citas
@@ -33,7 +37,7 @@
                 </div>
                 <div class="col-sm-4">
                     <div class="small text-muted">Estado actual</div>
-                    <span class="badge {{ $cita->estado === 'Confirmada' ? 'text-bg-success' : 'text-bg-primary' }}">
+                    <span class="badge text-bg-{{ \App\Modulos\citas\models\Cita::COLOR_ESTADO[$cita->estado] ?? 'secondary' }}">
                         {{ $cita->estado }}
                     </span>
                 </div>
@@ -42,7 +46,8 @@
             <h2 class="h6 text-muted text-uppercase mb-3">Acciones disponibles</h2>
             <div class="d-flex flex-wrap gap-2">
                 @if ($cita->estado === 'Programada')
-                    <form method="POST" action="{{ route('citas.estado.cambiar', $cita->id_cita) }}">
+                    <form method="POST" action="{{ route('citas.estado.cambiar', $cita->id_cita) }}"
+                          data-confirmar="¿Confirmar la cita {{ $cita->codigo }}?">
                         @csrf
                         <input type="hidden" name="nuevo_estado" value="Confirmada">
                         <button type="submit" class="btn btn-outline-success">
@@ -51,21 +56,29 @@
                     </form>
                 @endif
 
-                <form method="POST" action="{{ route('citas.estado.cambiar', $cita->id_cita) }}">
-                    @csrf
-                    <input type="hidden" name="nuevo_estado" value="Atendida">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-clipboard-check me-1"></i> Registrar como atendida
-                    </button>
-                </form>
+                @if ($puedeRegistrarAsistencia)
+                    <form method="POST" action="{{ route('citas.estado.cambiar', $cita->id_cita) }}"
+                          data-confirmar="¿Registrar la cita {{ $cita->codigo }} como atendida?">
+                        @csrf
+                        <input type="hidden" name="nuevo_estado" value="Atendida">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-clipboard-check me-1"></i> Registrar como atendida
+                        </button>
+                    </form>
 
-                <form method="POST" action="{{ route('citas.estado.cambiar', $cita->id_cita) }}">
-                    @csrf
-                    <input type="hidden" name="nuevo_estado" value="Inasistencia">
-                    <button type="submit" class="btn btn-outline-danger">
-                        <i class="bi bi-person-x me-1"></i> Registrar inasistencia
-                    </button>
-                </form>
+                    <form method="POST" action="{{ route('citas.estado.cambiar', $cita->id_cita) }}"
+                          data-confirmar="¿Registrar inasistencia para la cita {{ $cita->codigo }}?">
+                        @csrf
+                        <input type="hidden" name="nuevo_estado" value="Inasistencia">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="bi bi-person-x me-1"></i> Registrar inasistencia
+                        </button>
+                    </form>
+                @else
+                    <p class="small text-muted mb-0 align-self-center">
+                        Podrá registrar la atención o inasistencia cuando inicie la cita.
+                    </p>
+                @endif
             </div>
         </div>
     </div>

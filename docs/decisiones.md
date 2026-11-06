@@ -138,3 +138,12 @@
 - Cierres de caja: solo sesiones "Cerrada", filtradas por la fecha de apertura. Monto esperado = monto inicial + ingresos en efectivo (`movimiento_caja`), igual que CU22. El filtro de recepcionista lista a los de rol Recepcionista y a cualquiera que haya abierto una caja.
 - Los filtros de médico y especialidad incluyen los inactivos (los reportes son historial).
 - Railway: el Dockerfile instala las extensiones `gd` y `zip` (las exige PhpSpreadsheet).
+
+## Ciclo 2: CU07, CU08, CU16, CU17 y CU18
+- Las opciones de CU07 y CU18 requieren tanto su permiso como una ficha vinculada del tipo de actor correspondiente; el menú no se filtra por el nombre del rol. Los controladores autorizan la operación por permiso y asociación de usuario-paciente/médico, de modo que un rol personalizado con el permiso y ficha apropiados pueda usarla.
+- CU08 determina el historial propio mediante la ficha de paciente vinculada. Si la cuenta tiene esa ficha, no puede consultar otros historiales; el resto de usuarios con permiso puede buscar pacientes.
+- CU17 determina la agenda propia mediante la ficha de médico vinculada. Los demás usuarios con `agenda.consultar` pueden seleccionar un médico.
+- CU16 usa `CAMBIAR_ESTADO_CITA` para cualquier transición; CU18 usa `REGISTRAR_ATENCION` y CU07 `ACTUALIZAR_PERFIL_MEDICO`. Los nombres de tabla en bitácora usan las tablas reales (`cita`, `atencion_medica`, `perfil_medico`) y ningún registro de auditoría incluye diagnóstico ni notas clínicas.
+- Los badges de todos los estados de cita se obtienen de `Cita::COLOR_ESTADO` para conservar una sola asignación de colores.
+- CU16 no permite registrar Atención/Inasistencia hasta el inicio de la cita. CU18 tampoco lista ni guarda atención antes del inicio, y no admite más de una atención clínica por cita.
+- CU08 ejecuta `ReservaPago::liberarVencidas()` antes de consultar el historial para que las reservas vencidas aparezcan como canceladas.

@@ -14,6 +14,7 @@
 |             "ruta" es el nombre de la ruta (routes/modulos/<paquete>.php); mientras
 |             un caso de uso no esté implementado se deja en null y se muestra como
 |             "Próximamente".
+|             "perfil" (opcional): requiere ficha vinculada de paciente o médico.
 |             "activo" (opcional): patrones de rutas que resaltan la opción en el menú.
 |             Si no se indica, se usa el prefijo de la ruta (p. ej. "usuarios.*").
 */
@@ -37,7 +38,7 @@ return [
 
         // Pacientes
         ['grupo' => 'pacientes', 'titulo' => 'Pacientes',          'icono' => 'bi-person-vcard',  'cu' => 'CU06', 'permisos' => ['pacientes.gestionar'],     'ruta' => 'pacientes.index'],
-        ['grupo' => 'pacientes', 'titulo' => 'Perfil médico',      'icono' => 'bi-heart-pulse',   'cu' => 'CU07', 'permisos' => ['perfil_medico.gestionar'], 'ruta' => 'perfil_medico.mostrar'],
+        ['grupo' => 'pacientes', 'titulo' => 'Perfil médico',      'icono' => 'bi-heart-pulse',   'cu' => 'CU07', 'permisos' => ['perfil_medico.gestionar'], 'perfil' => 'paciente', 'ruta' => 'perfil_medico.mostrar'],
         ['grupo' => 'pacientes', 'titulo' => 'Historial de citas', 'icono' => 'bi-clock-history', 'cu' => 'CU08', 'permisos' => ['historial.consultar'],     'ruta' => 'historial.index'],
 
         // Médicos, especialidades y horarios
@@ -58,7 +59,7 @@ return [
         ['grupo' => 'agenda_medica', 'titulo' => 'Agenda médica', 'icono' => 'bi-calendar3', 'cu' => 'CU17',
             'permisos' => ['agenda.consultar'], 'ruta' => 'agenda.index'],
         ['grupo' => 'agenda_medica', 'titulo' => 'Registrar atención', 'icono' => 'bi-clipboard2-pulse', 'cu' => 'CU18',
-            'permisos' => ['citas.registrar_atencion'], 'roles' => ['Medico'], 'ruta' => 'atencion.index'],
+            'permisos' => ['citas.registrar_atencion'], 'perfil' => 'medico', 'ruta' => 'atencion.index'],
 
         // Reportes
         ['grupo' => 'reportes', 'titulo' => 'Reportes', 'icono' => 'bi-bar-chart', 'cu' => 'CU19',
