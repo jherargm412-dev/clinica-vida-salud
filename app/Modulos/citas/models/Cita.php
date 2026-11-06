@@ -38,15 +38,6 @@ class Cita extends Model
         'Inasistencia'      => 'secondary',
     ];
 
-    public const COLOR_ESTADO = [
-        'Pendiente de pago' => 'warning',
-        'Programada' => 'primary',
-        'Confirmada' => 'success',
-        'Atendida' => 'success',
-        'Cancelada' => 'secondary',
-        'Inasistencia' => 'secondary',
-    ];
-
     /** CU21: minutos que el horario queda reservado mientras la cita está "Pendiente de pago". */
     public const MINUTOS_RESERVA_PAGO = 10;
 
