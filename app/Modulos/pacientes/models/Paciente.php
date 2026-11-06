@@ -91,6 +91,12 @@ class Paciente extends Model
     /** CU13 (secuencia 3): obtiene la ficha asociada a la sesión del paciente. */
     public static function obtenerPorUsuario(int $idUsuario): ?self
     {
+        return self::obtenerPorIdUsuario($idUsuario);
+    }
+
+    /** CU07: obtiene el paciente asociado a una cuenta de usuario. */
+    public static function obtenerPorIdUsuario(int $idUsuario): ?self
+    {
         return self::query()
             ->with('usuario')
             ->where('id_usuario', $idUsuario)
