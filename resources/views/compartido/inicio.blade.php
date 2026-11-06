@@ -12,34 +12,41 @@
         </p>
     </div>
 
-    @if (count($modulos) === 0)
+    @if (count($grupos) === 0)
         <div class="alert alert-info">Su rol todavía no tiene módulos asignados.</div>
     @endif
 
-    <div class="row g-3">
-        @foreach ($modulos as $modulo)
-            <div class="col-sm-6 col-xl-4">
-                @if ($modulo['ruta'])
-                    <a href="{{ route($modulo['ruta']) }}" class="card cvs-modulo h-100 text-decoration-none text-body">
-                @else
-                    <div class="card cvs-modulo pendiente h-100">
-                @endif
-                    <div class="card-body d-flex gap-3 align-items-start">
-                        <div class="icono"><i class="bi {{ $modulo['icono'] }}"></i></div>
-                        <div>
-                            <h2 class="h6 fw-semibold mb-1">{{ $modulo['titulo'] }}</h2>
-                            <small class="text-muted">{{ $modulo['cu'] }}</small>
-                            @unless ($modulo['ruta'])
-                                <span class="badge text-bg-secondary ms-1">Próximamente</span>
-                            @endunless
-                        </div>
+    {{-- Un bloque por grupo (paquete), en el mismo orden que el menú lateral --}}
+    @foreach ($grupos as $grupo)
+        <section class="mb-4">
+            <h2 class="cvs-titulo-grupo">
+                <i class="bi {{ $grupo['icono'] }}"></i> {{ $grupo['titulo'] }}
+            </h2>
+            <div class="row g-3">
+                @foreach ($grupo['opciones'] as $modulo)
+                    <div class="col-sm-6 col-xl-4">
+                        @if ($modulo['ruta'])
+                            <a href="{{ route($modulo['ruta']) }}" class="card cvs-modulo h-100 text-decoration-none text-body">
+                        @else
+                            <div class="card cvs-modulo pendiente h-100">
+                        @endif
+                            <div class="card-body d-flex gap-3 align-items-center">
+                                <div class="icono"><i class="bi {{ $modulo['icono'] }}"></i></div>
+                                <div>
+                                    <h3 class="h6 fw-semibold mb-0">{{ $modulo['titulo'] }}</h3>
+                                    @unless ($modulo['ruta'])
+                                        <span class="badge text-bg-secondary mt-1">Próximamente</span>
+                                    @endunless
+                                </div>
+                            </div>
+                        @if ($modulo['ruta'])
+                            </a>
+                        @else
+                            </div>
+                        @endif
                     </div>
-                @if ($modulo['ruta'])
-                    </a>
-                @else
-                    </div>
-                @endif
+                @endforeach
             </div>
-        @endforeach
-    </div>
+        </section>
+    @endforeach
 @endsection

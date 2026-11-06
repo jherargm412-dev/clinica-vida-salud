@@ -11,8 +11,9 @@ class InicioController extends Controller
 {
     public function index(Request $request): View
     {
+        // Mismos grupos que el menú lateral (config/modulos.php), solo con lo que el rol puede ver
         return view('compartido.inicio', [
-            'modulos' => $request->user()->modulosPermitidos(),
+            'grupos' => $request->user()->gruposMenu(),
         ]);
     }
 }

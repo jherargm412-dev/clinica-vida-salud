@@ -201,4 +201,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // 9. Menú lateral por grupos (compartido/_menu.blade.php): recuerda en este navegador
+    //    qué grupos dejó abiertos el usuario. El grupo de la página actual ya viene abierto del servidor.
+    const CLAVE_MENU = 'cvs-menu-abiertos';
+    let abiertos = [];
+    try { abiertos = JSON.parse(localStorage.getItem(CLAVE_MENU)) || []; } catch (e) {}
+
+    document.querySelectorAll('[data-grupo-menu]').forEach((panel) => {
+        const grupo = panel.dataset.grupoMenu;
+        const boton = document.querySelector(`[data-bs-target="#${panel.id}"]`);
+
+        // Abre (sin animación) los grupos que había dejado abiertos
+        if (abiertos.includes(grupo) && !panel.classList.contains('show')) {
+            panel.classList.add('show');
+            boton?.classList.remove('collapsed');
+            boton?.setAttribute('aria-expanded', 'true');
+        }
+
+        // Guarda los cambios al abrir o cerrar un grupo
+        const guardar = (abierto) => {
+            abiertos = abiertos.filter((g) => g !== grupo);
+            if (abierto) abiertos.push(grupo);
+            try { localStorage.setItem(CLAVE_MENU, JSON.stringify(abiertos)); } catch (e) {}
+        };
+        panel.addEventListener('shown.bs.collapse', () => guardar(true));
+        panel.addEventListener('hidden.bs.collapse', () => guardar(false));
+    });
 });
