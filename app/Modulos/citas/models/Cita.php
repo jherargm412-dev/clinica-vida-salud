@@ -26,6 +26,16 @@ class Cita extends Model
 
     public const ESTADOS = ['Pendiente de pago', 'Programada', 'Confirmada', 'Atendida', 'Cancelada', 'Inasistencia'];
 
+    /** Color de Bootstrap de cada estado (badges). Confirmada y Programada igual que en "Cancelar cita". */
+    public const COLOR_ESTADO = [
+        'Pendiente de pago' => 'warning',
+        'Programada'        => 'primary',
+        'Confirmada'        => 'success',
+        'Atendida'          => 'info',
+        'Cancelada'         => 'danger',
+        'Inasistencia'      => 'secondary',
+    ];
+
     /** CU21: minutos que el horario queda reservado mientras la cita está "Pendiente de pago". */
     public const MINUTOS_RESERVA_PAGO = 10;
 
@@ -348,5 +358,61 @@ class Cita extends Model
             ->whereRaw('hora_inicio < ?', [$horaFin])
             ->whereRaw('hora_fin > ?', [$horaInicio])
             ->exists();
+    }
+
+    // ---------------------------------------------------------------
+    // CU19 Generar reporte (solo consultas)
+    // ---------------------------------------------------------------
+
+    /**
+     * CU19 (1.10 obtenerCitas): citas entre dos fechas (inclusive), del más antiguo al más reciente.
+     * Médico, especialidad y estado son opcionales (null = todos).
+     */
+    public static function obtenerCitas(string $fechaIni, string $fechaFin, ?int $idMedico = null,
+                                        ?int $idEspecialidad = null, ?string $estado = null): Collection
+    {
+        return self::query()
+            ->with(['paciente.usuario', 'medico.usuario', 'especialidad'])
+            ->whereBetween('fecha', [$fechaIni, $fechaFin])
+            ->when($idMedico, fn ($q) => $q->where('id_medico', $idMedico))
+            ->when($idEspecialidad, fn ($q) => $q->where('id_especialidad', $idEspecialidad))
+            ->when($estado, fn ($q) => $q->where('estado', $estado))
+            ->orderBy('fecha')
+            ->orderBy('hora_inicio')
+            ->get();
+    }
+
+    /**
+     * CU19 (2.3 contarCitasPorEstado): por cada día, cuántas citas quedaron Atendida, Cancelada e Inasistencia.
+     * Los días sin ninguna de las tres no aparecen. Cada fila: fecha, atendidas, canceladas, inasistencias.
+     */
+    public static function contarCitasPorEstado(string $fechaIni, string $fechaFin): \Illuminate\Support\Collection
+    {
+        return DB::table('cita')
+            ->selectRaw("fecha,
+                COUNT(*) FILTER (WHERE estado = 'Atendida')     AS atendidas,
+                COUNT(*) FILTER (WHERE estado = 'Cancelada')    AS canceladas,
+                COUNT(*) FILTER (WHERE estado = 'Inasistencia') AS inasistencias")
+            ->whereBetween('fecha', [$fechaIni, $fechaFin])
+            ->whereIn('estado', ['Atendida', 'Cancelada', 'Inasistencia'])
+            ->groupBy('fecha')
+            ->orderBy('fecha')
+            ->get();
+    }
+
+    /**
+     * CU19 (3.7 obtenerAgenda): citas de un médico entre dos fechas (un día o una semana),
+     * ordenadas por fecha y hora. Sin las canceladas: su hora quedó libre y otra cita pudo ocuparla.
+     */
+    public static function obtenerAgenda(string $fechaIni, string $fechaFin, int $idMedico): Collection
+    {
+        return self::query()
+            ->with(['paciente.usuario', 'especialidad'])
+            ->where('id_medico', $idMedico)
+            ->whereBetween('fecha', [$fechaIni, $fechaFin])
+            ->where('estado', '<>', 'Cancelada')
+            ->orderBy('fecha')
+            ->orderBy('hora_inicio')
+            ->get();
     }
 }

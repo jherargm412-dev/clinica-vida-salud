@@ -168,6 +168,21 @@ class Usuario extends Authenticatable
             ->get();
     }
 
+    /**
+     * CU19 (6.2 listarRecepcionistas): usuarios para el filtro del reporte de cierres de caja.
+     * Son los de rol Recepcionista y, además, cualquiera que alguna vez abrió una caja
+     * (el Administrador también tiene el permiso caja.gestionar).
+     */
+    public static function listarRecepcionistas(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->whereHas('rol', fn ($r) => $r->where('nombre', 'Recepcionista'))
+            ->orWhereIn('id_usuario', \Illuminate\Support\Facades\DB::table('sesion_caja')->select('id_usuario'))
+            ->orderBy('apellidos')
+            ->orderBy('nombres')
+            ->get();
+    }
+
     /** Devuelve las claves de permiso del rol del usuario, p. ej. "usuarios.gestionar". */
     public function clavesPermiso(): array
     {
