@@ -78,6 +78,55 @@ class Cita extends Model
             ->orderByDesc('fecha_creacion');
     }
 
+    /** CU16: citas que pueden confirmarse, atenderse o marcarse como inasistencia. */
+    public static function listarGestionables(): Builder
+    {
+        return self::query()
+            ->whereIn('estado', ['Programada', 'Confirmada'])
+            ->orderBy('fecha')
+            ->orderBy('hora_inicio');
+    }
+
+    /** CU16: busca citas gestionables por código, CI, nombre/apellido o fecha. */
+    public static function buscarGestionables(?string $texto = null, ?string $fecha = null): Builder
+    {
+        $consulta = self::listarGestionables();
+
+        if ($texto !== null && trim($texto) !== '') {
+            $buscado = '%' . Texto::sinTildes(trim($texto)) . '%';
+            $consulta->where(function ($q) use ($buscado) {
+                $q->where('codigo', 'ILIKE', $buscado)
+                    ->orWhereHas('paciente', fn ($paciente) => $paciente
+                        ->where('ci', 'ILIKE', $buscado)
+                        ->orWhereHas('usuario', fn ($usuario) => $usuario->whereRaw(
+                            Texto::sqlSinTildes("nombres || ' ' || apellidos") . ' ILIKE ?',
+                            [$buscado]
+                        )));
+            });
+        }
+
+        return $consulta->when($fecha, fn ($q) => $q->whereDate('fecha', $fecha));
+    }
+
+    /** CU16: aplica únicamente las transiciones permitidas según el estado actual. */
+    public static function cambiarEstado(int $idCita, string $nuevoEstado): bool
+    {
+        $estadosOrigen = match ($nuevoEstado) {
+            'Confirmada' => ['Programada'],
+            'Atendida', 'Inasistencia' => ['Programada', 'Confirmada'],
+            default => [],
+        };
+
+        if ($estadosOrigen === []) {
+            return false;
+        }
+
+        return self::query()
+            ->whereKey($idCita)
+            ->whereIn('estado', $estadosOrigen)
+            ->update(['estado' => $nuevoEstado]) > 0;
+    }
+
     // ---------------------------------------------------------------
     // CU21 Pagar cita: reserva de 10 minutos
     // ---------------------------------------------------------------
