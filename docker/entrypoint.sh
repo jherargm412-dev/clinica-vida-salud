@@ -20,5 +20,12 @@ php artisan route:cache
 php artisan view:cache
 chown -R www-data:www-data storage bootstrap/cache
 
-# 4. Iniciar Apache en primer plano
+# 4. Scheduler de Laravel en segundo plano (routes/console.php):
+#    - cada 5 min: recordatorios de cita 24 h antes (RF31)
+#    - cada minuto: liberar reservas de pago vencidas (CU21)
+#    Corre como www-data para que los archivos que cree en storage sigan siendo de Apache.
+#    Sus mensajes salen en los logs de Railway junto con los de Apache.
+runuser -u www-data -- php artisan schedule:work &
+
+# 5. Iniciar Apache en primer plano
 exec apache2-foreground

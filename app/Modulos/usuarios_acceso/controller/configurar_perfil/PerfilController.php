@@ -4,6 +4,7 @@ namespace App\Modulos\usuarios_acceso\controller\configurar_perfil;
 
 use App\Http\Controllers\Controller;
 use App\Modulos\usuarios_acceso\models\Bitacora;
+use App\Modulos\usuarios_acceso\models\SuscripcionPush;
 use App\Modulos\usuarios_acceso\models\Usuario;
 use App\Modulos\usuarios_acceso\request\configurar_perfil\ContrasenaRequest;
 use App\Modulos\usuarios_acceso\request\configurar_perfil\PerfilRequest;
@@ -29,9 +30,14 @@ class PerfilController extends Controller
     public function ver(): View
     {
         $usuario = $this->usuario();
+        $esPaciente = $usuario->paciente()->exists();
 
         return view('usuarios_acceso.configurar_perfil.ver', [
             'usuario' => $usuario,
+            // RF30: tarjeta "Notificaciones" (solo pacientes): sus dispositivos con push activo
+            'esPaciente' => $esPaciente,
+            'suscripciones' => $esPaciente ? SuscripcionPush::activasDe($usuario->id_usuario) : collect(),
+            'clavePublicaPush' => config('services.webpush.public_key'),
             // Si la cuenta es de un médico: su ficha del CU10 (código, registro, teléfono, especialidades)
             'medico' => $usuario->medico?->load('especialidades'),
             // Últimos 5 inicios de sesión (de la bitácora)

@@ -37,7 +37,7 @@ El actor ha iniciado sesión. La cita está en "Pendiente de pago" desde hace me
 - **5a.** Si la tarjeta es rechazada, Stripe lo informa en el mismo formulario y el actor puede intentar con otra tarjeta. Si el actor decide no pagar en línea, el detalle en línea pasa a "Rechazado" y el sistema muestra "El pago en línea no fue aprobado". El efectivo se conserva y el actor puede reintentar (paso 4) o completar el saldo en efectivo (paso 3, solo el recepcionista).
 - **6a.** Si Stripe no confirma el pago al verificarlo, el caso sigue igual que en 5a.
 - **7a.** Si vence el tiempo de 10 minutos, el sistema muestra "El tiempo para pagar venció; el horario fue liberado". La cita pasa a "Cancelada" con el motivo "Pago no realizado a tiempo" y canceladaPor "Sistema", y el pago pasa a "Anulado". El efectivo se devuelve en el momento y su detalle queda "Anulado". El caso de uso termina.
-- **8a.** Si el aviso push falla o el paciente no tiene una suscripción activa, se envía por correo. Si también falla, la notificación queda "Fallida", sin revertir el pago.
+- **8a.** Si el aviso push falla o el paciente no tiene una suscripción activa, se envía por correo. Si también falla, la notificación queda "Fallida", sin revertir el pago. Además se programa el recordatorio 24 h antes de la cita (RF31), salvo que falten menos de 24 h.
 - **Cancelar.** Si el actor cancela antes del paso 7, el efectivo se devuelve en el momento, los detalles y el pago quedan "Anulado", la cita pasa a "Cancelada" con canceladaPor "Sistema" y el horario se libera.
 
 ## Postcondición

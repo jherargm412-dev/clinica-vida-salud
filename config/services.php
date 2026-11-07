@@ -33,6 +33,15 @@ return [
         'key' => env('BREVO_API_KEY'),
     ],
 
+    // Notificaciones push del navegador (RF30/RF31, librería minishlink/web-push).
+    // Claves VAPID: identifican a nuestro servidor ante Google, Mozilla y Apple. Se generan una sola vez
+    // y deben ser las mismas en todos los .env y en Railway (si cambian, las suscripciones dejan de servir).
+    'webpush' => [
+        'public_key' => env('VAPID_PUBLIC_KEY'),
+        'private_key' => env('VAPID_PRIVATE_KEY'),
+        'subject' => env('VAPID_SUBJECT', 'mailto:clinicavidasalud.oficial@gmail.com'),
+    ],
+
     // Stripe (pasarela de pago en línea, CU21). Usar SOLO claves de prueba (sk_test_ / pk_test_).
     'stripe' => [
         'secret' => env('STRIPE_SECRET_KEY'),

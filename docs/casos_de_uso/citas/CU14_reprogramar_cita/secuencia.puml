@@ -13,6 +13,8 @@ entity "Cita" as CI
 entity "Medico" as M
 entity "HorarioAtencion" as H
 entity "Bitacora" as B
+entity "Notificacion" as N
+control "Notificador" as NT
 
 == 1. Mostrar Citas ==
 R -> UI: mostrarCitasReprogramables()
@@ -39,4 +41,13 @@ UI -> C: reprogramarCita(idCita, nuevaFecha, nuevaHoraInicio)
 C -> CI: obtenerDetallePorId(idCita)
 C -> M: obtenerPorId(idMedico)
 C -> H: listarHorariosActivosPorDia(idMedico, diaSemana)
-C -> CI:
+C -> CI: existeCitaSuperpuesta(idMedico, nuevaFecha, nuevaHoraInicio, nuevaHoraFin, idCita)
+C -> CI: existeCitaSuperpuestaPaciente(idPaciente, nuevaFecha, nuevaHoraInicio, nuevaHoraFin, idCita)
+C -> CI: actualizarFechaHoraCita(nuevaFecha, nuevaHoraInicio, nuevaHoraFin)
+C -> B: registrarAccion(accion, tablaAfectada, detalle)
+C -> N: programarRecordatorio(cita) [mueve el recordatorio 24 h; no se crea si falta menos]
+C -> N: registrarAviso(idCita, "Cita reprogramada")
+C -> NT: enviar(aviso) [despues de guardar: push y, si no hay o falla, correo]
+UI --> R: mostrarConfirmacion()
+
+@enduml

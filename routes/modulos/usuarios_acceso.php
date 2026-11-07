@@ -10,6 +10,7 @@ use App\Modulos\usuarios_acceso\controller\iniciar_sesion\RecuperarContrasenaCon
 use App\Modulos\usuarios_acceso\controller\gestionar_usuarios\UsuarioController;
 use App\Modulos\usuarios_acceso\controller\gestionar_roles\RolController;
 use App\Modulos\usuarios_acceso\controller\consultar_bitacora\BitacoraController;
+use App\Modulos\usuarios_acceso\controller\configurar_perfil\NotificacionesController;
 use App\Modulos\usuarios_acceso\controller\configurar_perfil\PerfilController;
 use Illuminate\Support\Facades\Route;
 
@@ -69,6 +70,11 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
     Route::get('/perfil', [PerfilController::class, 'ver'])->name('perfil.ver');
     Route::post('/perfil', [PerfilController::class, 'actualizar'])->name('perfil.actualizar');
     Route::post('/perfil/contrasena', [PerfilController::class, 'cambiarContrasena'])->name('perfil.cambiar_contrasena');
+    // CU04 flujo "Configurar notificaciones" (RF30): solo pacientes (se valida en el controlador)
+    Route::post('/perfil/notificaciones', [NotificacionesController::class, 'activar'])->name('perfil.notificaciones.activar');
+    Route::post('/perfil/notificaciones/{suscripcion}/desactivar', [NotificacionesController::class, 'desactivar'])
+        ->whereNumber('suscripcion')
+        ->name('perfil.notificaciones.desactivar');
     // CU05 Consultar bitácora (solo lectura: una sola ruta GET; el detalle se ve en un modal)
     Route::get('/bitacora', [BitacoraController::class, 'index'])
         ->middleware('permiso:bitacora.consultar')
