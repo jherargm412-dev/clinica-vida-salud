@@ -10,6 +10,8 @@ boundary "UI_cancelarCita" as UI
 control "CitaController" as C
 entity "Cita" as CI
 entity "Bitacora" as B
+entity "Notificacion" as N
+control "Notificador" as NT
 
 == 1. Mostrar Citas ==
 R -> UI: mostrarCitasCancelables()
@@ -32,5 +34,8 @@ UI -> C: cancelarCita(idCita, motivoCancelacion)
 C -> CI: obtenerDetallePorId(idCita)
 C -> CI: marcarCitaCancelada(idCita, motivoCancelacion, idUsuario) [si la cita sigue Programada o Confirmada]
 C -> B: registrarAccion(accion, tablaAfectada, detalle)
+C -> N: anularRecordatorio(idCita)
+C -> N: registrarAviso(idCita, "Cita cancelada")
+C -> NT: enviar(aviso) [despues de guardar: push y, si no hay o falla, correo]
 
 @enduml

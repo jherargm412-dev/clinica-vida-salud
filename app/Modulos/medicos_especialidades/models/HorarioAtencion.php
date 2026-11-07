@@ -87,6 +87,53 @@ class HorarioAtencion extends Model
         return null;
     }
 
+    /** Abreviaturas de los días para la lista (1 = lunes ... 7 = domingo). */
+    public const DIAS_CORTOS = [1 => 'Lun', 2 => 'Mar', 3 => 'Mié', 4 => 'Jue', 5 => 'Vie', 6 => 'Sáb', 7 => 'Dom'];
+
+    /** "08:00:00" → "08:00" */
+    public static function horaCorta(?string $hora): string
+    {
+        return substr((string) $hora, 0, 5);
+    }
+
+    /**
+     * CU11 (lista por médico): resumen de la semana agrupando días seguidos con los mismos tramos.
+     * Ej.: [['dias' => 'Lun – Vie', 'tramos' => '08:00–12:00 · 14:00–18:00', 'duracion' => '30 min'], ...]
+     */
+    public static function resumenSemanal(iterable $horarios): array
+    {
+        // Firma de cada día: sus tramos y duraciones, en orden
+        $porDia = [];
+        foreach ($horarios as $h) {
+            $porDia[$h->dia_semana][] = $h;
+        }
+
+        $grupos = [];
+        foreach (self::DIAS as $dia => $nombre) {
+            if (empty($porDia[$dia])) {
+                continue;
+            }
+            usort($porDia[$dia], fn ($a, $b) => strcmp($a->hora_inicio, $b->hora_inicio));
+            $tramos = implode(' · ', array_map(fn ($h) => self::horaCorta($h->hora_inicio) . '–' . self::horaCorta($h->hora_fin), $porDia[$dia]));
+            $duracion = implode(' / ', array_unique(array_map(fn ($h) => $h->duracion_cita . ' min', $porDia[$dia])));
+
+            $ultimo = end($grupos);
+            if ($ultimo && $ultimo['hasta'] === $dia - 1 && $ultimo['tramos'] === $tramos && $ultimo['duracion'] === $duracion) {
+                $grupos[array_key_last($grupos)]['hasta'] = $dia;   // el día sigue al grupo anterior con lo mismo
+            } else {
+                $grupos[] = ['desde' => $dia, 'hasta' => $dia, 'tramos' => $tramos, 'duracion' => $duracion];
+            }
+        }
+
+        return array_map(fn ($g) => [
+            'dias' => $g['desde'] === $g['hasta']
+                ? self::DIAS_CORTOS[$g['desde']]
+                : self::DIAS_CORTOS[$g['desde']] . ($g['hasta'] - $g['desde'] === 1 ? ', ' : ' – ') . self::DIAS_CORTOS[$g['hasta']],
+            'tramos' => $g['tramos'],
+            'duracion' => $g['duracion'],
+        ], $grupos);
+    }
+
     /** CU11 (secuencia 3 y 6): ¿el horario se superpone con otro del mismo médico? */
     public static function existeSuperposicion(int $idMedico, int $diaSemana, string $horaInicio, string $horaFin, ?int $idHorarioExcluido = null): bool
     {

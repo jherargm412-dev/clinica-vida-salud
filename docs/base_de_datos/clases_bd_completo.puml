@@ -1,0 +1,256 @@
+@startuml
+left to right direction
+skinparam linetype polyline
+skinparam nodesep 45
+skinparam ranksep 90
+skinparam classAttributeIconSize 0
+hide circle
+hide methods
+
+title Diagrama de clases de la base de datos - Ciclo 1 y Ciclo 2
+
+class Rol {
+  idRol : Integer
+  nombre : String
+  descripcion : String
+  activo : Boolean
+}
+
+class Permiso {
+  idPermiso : Integer
+  clave : String
+  nombre : String
+  descripcion : String
+}
+
+class RolPermiso {
+  idRol : Integer
+  idPermiso : Integer
+}
+
+class Usuario {
+  idUsuario : Integer
+  idRol : Integer
+  nombreUsuario : String
+  correo : String
+  contrasena : String
+  nombres : String
+  apellidos : String
+  activo : Boolean
+  bloqueado : Boolean
+  intentosFallidos : Integer
+  fechaRegistro : DateTime
+}
+
+class Medico {
+  idMedico : Integer
+  idUsuario : Integer
+  codigo : String
+  registroProfesional : String
+  telefono : String
+  activo : Boolean
+}
+
+class Paciente {
+  idPaciente : Integer
+  idUsuario : Integer
+  codigo : String
+  ci : String
+  fechaNacimiento : Date
+  sexo : String
+  telefono : String
+  direccion : String
+  activo : Boolean
+}
+
+class PerfilMedico {
+  idPerfilMedico : Integer
+  idPaciente : Integer
+  tipoSangre : String
+  alergias : String
+  enfermedadesCronicas : String
+  medicamentos : String
+  nombreContactoEmergencia : String
+  parentescoContactoEmergencia : String
+  telefonoContactoEmergencia : String
+  fechaActualizacion : DateTime
+}
+
+class Bitacora {
+  idBitacora : Integer
+  idUsuario : Integer
+  fechaHora : DateTime
+  accion : String
+  tablaAfectada : String
+  detalle : String
+  ip : String
+}
+
+class SuscripcionPush {
+  idSuscripcion : Integer
+  endpoint : String
+  claveP256dh : String
+  claveAuth : String
+  dispositivo : String
+  activo : Boolean
+  fechaRegistro : DateTime
+  idUsuario : Integer
+}
+class RecuperacionContrasena {
+  idRecuperacion : Integer
+  idUsuario : Integer
+  token : String
+  fechaSolicitud : DateTime
+  fechaExpiracion : DateTime
+  usado : Boolean
+}
+
+class Especialidad {
+  idEspecialidad : Integer
+  nombre : String
+  descripcion : String
+  activo : Boolean
+}
+
+class MedicoEspecialidad {
+  idMedico : Integer
+  idEspecialidad : Integer
+}
+
+class HorarioAtencion {
+  idHorario : Integer
+  idMedico : Integer
+  diaSemana : Integer
+  horaInicio : Time
+  horaFin : Time
+  duracionCita : Integer
+  activo : Boolean
+}
+
+class Cita {
+  idCita : Integer
+  idPaciente : Integer
+  idMedico : Integer
+  idEspecialidad : Integer
+  idUsuarioCancelacion : Integer
+  codigo : String
+  fecha : Date
+  horaInicio : Time
+  horaFin : Time
+  motivo : String
+  estado : String
+  fechaCreacion : DateTime
+  motivoCancelacion : String
+  fechaCancelacion : DateTime
+  canceladaPor : String
+}
+
+class AtencionMedica {
+  idAtencion : Integer
+  idCita : Integer
+  idMedico : Integer
+  diagnostico : String
+  notasClinicas : String
+  fechaHoraRegistro : DateTime
+}
+
+class Tarifa {
+  idTarifa : Integer
+  idEspecialidad : Integer
+  monto : Decimal
+  vigenteDesde : Date
+  activo : Boolean
+}
+
+class MetodoPago {
+  idMetodoPago : Integer
+  nombre : String
+  enLinea : Boolean
+  activo : Boolean
+}
+
+class SesionCaja {
+  idSesionCaja : Integer
+  idUsuario : Integer
+  apertura : DateTime
+  montoInicial : Decimal
+  cierre : DateTime
+  montoContado : Decimal
+  diferencia : Decimal
+  estado : String
+}
+
+class Pago {
+  idPago : Integer
+  idCita : Integer
+  idUsuario : Integer
+  numeroComprobante : String
+  montoTotal : Decimal
+  fecha : DateTime
+  estado : String
+}
+
+class DetallePago {
+  idDetallePago : Integer
+  idPago : Integer
+  idMetodoPago : Integer
+  monto : Decimal
+  referenciaExterna : String
+  idSesionPasarela : String
+  estado : String
+}
+
+class MovimientoCaja {
+  idMovimientoCaja : Integer
+  idSesionCaja : Integer
+  idDetallePago : Integer
+  tipo : String
+  monto : Decimal
+  fecha : DateTime
+}
+
+class Notificacion {
+  idNotificacion : Integer
+  idCita : Integer
+  tipo : String
+  canal : String
+  programadaPara : DateTime
+  enviadaEn : DateTime
+  estado : String
+}
+
+Rol "1" -- "0..*" Usuario : asigna
+Rol "1" -- "0..*" RolPermiso
+Permiso "1" -- "0..*" RolPermiso
+
+Usuario "1" -- "0..1" Medico : tiene
+Usuario "1" -- "0..1" Paciente : tiene
+Usuario "0..1" -- "0..*" Bitacora : registra
+Usuario "1" -- "0..*" SuscripcionPush : activa
+Usuario "1" -- "0..*" RecuperacionContrasena : solicita
+Usuario "0..1" -- "0..*" Cita : cancela
+Usuario "1" -- "0..*" Pago : registra
+Usuario "1" -- "0..*" SesionCaja : abre
+
+Medico "1" -- "0..*" MedicoEspecialidad
+Especialidad "1" -- "0..*" MedicoEspecialidad
+Medico "1" *-- "0..*" HorarioAtencion : tiene
+
+Paciente "1" -- "0..*" Cita : tiene
+Medico "1" -- "0..*" Cita : atiende
+Especialidad "1" -- "0..*" Cita : clasifica
+
+Paciente "1" -- "0..1" PerfilMedico : tiene
+Cita "1" -- "0..1" AtencionMedica : registra
+Medico "1" -- "0..*" AtencionMedica : registra
+
+Especialidad "1" -- "0..*" Tarifa : tiene
+Cita "1" -- "0..1" Pago : tiene
+Pago "1" *-- "0..*" DetallePago : contiene
+MetodoPago "1" -- "0..*" DetallePago : clasifica
+
+SesionCaja "1" *-- "0..*" MovimientoCaja : registra
+DetallePago "1" -- "0..1" MovimientoCaja : genera
+Cita "1" -- "0..*" Notificacion : genera
+
+@enduml

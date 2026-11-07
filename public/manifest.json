@@ -1,0 +1,15 @@
+{
+    "name": "Clínica Vida Salud",
+    "short_name": "Vida Salud",
+    "description": "Sistema web de gestión de citas médicas",
+    "lang": "es",
+    "start_url": "/inicio",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#0f766e",
+    "icons": [
+        { "src": "/img/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+        { "src": "/img/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    ]
+}

@@ -54,9 +54,67 @@ class Especialidad extends Model
             ->get();
     }
 
+    /** CU19 (listarEspecialidades): TODAS las especialidades, también las inactivas (los reportes son historial). */
+    public static function listarEspecialidades(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()->orderBy('nombre')->get();
+    }
+
+    /** CU20 (2.2 listarActivasSinTarifa): especialidades activas que todavía no tienen una tarifa activa. */
+    public static function listarActivasSinTarifa(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->where('activo', true)
+            ->whereNotExists(fn ($q) => $q->selectRaw('1')
+                ->from('tarifa')
+                ->whereColumn('tarifa.id_especialidad', 'especialidad.id_especialidad')
+                ->where('tarifa.activo', true))
+            ->orderBy('nombre')
+            ->get();
+    }
+
+    /**
+     * CU13 (asistente, paso Especialidad): especialidades que pueden recibir citas:
+     * activas, con tarifa activa (CU20) y con al menos un médico activo con cuenta activa.
+     * Cada una trae "monto_tarifa" para mostrar el precio de la consulta.
+     */
+    public static function listarParaRegistrarCita(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->where('activo', true)
+            ->addSelect(['monto_tarifa' => \App\Modulos\pagos\models\Tarifa::query()
+                ->select('monto')
+                ->whereColumn('tarifa.id_especialidad', 'especialidad.id_especialidad')
+                ->where('tarifa.activo', true)
+                ->limit(1)])
+            ->whereExists(fn ($q) => $q->selectRaw('1')
+                ->from('tarifa')
+                ->whereColumn('tarifa.id_especialidad', 'especialidad.id_especialidad')
+                ->where('tarifa.activo', true))
+            ->whereExists(fn ($q) => $q->selectRaw('1')
+                ->from('medico_especialidad')
+                ->join('medico', 'medico.id_medico', '=', 'medico_especialidad.id_medico')
+                ->join('usuario', 'usuario.id_usuario', '=', 'medico.id_usuario')
+                ->whereColumn('medico_especialidad.id_especialidad', 'especialidad.id_especialidad')
+                ->where('medico.activo', true)
+                ->where('usuario.activo', true))
+            ->orderBy('nombre')
+            ->get();
+    }
+
     /** CU13 (secuencia 5.4): obtiene una especialidad por identificador. */
     public static function obtenerPorId(int $idEspecialidad): ?self
     {
         return self::find($idEspecialidad);
+    }
+
+    /** CU08: obtiene especialidades asociadas a las citas de un historial. */
+    public static function listarPorIds(array $idsEspecialidad): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($idsEspecialidad === []) {
+            return self::query()->whereRaw('1 = 0')->get();
+        }
+
+        return self::query()->whereIn('id_especialidad', $idsEspecialidad)->get();
     }
 }

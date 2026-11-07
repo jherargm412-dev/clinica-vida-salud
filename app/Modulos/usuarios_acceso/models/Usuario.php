@@ -2,6 +2,7 @@
 
 namespace App\Modulos\usuarios_acceso\models;
 
+use App\Modulos\compartido\Texto;
 use App\Modulos\medicos_especialidades\models\Medico;
 use App\Modulos\pacientes\models\Paciente;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -78,6 +79,35 @@ class Usuario extends Authenticatable
         return $this->hasOne(Paciente::class, 'id_usuario', 'id_usuario');
     }
 
+    /** CU07: busca la cuenta por su identificador. */
+    public static function obtenerPorId(int $idUsuario): ?self
+    {
+        return self::query()->find($idUsuario);
+    }
+
+    /** CU08: busca cuentas asociadas a pacientes por nombre o apellido, sin excluir inactivos. */
+    public static function buscarPorNombreApellido(string $texto): \Illuminate\Database\Eloquent\Collection
+    {
+        $buscado = '%' . Texto::sinTildes(trim($texto)) . '%';
+
+        return self::query()
+            ->whereHas('paciente')
+            ->whereRaw(Texto::sqlSinTildes("nombres || ' ' || apellidos") . ' ILIKE ?', [$buscado])
+            ->orderBy('apellidos')
+            ->orderBy('nombres')
+            ->get();
+    }
+
+    /** CU08: obtiene en una sola consulta las cuentas de los pacientes y médicos del historial. */
+    public static function listarPorIds(array $idsUsuario): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($idsUsuario === []) {
+            return self::query()->whereRaw('1 = 0')->get();
+        }
+
+        return self::query()->whereIn('id_usuario', $idsUsuario)->get();
+    }
+
     // ---------------------------------------------------------------
     // Métodos de negocio
     // ---------------------------------------------------------------
@@ -150,6 +180,24 @@ class Usuario extends Authenticatable
         return \Illuminate\Support\Facades\Hash::check($contrasena, $this->contrasena);
     }
 
+    /** CU02 (Recuperar contraseña): busca la cuenta por su correo, sin distinguir mayúsculas. */
+    public static function buscarPorCorreo(string $correo): ?self
+    {
+        return self::whereRaw('LOWER(correo) = ?', [mb_strtolower(trim($correo))])->first();
+    }
+
+    /**
+     * CU02 (Recuperar contraseña): guarda la nueva contraseña cifrada y desbloquea la cuenta.
+     * Quien abrió el enlace del correo demostró ser el dueño, así que no tiene que esperar al administrador.
+     */
+    public function restablecerContrasena(string $nueva): void
+    {
+        $this->contrasena = \Illuminate\Support\Facades\Hash::make($nueva);
+        $this->bloqueado = false;
+        $this->intentos_fallidos = 0;
+        $this->save();
+    }
+
     /**
      * CU10 (secuencia "listarMedicosSinVincular"): cuentas ACTIVAS con rol Medico
      * que todavía no tienen ficha de médico. $incluir: la cuenta actual del médico que se edita.
@@ -163,6 +211,21 @@ class Usuario extends Authenticatable
                   ->whereDoesntHave('medico');
             })
             ->when($incluir, fn ($q) => $q->orWhere('id_usuario', $incluir))
+            ->orderBy('apellidos')
+            ->orderBy('nombres')
+            ->get();
+    }
+
+    /**
+     * CU19 (6.2 listarRecepcionistas): usuarios para el filtro del reporte de cierres de caja.
+     * Son los de rol Recepcionista y, además, cualquiera que alguna vez abrió una caja
+     * (el Administrador también tiene el permiso caja.gestionar).
+     */
+    public static function listarRecepcionistas(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->whereHas('rol', fn ($r) => $r->where('nombre', 'Recepcionista'))
+            ->orWhereIn('id_usuario', \Illuminate\Support\Facades\DB::table('sesion_caja')->select('id_usuario'))
             ->orderBy('apellidos')
             ->orderBy('nombres')
             ->get();
@@ -186,13 +249,37 @@ class Usuario extends Authenticatable
         return in_array($clave, $this->clavesPermiso(), true);
     }
 
-    /** Módulos del menú (config/modulos.php) que el usuario puede ver. */
+    /** Opciones del menú (config/modulos.php) que el usuario puede ver. */
     public function modulosPermitidos(): array
     {
         return array_values(array_filter(
-            config('modulos', []),
+            config('modulos.opciones', []),
             fn (array $modulo) => count(array_intersect($modulo['permisos'], $this->clavesPermiso())) > 0
+                && match ($modulo['perfil'] ?? null) {
+                    'paciente' => $this->paciente()->exists(),
+                    'medico' => $this->medico()->exists(),
+                    default => true,
+                }
         ));
+    }
+
+    /**
+     * Menú lateral agrupado por paquete: cada grupo de config/modulos.php con las opciones
+     * que el usuario puede ver. Los grupos sin opciones permitidas no se devuelven.
+     * Resultado: [clave => ['titulo', 'icono', 'opciones' => [...]], ...] en el orden del menú.
+     */
+    public function gruposMenu(): array
+    {
+        $opciones = collect($this->modulosPermitidos())->groupBy('grupo');
+        $grupos = [];
+
+        foreach (config('modulos.grupos', []) as $clave => $grupo) {
+            if ($opciones->has($clave)) {
+                $grupos[$clave] = $grupo + ['opciones' => $opciones[$clave]->all()];
+            }
+        }
+
+        return $grupos;
     }
 
     public function getNombreCompletoAttribute(): string

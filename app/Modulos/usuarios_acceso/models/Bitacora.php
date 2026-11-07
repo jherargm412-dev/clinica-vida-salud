@@ -32,6 +32,12 @@ class Bitacora extends Model
         ]);
     }
 
+    /** CU07: registra una acción identificando explícitamente la cuenta que la realizó. */
+    public static function registrarAccion(int $idUsuario, string $accion, string $tablaAfectada, string $detalle): void
+    {
+        self::registrar($accion, $tablaAfectada, $detalle, $idUsuario);
+    }
+
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'id_usuario', 'id_usuario');
@@ -56,6 +62,8 @@ class Bitacora extends Model
         'medica'     => 'médica',
         'sesion'     => 'sesión',
         'atencion'   => 'atención',
+        'metodo'     => 'método',
+        'recuperacion' => 'recuperación',
     ];
 
     /** Frases a las que les falta el "de" (ej. INICIO_SESION -> "Inicio de sesión"). */
@@ -64,6 +72,8 @@ class Bitacora extends Model
         'cierre sesión'    => 'cierre de sesión',
         'bloqueo cuenta'   => 'bloqueo de cuenta',
         'horario atención' => 'horario de atención',
+        'método pago'      => 'método de pago',
+        'solicitar recuperación' => 'solicitar recuperación de contraseña',
     ];
 
     /** "REGISTRAR_ESPECIALIDAD" -> "Registrar especialidad". Uso: $registro->accion_legible */

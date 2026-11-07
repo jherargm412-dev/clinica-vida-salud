@@ -1,0 +1,95 @@
+@startuml
+title CU20 Gestionar Tarifas y Métodos de Pago - Diagrama de clases de análisis
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 35
+skinparam ranksep 120
+hide circle
+
+class UI_TarifasMetodosPago <<boundary>> {
+  + mostrarTarifasYMetodos()
+  + nuevaTarifa()
+  + guardarTarifa(idEspecialidad, monto)
+  + modificarTarifa(idTarifa, monto)
+  + desactivarTarifa(idTarifa)
+  + cambiarEstadoMetodo(idMetodoPago, estado)
+}
+
+class Ctrl_TarifasMetodosPago <<control>> {
+  + obtenerTarifasYMetodos()
+  + obtenerEspecialidadesSinTarifa()
+  + registrarTarifa(idEspecialidad, monto)
+  + actualizarTarifa(idTarifa, monto)
+  + desactivarTarifa(idTarifa)
+  + cambiarEstadoMetodo(idMetodoPago, estado)
+}
+
+class Especialidad <<entity>> {
+  - idEspecialidad: Integer
+  - nombre: String
+  - descripcion: String
+  - activo: Boolean
+  --
+  + listarActivasSinTarifa()
+}
+
+class Tarifa <<entity>> {
+  - idTarifa: Integer
+  - monto: Decimal
+  - vigenteDesde: Date
+  - activo: Boolean
+  --
+  + listarTarifas()
+  + existeActivaPorEspecialidad(idEspecialidad)
+  + insertarTarifa(idEspecialidad, monto)
+  + actualizarMonto(idTarifa, monto)
+  + desactivar(idTarifa)
+}
+
+class Cita <<entity>> {
+  - idCita: Integer
+  - codigo: String
+  - fecha: Date
+  - horaInicio: Time
+  - horaFin: Time
+  - motivo: String
+  - estado: String
+  - fechaCreacion: DateTime
+  --
+  + existenPendientesDePago(idEspecialidad)
+}
+
+class MetodoPago <<entity>> {
+  - idMetodoPago: Integer
+  - nombre: String
+  - enLinea: Boolean
+  - activo: Boolean
+  --
+  + listarMetodos()
+  + contarActivos()
+  + actualizarEstado(idMetodoPago, estado)
+}
+
+class Bitacora <<entity>> {
+  - idBitacora: Integer
+  - fechaHora: DateTime
+  - accion: String
+  - tablaAfectada: String
+  - detalle: String
+  - ip: String
+  --
+  + registrar(usuario, accion, detalle, ip)
+}
+
+UI_TarifasMetodosPago -- Ctrl_TarifasMetodosPago
+Ctrl_TarifasMetodosPago -- Especialidad
+Ctrl_TarifasMetodosPago -- Tarifa
+Ctrl_TarifasMetodosPago -- Cita
+Ctrl_TarifasMetodosPago -- MetodoPago
+Ctrl_TarifasMetodosPago -- Bitacora
+
+Especialidad "1" -[norank]- "0..*" Tarifa : tiene
+Especialidad "1" -[norank]- "0..*" Cita : clasifica
+@enduml

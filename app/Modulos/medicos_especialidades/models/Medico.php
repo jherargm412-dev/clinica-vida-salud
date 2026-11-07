@@ -41,10 +41,38 @@ class Medico extends Model
         return $this->hasMany(Cita::class, 'id_medico', 'id_medico');
     }
 
+    /** CU17: médicos activos con cuenta activa que pueden consultarse en la agenda. */
+    public static function listarParaAgenda(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->where('activo', true)
+            ->whereHas('usuario', fn ($consulta) => $consulta->where('activo', true))
+            ->orderBy('codigo')
+            ->get();
+    }
+
+    /** CU17: identifica el perfil médico asociado a una cuenta. */
+    public static function obtenerPorIdUsuario(int $idUsuario): ?self
+    {
+        return self::query()
+            ->where('id_usuario', $idUsuario)
+            ->first();
+    }
+
     /** CU13 (secuencias 5.3 y 5.5): médico por id y validación de especialidad asignada. */
     public static function obtenerPorId(int $idMedico): ?self
     {
         return self::with('usuario')->find($idMedico);
+    }
+
+    /** CU08: obtiene médicos asociados a las citas de un historial. */
+    public static function listarPorIds(array $idsMedico): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($idsMedico === []) {
+            return self::query()->whereRaw('1 = 0')->get();
+        }
+
+        return self::query()->whereIn('id_medico', $idsMedico)->get();
     }
 
     public function tieneEspecialidad(int $idEspecialidad): bool
@@ -67,6 +95,21 @@ class Medico extends Model
             ->where('activo', true)
             ->with(['usuario', 'especialidades'])
             ->orderBy('codigo')
+            ->get();
+    }
+
+    /**
+     * CU19 (listarMedicos): TODOS los médicos (también los inactivos, porque los reportes son historial),
+     * ordenados por apellidos y nombres.
+     */
+    public static function listarMedicos(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->join('usuario', 'usuario.id_usuario', '=', 'medico.id_usuario')
+            ->select('medico.*')
+            ->with('usuario')
+            ->orderBy('usuario.apellidos')
+            ->orderBy('usuario.nombres')
             ->get();
     }
 

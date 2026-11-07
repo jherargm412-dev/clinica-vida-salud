@@ -1,0 +1,88 @@
+@startuml
+title CU02 Iniciar Sesion - Flujo alternativo 3a: Recuperar contrasena - Diagrama de secuencia
+actor Usuario as Actor
+participant ":UI_RecuperarContrasena" as UI_Recuperar
+participant ":UI_RestablecerContrasena" as UI_Restablecer
+participant ":UI_login" as UI_login
+participant ":Ctrl_RecuperarContrasena" as Ctrl
+participant ":Usuario" as Usuario
+participant ":RecuperacionContrasena" as Recuperacion
+participant ":Correo (Brevo)" as Correo
+participant ":Bitacora" as Bitacora
+
+== Solicitar el enlace ==
+Actor -> UI_Recuperar : ingresarCorreo(correo)
+activate UI_Recuperar
+UI_Recuperar -> Ctrl : enviarEnlace(correo)
+activate Ctrl
+Ctrl -> Usuario : buscarPorCorreo(correo)
+activate Usuario
+Usuario --> Ctrl : usuario
+deactivate Usuario
+alt usuario existe, activo y sin solicitud en el ultimo minuto
+  Ctrl -> Recuperacion : generarPara(usuario)
+  activate Recuperacion
+  Recuperacion -> Recuperacion : anularPendientes(usuario)
+  Recuperacion --> Ctrl : token
+  deactivate Recuperacion
+  Ctrl -> Correo : enviar(correo, enlace(token))
+  activate Correo
+  Correo --> Ctrl : enviado
+  deactivate Correo
+  Ctrl -> Bitacora : registrarAccion(usuario, "SOLICITAR_RECUPERACION", fechaHora, ip)
+  activate Bitacora
+  deactivate Bitacora
+else correo no registrado o cuenta inactiva
+  Ctrl -> Bitacora : registrarAccion(usuario, "SOLICITAR_RECUPERACION", fechaHora, ip)
+  activate Bitacora
+  deactivate Bitacora
+end
+Ctrl --> UI_login : mensajeGenerico
+deactivate Ctrl
+UI_login --> Actor : mostrarMensaje("Si el correo esta registrado, le enviamos un enlace...")
+deactivate UI_Recuperar
+
+== Restablecer con el enlace del correo ==
+Actor -> Ctrl : abrirEnlace(token)
+activate Ctrl
+Ctrl -> Recuperacion : buscarVigente(token)
+activate Recuperacion
+Recuperacion --> Ctrl : recuperacion
+deactivate Recuperacion
+alt enlace valido
+  Ctrl -> UI_Restablecer : mostrarFormulario(usuario)
+  activate UI_Restablecer
+  deactivate Ctrl
+  Actor -> UI_Restablecer : ingresarContrasena(contrasena, confirmacion)
+  UI_Restablecer -> Ctrl : restablecer(token, contrasena, confirmacion)
+  activate Ctrl
+  Ctrl -> Ctrl : validarPolitica(contrasena, confirmacion)
+  alt contrasena valida
+    Ctrl -> Recuperacion : buscarVigente(token)
+    activate Recuperacion
+    Recuperacion --> Ctrl : recuperacion
+    deactivate Recuperacion
+    Ctrl -> Usuario : restablecerContrasena(contrasena)
+    activate Usuario
+    note right of Usuario : guarda el hash,\ndesbloquea la cuenta\ny reinicia los intentos
+    deactivate Usuario
+    Ctrl -> Recuperacion : anularPendientes(usuario)
+    activate Recuperacion
+    deactivate Recuperacion
+    Ctrl -> Bitacora : registrarAccion(usuario, "RESTABLECER_CONTRASENA", fechaHora, ip)
+    activate Bitacora
+    deactivate Bitacora
+    Ctrl --> UI_login : mensajeExito
+    UI_login --> Actor : mostrarMensaje("Su contrasena fue restablecida...")
+  else no cumple la politica o no coincide
+    Ctrl --> UI_Restablecer : mensajeError
+    UI_Restablecer --> Actor : mostrarMensajeError(mensajeError)
+  end
+  deactivate UI_Restablecer
+  deactivate Ctrl
+else enlace usado, vencido o inexistente
+  Ctrl --> UI_Recuperar : mensajeError
+  UI_Recuperar --> Actor : mostrarMensajeError("El enlace no es valido o ya vencio...")
+  deactivate Ctrl
+end
+@enduml

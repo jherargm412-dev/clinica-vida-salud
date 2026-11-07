@@ -5,6 +5,7 @@
     @include('compartido._tema')
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('titulo', 'Inicio') · {{ config('app.name') }}</title>
+    @include('compartido._app_instalable')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
@@ -60,7 +61,7 @@
     <div class="d-flex">
         {{-- Menú lateral (pantallas grandes) --}}
         <aside class="cvs-sidebar d-none d-lg-block p-3">
-            @include('compartido._menu')
+            @include('compartido._menu', ['menuId' => 'escritorio'])
         </aside>
 
         {{-- Menú lateral (celular) --}}
@@ -70,7 +71,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
             </div>
             <div class="offcanvas-body">
-                @include('compartido._menu')
+                @include('compartido._menu', ['menuId' => 'movil'])
             </div>
         </div>
 

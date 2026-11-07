@@ -6,9 +6,11 @@
 
 use App\Modulos\usuarios_acceso\controller\iniciar_sesion\AuthController;
 use App\Modulos\usuarios_acceso\controller\iniciar_sesion\InicioController;
+use App\Modulos\usuarios_acceso\controller\iniciar_sesion\RecuperarContrasenaController;
 use App\Modulos\usuarios_acceso\controller\gestionar_usuarios\UsuarioController;
 use App\Modulos\usuarios_acceso\controller\gestionar_roles\RolController;
 use App\Modulos\usuarios_acceso\controller\consultar_bitacora\BitacoraController;
+use App\Modulos\usuarios_acceso\controller\configurar_perfil\NotificacionesController;
 use App\Modulos\usuarios_acceso\controller\configurar_perfil\PerfilController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +20,20 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'iniciarSesion'])
         ->middleware('throttle:10,1')          // máximo 10 intentos por minuto desde la misma IP
         ->name('login.intentar');
+
+    // CU02 flujo alternativo "Recuperar contraseña" (enlace de un solo uso enviado por correo)
+    // Límites con nombre (AppServiceProvider): cada uno lleva su propio contador y no gasta los intentos del login
+    Route::get('/recuperar-contrasena', [RecuperarContrasenaController::class, 'mostrarSolicitud'])
+        ->name('contrasena.solicitar');
+    Route::post('/recuperar-contrasena', [RecuperarContrasenaController::class, 'enviarEnlace'])
+        ->middleware('throttle:recuperar-contrasena')
+        ->name('contrasena.enviar');
+    Route::get('/restablecer-contrasena/{token}', [RecuperarContrasenaController::class, 'mostrarRestablecer'])
+        ->middleware('throttle:restablecer-contrasena')
+        ->name('contrasena.restablecer');
+    Route::post('/restablecer-contrasena/{token}', [RecuperarContrasenaController::class, 'restablecer'])
+        ->middleware('throttle:restablecer-contrasena')
+        ->name('contrasena.guardar');
 });
 
 Route::middleware(['auth', 'cuenta.activa'])->group(function () {
@@ -54,6 +70,11 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
     Route::get('/perfil', [PerfilController::class, 'ver'])->name('perfil.ver');
     Route::post('/perfil', [PerfilController::class, 'actualizar'])->name('perfil.actualizar');
     Route::post('/perfil/contrasena', [PerfilController::class, 'cambiarContrasena'])->name('perfil.cambiar_contrasena');
+    // CU04 flujo "Configurar notificaciones" (RF30): solo pacientes (se valida en el controlador)
+    Route::post('/perfil/notificaciones', [NotificacionesController::class, 'activar'])->name('perfil.notificaciones.activar');
+    Route::post('/perfil/notificaciones/{suscripcion}/desactivar', [NotificacionesController::class, 'desactivar'])
+        ->whereNumber('suscripcion')
+        ->name('perfil.notificaciones.desactivar');
     // CU05 Consultar bitácora (solo lectura: una sola ruta GET; el detalle se ve en un modal)
     Route::get('/bitacora', [BitacoraController::class, 'index'])
         ->middleware('permiso:bitacora.consultar')

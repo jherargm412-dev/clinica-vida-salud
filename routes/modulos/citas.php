@@ -4,9 +4,10 @@
 | Paquete citas: CU12, CU13, CU14, CU15, CU16
 */
 
-use Illuminate\Support\Facades\Route;
 use App\Modulos\citas\controller\consultar_disponibilidad\DisponibilidadController;
+use App\Modulos\citas\controller\controlar_estado_cita\EstadoCitaController;
 use App\Modulos\citas\controller\registrar_cita\CitaController;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'cuenta.activa'])->group(function () {
     // CU12 Consultar disponibilidad
@@ -52,5 +53,17 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
             ->name('citas.cancelar.guardar');
     });
 
-    // CU16 Controlar estado          -> middleware('permiso:citas.controlar_estado')
+    // CU16 Controlar estado y asistencia
+    Route::middleware('permiso:citas.controlar_estado')->group(function () {
+        Route::get('/citas/estado', [EstadoCitaController::class, 'listarCitasGestionables'])
+            ->name('citas.estado.index');
+        Route::get('/citas/estado/buscar', [EstadoCitaController::class, 'buscarCitasGestionables'])
+            ->name('citas.estado.buscar');
+        Route::get('/citas/estado/{idCita}', [EstadoCitaController::class, 'obtenerCitaGestionable'])
+            ->whereNumber('idCita')
+            ->name('citas.estado.detalle');
+        Route::post('/citas/estado/{idCita}', [EstadoCitaController::class, 'cambiarEstadoCita'])
+            ->whereNumber('idCita')
+            ->name('citas.estado.cambiar');
+    });
 });

@@ -1,0 +1,55 @@
+@startuml
+title CU04 Configurar Perfil de Usuario - Diagrama de secuencia (Configurar notificaciones, RF30)
+actor Paciente as Actor
+boundary UI_Perfil
+participant "Navegador\n(service worker)" as Navegador
+control Ctrl_Notificaciones
+entity SuscripcionPush
+entity Bitacora
+autonumber
+
+== Activar en este dispositivo ==
+Actor -> UI_Perfil : activarEnEsteDispositivo()
+activate UI_Perfil
+UI_Perfil -> Navegador : pedirPermiso()
+activate Navegador
+alt permiso concedido
+  Navegador --> UI_Perfil : "granted"
+  UI_Perfil -> Navegador : suscribirse(clavePublicaVapid)
+  Navegador --> UI_Perfil : suscripcion(endpoint, p256dh, auth)
+  deactivate Navegador
+  UI_Perfil -> Ctrl_Notificaciones : activar(endpoint, p256dh, auth, dispositivo)
+  activate Ctrl_Notificaciones
+  Ctrl_Notificaciones -> SuscripcionPush : activar(idUsuario, endpoint, p256dh, auth, dispositivo)
+  activate SuscripcionPush
+  deactivate SuscripcionPush
+  Ctrl_Notificaciones -> Bitacora : registrarAccion("ACTIVAR_NOTIFICACIONES", fechaHora, ip)
+  activate Bitacora
+  deactivate Bitacora
+  Ctrl_Notificaciones --> UI_Perfil : "Notificaciones activadas en este dispositivo"
+  deactivate Ctrl_Notificaciones
+else permiso bloqueado o navegador no compatible
+  Navegador --> UI_Perfil : "denied" / no compatible
+  UI_Perfil --> Actor : mostrarEstado("Bloqueadas" / "No compatible")
+end
+deactivate UI_Perfil
+
+== Desactivar un dispositivo ==
+Actor -> UI_Perfil : desactivar(idSuscripcion)
+activate UI_Perfil
+opt es este dispositivo
+  UI_Perfil -> Navegador : cancelarSuscripcion()
+end
+UI_Perfil -> Ctrl_Notificaciones : desactivar(idSuscripcion)
+activate Ctrl_Notificaciones
+Ctrl_Notificaciones -> SuscripcionPush : desactivar()
+activate SuscripcionPush
+deactivate SuscripcionPush
+Ctrl_Notificaciones -> Bitacora : registrarAccion("DESACTIVAR_NOTIFICACIONES", fechaHora, ip)
+activate Bitacora
+deactivate Bitacora
+Ctrl_Notificaciones --> UI_Perfil : "Notificaciones desactivadas en <dispositivo>"
+deactivate Ctrl_Notificaciones
+UI_Perfil --> Actor : mostrarMensaje()
+deactivate UI_Perfil
+@enduml

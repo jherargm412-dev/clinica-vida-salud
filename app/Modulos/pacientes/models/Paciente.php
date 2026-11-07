@@ -91,10 +91,53 @@ class Paciente extends Model
     /** CU13 (secuencia 3): obtiene la ficha asociada a la sesión del paciente. */
     public static function obtenerPorUsuario(int $idUsuario): ?self
     {
+        return self::obtenerPorIdUsuario($idUsuario);
+    }
+
+    /** CU07: obtiene el paciente asociado a una cuenta de usuario. */
+    public static function obtenerPorIdUsuario(int $idUsuario): ?self
+    {
         return self::query()
             ->with('usuario')
             ->where('id_usuario', $idUsuario)
             ->first();
+    }
+
+    /** CU08: busca pacientes por CI, incluyendo pacientes inactivos. */
+    public static function buscarPorCI(string $texto): Builder
+    {
+        return self::query()
+            ->with('usuario')
+            ->whereRaw('UPPER(TRIM(ci)) LIKE ?', ['%' . mb_strtoupper(trim($texto)) . '%'])
+            ->orderBy('codigo');
+    }
+
+    /** CU08: obtiene pacientes seleccionados por su identificador. */
+    public static function listarPorIds(array $idsPaciente): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($idsPaciente === []) {
+            return self::query()->whereRaw('1 = 0')->get();
+        }
+
+        return self::query()
+            ->with('usuario')
+            ->whereIn('id_paciente', $idsPaciente)
+            ->orderBy('codigo')
+            ->get();
+    }
+
+    /** CU08: obtiene pacientes asociados a las cuentas encontradas por nombre o apellido. */
+    public static function listarPorIdsUsuario(array $idsUsuario): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($idsUsuario === []) {
+            return self::query()->whereRaw('1 = 0')->get();
+        }
+
+        return self::query()
+            ->with('usuario')
+            ->whereIn('id_usuario', $idsUsuario)
+            ->orderBy('codigo')
+            ->get();
     }
 
     /** CU06 (secuencia 4, actualizarPaciente): actualiza los datos propios de la ficha. */
@@ -112,5 +155,24 @@ class Paciente extends Model
     public static function cambiarEstadoPaciente(int $idPaciente, bool $activo): void
     {
         self::query()->whereKey($idPaciente)->update(['activo' => $activo]);
+    }
+
+    /**
+     * CU19 (4.3 obtenerPacientes): pacientes ordenados por apellidos y nombres.
+     * $estado: 'activo' | 'inactivo' | null (todos). Las fechas filtran por la fecha de registro
+     * de su cuenta (usuario.fecha_registro); cada una es opcional.
+     */
+    public static function obtenerPacientes(?string $estado = null, ?string $fechaIni = null, ?string $fechaFin = null): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::query()
+            ->join('usuario', 'usuario.id_usuario', '=', 'paciente.id_usuario')
+            ->select('paciente.*')
+            ->with('usuario')
+            ->when($estado, fn ($q) => $q->where('paciente.activo', $estado === 'activo'))
+            ->when($fechaIni, fn ($q) => $q->whereDate('usuario.fecha_registro', '>=', $fechaIni))
+            ->when($fechaFin, fn ($q) => $q->whereDate('usuario.fecha_registro', '<=', $fechaFin))
+            ->orderBy('usuario.apellidos')
+            ->orderBy('usuario.nombres')
+            ->get();
     }
 }

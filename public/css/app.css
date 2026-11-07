@@ -28,6 +28,8 @@ body { background: var(--cvs-fondo); }
     --bs-btn-hover-border-color: var(--cvs-primario);
     --bs-btn-active-bg: var(--cvs-primario-oscuro);
 }
+/* Pestañas (CU19 Reportes): la activa con el color del sistema, no el azul de Bootstrap */
+.nav-pills { --bs-nav-pills-link-active-bg: var(--cvs-primario); }
 .form-control:focus, .form-select:focus {
     border-color: #5eada6;
     box-shadow: 0 0 0 .2rem rgba(15, 118, 110, .2);
@@ -38,18 +40,28 @@ body { background: var(--cvs-fondo); }
 .cvs-navbar .navbar-brand { font-weight: 600; }
 
 /* Menú lateral */
-.cvs-sidebar { width: 250px; flex-shrink: 0; min-height: calc(100vh - 56px); background: var(--bs-body-bg); border-right: 1px solid var(--bs-border-color); }
+/* Fijo debajo de la barra superior (56px) y con desplazamiento propio si las opciones no caben */
+.cvs-sidebar { width: 250px; flex-shrink: 0; position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto; background: var(--bs-body-bg); border-right: 1px solid var(--bs-border-color); }
 .cvs-menu .nav-link { color: var(--bs-body-color); border-radius: .5rem; padding: .55rem .75rem; display: flex; align-items: center; gap: .6rem; }
 .cvs-menu .nav-link:hover { background: #eef6f5; color: var(--cvs-primario); }
 .cvs-menu .nav-link.active { background: var(--cvs-primario); color: #fff; }
 .cvs-menu .nav-link.disabled { color: #94a3b8; }
 .cvs-menu .seccion { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; padding: .75rem .75rem .25rem; }
+/* Grupos desplegables del menú (uno por paquete) */
+.cvs-menu .cvs-grupo { width: 100%; background: none; border: 0; font-weight: 600; }
+.cvs-menu .cvs-grupo.contiene-activa { color: var(--cvs-primario); }
+.cvs-menu .cvs-flecha { font-size: .75rem; transition: transform .2s; }
+.cvs-menu .cvs-grupo.collapsed .cvs-flecha { transform: rotate(-90deg); }
+.cvs-menu .cvs-subopciones { margin: .1rem 0 .35rem 1.1rem; padding-left: .5rem; border-left: 1px solid var(--bs-border-color); }
+.cvs-menu .cvs-subopciones .nav-link { padding: .4rem .65rem; font-size: .95rem; }
 
 /* Tarjetas de módulos en el inicio */
 .cvs-modulo { transition: transform .15s, box-shadow .15s; border: 1px solid var(--bs-border-color); }
 .cvs-modulo:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.06); }
 .cvs-modulo .icono { width: 44px; height: 44px; border-radius: .75rem; display: grid; place-items: center; background: #e6f4f2; color: var(--cvs-primario); font-size: 1.35rem; }
 .cvs-modulo.pendiente { opacity: .6; }
+/* Título de cada grupo en el inicio (mismos grupos que el menú lateral) */
+.cvs-titulo-grupo { font-size: .95rem; font-weight: 600; color: var(--cvs-primario); display: flex; align-items: center; gap: .5rem; padding-bottom: .4rem; margin-bottom: .9rem; border-bottom: 1px solid var(--bs-border-color); }
 
 /* Pantalla de login */
 .cvs-login { min-height: 100vh; }
@@ -79,7 +91,9 @@ body { background: var(--cvs-fondo); }
 [data-bs-theme="dark"] .cvs-menu .nav-link.active { background: var(--cvs-primario); color: #fff; }
 [data-bs-theme="dark"] .cvs-menu .nav-link.disabled,
 [data-bs-theme="dark"] .cvs-menu .seccion { color: #6e7681; }
+[data-bs-theme="dark"] .cvs-menu .cvs-grupo.contiene-activa { color: #5eead4; }
 [data-bs-theme="dark"] .cvs-modulo .icono { background: rgba(45, 212, 191, .12); color: #2dd4bf; }
+[data-bs-theme="dark"] .cvs-titulo-grupo { color: #5eead4; }
 /* Encabezados de tablas y etiquetas "claras" */
 [data-bs-theme="dark"] .table-light {
     --bs-table-bg: #1f262e; --bs-table-color: var(--bs-body-color);
@@ -90,3 +104,87 @@ body { background: var(--cvs-fondo); }
 [data-bs-theme="dark"] .form-control:focus, [data-bs-theme="dark"] .form-select:focus { border-color: #2dd4bf; }
 [data-bs-theme="dark"] .cvs-login .panel-marca { background: linear-gradient(160deg, #0b3d39, #0d1117); }
 
+
+/* ---------------------------------------------------------------
+   Asistente "Registrar cita" (CU13) y pantalla de pago (CU21)
+   --------------------------------------------------------------- */
+/* Barra de pasos: círculos numerados unidos por una línea */
+.cvs-pasos { display: flex; list-style: none; margin: 0; padding: 0; }
+.cvs-paso { flex: 1; position: relative; text-align: center; }
+.cvs-paso + .cvs-paso::before {           /* línea que une con el paso anterior */
+    content: ""; position: absolute; top: 16px; right: calc(50% + 22px); left: calc(-50% + 22px);
+    height: 2px; background: var(--bs-border-color);
+}
+.cvs-paso.hecho + .cvs-paso::before { background: var(--cvs-primario); }
+.cvs-paso-contenido { display: inline-flex; flex-direction: column; align-items: center; gap: .4rem; color: var(--bs-secondary-color); }
+.cvs-paso-circulo {
+    width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 600;
+    border: 2px solid var(--bs-border-color); background: var(--bs-body-bg);
+}
+.cvs-paso-nombre { font-size: .875rem; }
+.cvs-paso.hecho .cvs-paso-circulo { background: var(--cvs-primario); border-color: var(--cvs-primario); color: #fff; }
+.cvs-paso.hecho .cvs-paso-contenido, .cvs-paso.actual .cvs-paso-contenido { color: var(--bs-body-color); }
+.cvs-paso.actual .cvs-paso-circulo { border-color: var(--cvs-primario); color: var(--cvs-primario); }
+.cvs-paso.actual .cvs-paso-nombre { font-weight: 600; }
+a.cvs-paso-contenido:hover .cvs-paso-nombre { text-decoration: underline; }
+@media (max-width: 575.98px) { .cvs-paso-nombre { display: none; } .cvs-paso.actual .cvs-paso-nombre { display: block; } }
+
+/* Tarjetas que se eligen (especialidad, médico) */
+.cvs-opcion {
+    display: flex; flex-direction: column; padding: 1rem 1.1rem; border: 1px solid var(--bs-border-color);
+    border-radius: .75rem; color: var(--bs-body-color); text-decoration: none; background: var(--bs-body-bg);
+    transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.cvs-opcion:hover { border-color: var(--cvs-primario); box-shadow: 0 .4rem 1rem rgba(15, 118, 110, .12); transform: translateY(-2px); color: var(--bs-body-color); }
+.cvs-iniciales {
+    width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+    background: #e6f4f2; color: var(--cvs-primario); font-weight: 600;
+}
+
+/* Selector de días */
+.cvs-dias { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .5rem; }
+.cvs-dia {
+    display: flex; flex-direction: column; align-items: center; padding: .6rem .25rem; border-radius: .75rem;
+    border: 1px solid var(--bs-border-color); color: var(--bs-body-color); text-decoration: none; text-align: center;
+}
+.cvs-dia:hover { border-color: var(--cvs-primario); color: var(--bs-body-color); }
+.cvs-dia.elegido { background: var(--cvs-primario); border-color: var(--cvs-primario); color: #fff; }
+.cvs-dia.sin-cupos { opacity: .45; pointer-events: none; }
+.cvs-hora { min-width: 84px; }
+/* Hora ocupada por otra cita: rojo suave, tachada y sin poder elegirse */
+.cvs-hora.ocupada {
+    color: #b42318; background: rgba(220, 53, 69, .08); border: 1px solid rgba(220, 53, 69, .35);
+    text-decoration: line-through; cursor: not-allowed;
+}
+.cvs-muestra-ocupada {
+    display: inline-block; width: .8rem; height: .8rem; border-radius: .2rem; vertical-align: -.05rem;
+    background: rgba(220, 53, 69, .15); border: 1px solid rgba(220, 53, 69, .45);
+}
+[data-bs-theme="dark"] .cvs-hora.ocupada { color: #f87171; background: rgba(248, 113, 113, .1); border-color: rgba(248, 113, 113, .4); }
+@media (max-width: 767.98px) { .cvs-dias { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* Formulario de pago de Stripe incrustado */
+.cvs-checkout { min-height: 420px; }
+
+[data-bs-theme="dark"] .cvs-iniciales { background: rgba(45, 212, 191, .12); color: #2dd4bf; }
+[data-bs-theme="dark"] .cvs-paso.actual .cvs-paso-circulo { color: #2dd4bf; border-color: #2dd4bf; }
+
+/* Horarios de atención (CU11): letras de los días en la lista */
+.cvs-dia-chip {
+    width: 24px; height: 24px; border-radius: 50%; display: inline-grid; place-items: center; font-size: .75rem; font-weight: 600;
+    border: 1px solid var(--bs-border-color); color: var(--bs-secondary-color);
+}
+.cvs-dia-chip.activo { background: var(--cvs-primario); border-color: var(--cvs-primario); color: #fff; }
+
+/* Disponibilidad (CU12): semana de cada médico, una celda por día */
+.cvs-semana th, .cvs-semana td { padding: .5rem .35rem; }
+.cvs-celda {
+    display: block; min-width: 4.5rem; padding: .45rem .25rem; border-radius: .5rem; font-size: .85rem; text-align: center;
+    border: 1px dashed var(--bs-border-color); color: var(--bs-secondary-color); text-decoration: none;
+}
+.cvs-celda.vacia { border-color: transparent; }
+.cvs-celda.libre { border: 1px solid rgba(15, 118, 110, .35); background: rgba(15, 118, 110, .07); color: var(--cvs-primario); font-weight: 600; }
+.cvs-celda.libre:hover { border-color: var(--cvs-primario); }
+.cvs-celda.libre.elegida { background: var(--cvs-primario); border-color: var(--cvs-primario); color: #fff; }
+[data-bs-theme="dark"] .cvs-celda.libre { background: rgba(45, 212, 191, .08); border-color: rgba(45, 212, 191, .35); color: #5eead4; }
+[data-bs-theme="dark"] .cvs-celda.libre.elegida { background: var(--cvs-primario); color: #fff; }

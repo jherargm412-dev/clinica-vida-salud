@@ -1,0 +1,32 @@
+@startuml
+title CU21 Pagar Cita - Diagrama de comunicación (Paciente)
+left to right direction
+skinparam linetype polyline
+skinparam defaultTextAlignment left
+skinparam shadowing false
+
+actor Paciente
+boundary UI_PagarCita
+boundary PasarelaPagoEnLinea
+control Ctrl_Pagos
+entity Cita
+entity Tarifa
+entity MetodoPago
+entity Pago
+entity DetallePago
+entity Notificacion
+entity Bitacora
+
+Paciente -- UI_PagarCita : "1: mostrarPago(idCita) →\n7: pagarEnLinea() →"
+Paciente --- PasarelaPagoEnLinea : "14: pagarConTarjeta(datosTarjeta) →"
+UI_PagarCita -- PasarelaPagoEnLinea : "13: mostrarFormularioPago(clientSecret) →\n15: retornarPago(idSesion) ←"
+UI_PagarCita --- Ctrl_Pagos : "2: obtenerDatosPago(idCita) →\n6: cita, montoTotal, tiempoRestante, metodos ←\n8: iniciarPagoEnLinea(idCita) →\n12: clientSecret ←\n16: confirmarPagoEnLinea(idCita, idSesion) →\n25: 'Pago registrado', comprobante ←"
+PasarelaPagoEnLinea -- Ctrl_Pagos : "11: crearSesionPago(montoTotal, idCita) ←\n17: verificarPago(idSesion) ←"
+Ctrl_Pagos -- Cita : "3: obtenerDetallePorId(idCita) →\n18: retencionVigente(idCita) →\n22: marcarProgramada(idCita) →"
+Ctrl_Pagos -- Tarifa : "4: obtenerActivaPorEspecialidad(idEspecialidad) →"
+Ctrl_Pagos -- MetodoPago : "5: listarActivosEnLinea() →"
+Ctrl_Pagos -- Pago : "9: insertarPago(idCita, idUsuario, montoTotal) →\n20: generarNumeroComprobante() →\n21: marcarPagado(idPago, numeroComprobante) →"
+Ctrl_Pagos -- DetallePago : "10: insertarDetalle(idPago, idMetodoPago, montoTotal) →\n19: aprobarDetalles(idPago, idSesion) →"
+Ctrl_Pagos -- Bitacora : "23: registrar(paciente, 'Pagar cita', detalle, ip) →"
+Ctrl_Pagos -- Notificacion : "24: registrarAviso(idCita, 'Cita programada') →"
+@enduml

@@ -46,6 +46,34 @@ class Usuario <<entity>> {
   registrar intento fallido
   bloquear cuenta
   reiniciar intentos
+  buscar por correo
+  restablecer contrasena
+}
+class UI_RecuperarContrasena <<boundary>> {
+  --
+  ingresar correo
+  mostrar mensaje
+}
+class UI_RestablecerContrasena <<boundary>> {
+  --
+  ingresar nueva contrasena
+  mostrar mensaje de error
+}
+class Ctrl_RecuperarContrasena <<control>> {
+  --
+  enviar enlace
+  verificar enlace
+  restablecer contrasena
+}
+class RecuperacionContrasena <<entity>> {
+  token
+  fecha de solicitud
+  fecha de expiracion
+  usado
+  --
+  generar enlace
+  buscar vigente
+  anular pendientes
 }
 class Rol <<entity>> {
   nombre
@@ -66,6 +94,13 @@ Ctrl_Login -- Bitacora
 Ctrl_Login -- Usuario
 Ctrl_Login -- Rol
 Ctrl_Login -- Permiso
+UI_Login -- UI_RecuperarContrasena
+UI_RecuperarContrasena -- Ctrl_RecuperarContrasena
+UI_RestablecerContrasena -- Ctrl_RecuperarContrasena
+Ctrl_RecuperarContrasena -- Usuario
+Ctrl_RecuperarContrasena -- RecuperacionContrasena
+Ctrl_RecuperarContrasena -- Bitacora
+Usuario "1" -[norank]- "0..*" RecuperacionContrasena : solicita
 Usuario "1" -[norank]- "0..*" Bitacora : realiza
 Usuario "*" -[norank]- "1" Rol : tiene
 Rol "*" -[norank]- "*" Permiso : tiene

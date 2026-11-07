@@ -24,3 +24,4 @@ require __DIR__ . '/modulos/medicos_especialidades.php';
 require __DIR__ . '/modulos/citas.php';
 require __DIR__ . '/modulos/agenda_medica.php';
 require __DIR__ . '/modulos/reportes.php';
+require __DIR__ . '/modulos/pagos.php';

@@ -1,0 +1,17 @@
+@startuml
+title CU21 Pagar Cita - Diagrama de casos de uso
+left to right direction
+skinparam shadowing false
+
+actor Recepcionista
+actor Paciente
+
+rectangle "Sistema de gestión de citas médicas" {
+  usecase "CU21 Pagar Cita" as CU21
+  usecase "CU13 Registrar Cita" as CU13
+}
+
+Recepcionista -- CU21
+Paciente -- CU21
+CU13 ..> CU21 : <<include>>
+@enduml

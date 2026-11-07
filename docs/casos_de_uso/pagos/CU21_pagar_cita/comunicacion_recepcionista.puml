@@ -1,0 +1,36 @@
+@startuml
+title CU21 Pagar Cita - Diagrama de comunicación (Recepcionista)
+left to right direction
+skinparam linetype polyline
+skinparam defaultTextAlignment left
+skinparam shadowing false
+
+actor Recepcionista
+boundary UI_PagarCita
+boundary PasarelaPagoEnLinea
+control Ctrl_Pagos
+entity Cita
+entity Tarifa
+entity MetodoPago
+entity SesionCaja
+entity Pago
+entity DetallePago
+entity MovimientoCaja
+entity Notificacion
+entity Bitacora
+
+Recepcionista -- UI_PagarCita : "1: mostrarPago(idCita) →\n7: seleccionarFormaCobro(forma) →\n11: registrarEfectivo(montoEfectivo) →\n16: pagarEnLinea() →\n26: confirmarCobro() →"
+Recepcionista --- PasarelaPagoEnLinea : "22: pagarConTarjeta(datosTarjeta) →"
+UI_PagarCita -- PasarelaPagoEnLinea : "21: mostrarFormularioPago(clientSecret) →\n23: retornarPago(idSesion) ←"
+UI_PagarCita --- Ctrl_Pagos : "2: obtenerDatosPago(idCita) →\n6: cita, montoTotal, tiempoRestante, metodos ←\n8: iniciarCobro(idCita, forma) →\n10: idPago ←\n12: registrarPagoEfectivo(idCita, montoEfectivo) →\n15: saldo ←\n17: iniciarPagoEnLinea(idCita) →\n20: clientSecret ←\n24: confirmarPagoEnLinea(idCita, idSesion) →\n27: confirmarPagoEfectivo(idCita) →\n36: 'Pago registrado', comprobante ←"
+PasarelaPagoEnLinea -- Ctrl_Pagos : "19: crearSesionPago(saldo, idCita) ←\n25: verificarPago(idSesion) ←"
+Ctrl_Pagos -- Cita : "3: obtenerDetallePorId(idCita) →\n28: retencionVigente(idCita) →\n32: marcarProgramada(idCita) →"
+Ctrl_Pagos -- Tarifa : "4: obtenerActivaPorEspecialidad(idEspecialidad) →"
+Ctrl_Pagos -- MetodoPago : "5: listarActivos() →"
+Ctrl_Pagos -- SesionCaja : "13: obtenerAbiertaPorUsuario(idUsuario) →"
+Ctrl_Pagos -- Pago : "9: insertarPago(idCita, idUsuario, montoTotal) →\n30: generarNumeroComprobante() →\n31: marcarPagado(idPago, numeroComprobante) →"
+Ctrl_Pagos -- DetallePago : "14: insertarDetalle(idPago, idMetodoPago, montoEfectivo) →\n18: insertarDetalle(idPago, idMetodoPago, saldo) →\n29: aprobarDetalles(idPago, idSesion) →"
+Ctrl_Pagos -- MovimientoCaja : "33: insertarIngreso(idSesionCaja, idDetallePago, montoEfectivo) →"
+Ctrl_Pagos -- Bitacora : "34: registrar(recepcionista, 'Pagar cita', detalle, ip) →"
+Ctrl_Pagos -- Notificacion : "35: registrarAviso(idCita, 'Cita programada') →"
+@enduml

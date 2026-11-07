@@ -29,7 +29,8 @@ class Permiso extends Model
         'Médicos y especialidades' => ['especialidades.gestionar', 'medicos.gestionar', 'horarios.gestionar'],
         'Citas'                    => ['disponibilidad.consultar', 'citas.registrar', 'citas.reprogramar', 'citas.cancelar', 'citas.controlar_estado'],
         'Agenda médica'            => ['agenda.consultar', 'citas.registrar_atencion'],
-        'Reportes'                 => ['reportes.generar'],
+        'Reportes'                 => ['reportes.generar', 'reportes.generar_todos'],
+        'Pagos'                    => ['pagos.configurar', 'pagos.cobrar', 'pagos.pagar_propia', 'caja.gestionar'],
     ];
 
     /**

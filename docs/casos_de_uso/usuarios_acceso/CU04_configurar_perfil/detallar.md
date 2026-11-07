@@ -31,6 +31,17 @@ El usuario ha iniciado sesión.
 - **Contraseña actual incorrecta.** El sistema muestra "La contraseña actual es incorrecta" y no realiza el cambio.
 - **Contraseña nueva inválida.** Si la nueva tiene menos de 8 caracteres o no coincide con la confirmación, el sistema muestra el mensaje correspondiente y no realiza el cambio.
 - **Cancelar.** En cualquier momento el usuario presiona "Cancelar"; el sistema descarta los cambios y vuelve a mostrar sus datos.
+- **Configurar notificaciones (RF30, solo paciente).** En "Mi perfil" el paciente ve la sección "Notificaciones" con el estado de este dispositivo y la lista de sus dispositivos con notificaciones activas:
+  1. El paciente presiona "Activar en este dispositivo".
+  2. El navegador pide permiso para mostrar notificaciones y el paciente lo concede.
+  3. El sistema suscribe el navegador al servicio push, guarda la suscripción del dispositivo (activa), registra la acción en la bitácora y muestra "Notificaciones activadas en este dispositivo".
+  4. Para dejar de recibirlas, el paciente presiona "Desactivar" en este dispositivo o en cualquiera de la lista; el sistema marca esa suscripción como inactiva, registra la acción en la bitácora y muestra "Notificaciones desactivadas en <dispositivo>".
+  - **2a.** Si el paciente bloquea el permiso, el sistema muestra "Bloqueadas" y explica cómo permitirlas desde el navegador; no se guarda nada.
+  - **2b.** Si el navegador no admite notificaciones (p. ej. Safari de iPhone fuera de la pantalla de inicio), el sistema muestra "No compatible" y cómo agregar la clínica a la pantalla de inicio.
+  - **Sin dispositivos activos.** Los avisos de cita (RF31) le llegan por correo.
 
 ## Postcondición
-Los datos personales o la contraseña del usuario quedan actualizados, y el cambio de contraseña queda registrado en la bitácora.
+Los datos personales o la contraseña del usuario quedan actualizados, y el cambio de contraseña queda registrado en la bitácora. En el flujo "Configurar notificaciones", la suscripción del dispositivo queda activa o inactiva y la acción queda en la bitácora.
+
+## Estado de implementación
+"Configurar notificaciones" (RF30): `NotificacionesController.php` (Ctrl_Notificaciones), modelo `SuscripcionPush` (tabla `suscripcion_push`), tarjeta "Notificaciones" en `ver.blade.php`, `public/js/notificaciones.js` y el service worker `public/sw.js`. Diagrama: `secuencia_configurar_notificaciones.puml`. El envío de los avisos (RF31) está en `App\Modulos\pagos\service\Notificador`.

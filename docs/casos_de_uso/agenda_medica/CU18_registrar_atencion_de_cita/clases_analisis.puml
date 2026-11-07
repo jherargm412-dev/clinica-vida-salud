@@ -1,0 +1,138 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam dpi 200
+skinparam linetype polyline
+hide circle
+
+skinparam class {
+  BackgroundColor #EEEEEE
+  BorderColor #333333
+}
+
+title DIAGRAMA DE CLASE DE ANÁLISIS - CU18 Registrar Atención de Cita
+
+class "Médico" as MA <<actor>>
+
+class "UI_atencionCita" as UI <<boundary>> {
+  + mostrarCitasParaAtender(): void
+  + seleccionarCita(idCita): void
+  + ingresarDiagnosticoYNotas(): void
+  + guardarAtencion(): void
+  + mostrarAtencionRegistrada(): void
+  + mostrarMensaje(mensaje): void
+}
+
+class "AtencionCitaController" as C <<control>> {
+  + listarCitasAtendibles(idUsuario): List<Cita>
+  + obtenerDatosCita(idCita, idUsuario): Cita
+  + guardarAtencion(idCita, idUsuario, diagnostico, notasClinicas): Boolean
+}
+
+class "Medico" as M <<entity>> {
+  - idMedico: Integer
+  - codigo: String
+  - registroProfesional: String
+  - telefono: String
+  - activo: Boolean
+  - idUsuario: Integer
+  + obtenerPorIdUsuario(idUsuario): Medico
+}
+
+class "Cita" as CI <<entity>> {
+  - idCita: Integer
+  - codigo: String
+  - fecha: Date
+  - horaInicio: Time
+  - horaFin: Time
+  - estado: String
+  - motivo: String
+  - idPaciente: Integer
+  - idMedico: Integer
+  + listarPorMedicoYEstados(idMedico, estados): List<Cita>
+  + obtenerDetallePorId(idCita): Cita
+  + validarPuedeRegistrarAtencion(idCita, idMedico): Boolean
+  + marcarAtendida(idCita): Boolean
+}
+
+class "Paciente" as P <<entity>> {
+  - idPaciente: Integer
+  - codigo: String
+  - ci: String
+  - fechaNacimiento: Date
+  - sexo: String
+  - telefono: String
+  - direccion: String
+  - activo: Boolean
+  - idUsuario: Integer
+  + listarPorIds(idsPaciente): List<Paciente>
+  + obtenerPorId(idPaciente): Paciente
+}
+
+class "Usuario" as U <<entity>> {
+  - idUsuario: Integer
+  - nombreUsuario: String
+  - nombres: String
+  - apellidos: String
+  - correo: String
+  + listarPorIds(idsUsuario): List<Usuario>
+  + obtenerPorId(idUsuario): Usuario
+}
+
+class "PerfilMedico" as PM <<entity>> {
+  - idPerfilMedico: Integer
+  - tipoSangre: String
+  - alergias: String
+  - enfermedadesCronicas: String
+  - medicamentos: String
+  - nombreContactoEmergencia: String
+  - parentescoContactoEmergencia: String
+  - telefonoContactoEmergencia: String
+  - fechaActualizacion: DateTime
+  + obtenerPorIdPaciente(idPaciente): PerfilMedico
+}
+
+class "AtencionMedica" as AM <<entity>> {
+  - idAtencion: Integer
+  - diagnostico: String
+  - notasClinicas: String
+  - fechaHoraRegistro: DateTime
+  - idCita: Integer
+  - idMedico: Integer
+  + listarIdsPorCitas(idsCita): List<Integer>
+  + existePorIdCita(idCita): Boolean
+  + guardar(idCita, idMedico, diagnostico, notasClinicas): AtencionMedica
+}
+
+class "Bitacora" as B <<entity>> {
+  - idBitacora: Integer
+  - fechaHora: DateTime
+  - accion: String
+  - tablaAfectada: String
+  - detalle: String
+  - ip: String
+  - idUsuario: Integer
+  + registrarAccion(idUsuario, accion, tablaAfectada, detalle): void
+}
+
+MA -- UI
+UI -- C
+C -- M
+C -- CI
+C -- P
+C -- U
+C -- PM
+C -- AM
+C -- B
+
+U "1" -- "0..1" M : tiene
+U "1" -- "0..1" P : tiene
+P "1" -- "0..1" PM : tiene
+P "1" -- "0..*" CI : tiene
+M "1" -- "0..*" CI : atiende
+CI "1" -- "0..1" AM : registra
+M "1" -- "0..*" AM : registra
+U "0..1" -- "0..*" B : registra
+
+@enduml

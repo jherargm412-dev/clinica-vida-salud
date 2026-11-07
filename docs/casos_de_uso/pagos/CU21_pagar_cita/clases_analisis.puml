@@ -1,0 +1,165 @@
+@startuml
+title CU21 Pagar Cita - Diagrama de clases de análisis
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 35
+skinparam ranksep 120
+hide circle
+
+class UI_PagarCita <<boundary>> {
+  + mostrarPago(idCita)
+  + seleccionarFormaCobro(forma)
+  + registrarEfectivo(montoEfectivo)
+  + pagarEnLinea()
+  + confirmarCobro()
+  + retornarPago(idSesion)
+  + mostrarResumenPago(cita, montoTotal, tiempoRestante, metodos)
+  + mostrarFormaCobro(forma)
+  + mostrarSaldo(saldo)
+  + mostrarComprobante(comprobante)
+}
+
+class PasarelaPagoEnLinea <<boundary>> {
+  + crearSesionPago(monto, idCita)
+  + verificarPago(idSesion)
+  + mostrarFormularioPago(clientSecret)
+  + pagarConTarjeta(datosTarjeta)
+}
+
+class Ctrl_Pagos <<control>> {
+  + obtenerDatosPago(idCita)
+  + iniciarCobro(idCita, forma)
+  + registrarPagoEfectivo(idCita, montoEfectivo)
+  + iniciarPagoEnLinea(idCita)
+  + confirmarPagoEnLinea(idCita, idSesion)
+  + confirmarPagoEfectivo(idCita)
+  - validarMontoEfectivo(montoEfectivo, montoTotal, forma)
+  - calcularSaldo(idPago)
+  - validarSumaDetalles(idPago, montoTotal)
+  - calcularTiempoRestante(fechaCreacion)
+}
+
+class Tarifa <<entity>> {
+  - idTarifa: Integer
+  - monto: Decimal
+  - vigenteDesde: Date
+  - activo: Boolean
+  --
+  + obtenerActivaPorEspecialidad(idEspecialidad)
+}
+
+class Notificacion <<entity>> {
+  - idNotificacion: Integer
+  - tipo: String
+  - canal: String
+  - programadaPara: DateTime
+  - enviadaEn: DateTime
+  - estado: String
+  --
+  + registrarAviso(idCita, tipo)
+}
+
+class Cita <<entity>> {
+  - idCita: Integer
+  - codigo: String
+  - fecha: Date
+  - horaInicio: Time
+  - horaFin: Time
+  - motivo: String
+  - estado: String
+  - fechaCreacion: DateTime
+  - motivoCancelacion: String
+  - fechaCancelacion: DateTime
+  - canceladaPor: String
+  --
+  + obtenerDetallePorId(idCita)
+  + retencionVigente(idCita)
+  + marcarProgramada(idCita)
+}
+
+class Pago <<entity>> {
+  - idPago: Integer
+  - numeroComprobante: String
+  - montoTotal: Decimal
+  - fecha: DateTime
+  - estado: String
+  --
+  + insertarPago(idCita, idUsuario, montoTotal)
+  + generarNumeroComprobante()
+  + marcarPagado(idPago, numeroComprobante)
+}
+
+class DetallePago <<entity>> {
+  - idDetallePago: Integer
+  - monto: Decimal
+  - referenciaExterna: String
+  - estado: String
+  --
+  + insertarDetalle(idPago, idMetodoPago, monto)
+  + aprobarDetalles(idPago, idSesion)
+}
+
+class MetodoPago <<entity>> {
+  - idMetodoPago: Integer
+  - nombre: String
+  - enLinea: Boolean
+  - activo: Boolean
+  --
+  + listarActivos()
+  + listarActivosEnLinea()
+}
+
+class MovimientoCaja <<entity>> {
+  - idMovimientoCaja: Integer
+  - tipo: String
+  - monto: Decimal
+  - fecha: DateTime
+  --
+  + insertarIngreso(idSesionCaja, idDetallePago, monto)
+}
+
+class SesionCaja <<entity>> {
+  - idSesionCaja: Integer
+  - apertura: DateTime
+  - montoInicial: Decimal
+  - cierre: DateTime
+  - montoContado: Decimal
+  - diferencia: Decimal
+  - estado: String
+  --
+  + obtenerAbiertaPorUsuario(idUsuario)
+}
+
+class Bitacora <<entity>> {
+  - idBitacora: Integer
+  - fechaHora: DateTime
+  - accion: String
+  - tablaAfectada: String
+  - detalle: String
+  - ip: String
+  --
+  + registrar(idUsuario, accion, detalle, ip)
+}
+
+UI_PagarCita -- Ctrl_Pagos
+UI_PagarCita -- PasarelaPagoEnLinea
+Ctrl_Pagos -- PasarelaPagoEnLinea
+Ctrl_Pagos -- Tarifa
+Ctrl_Pagos -- Notificacion
+Ctrl_Pagos -- Cita
+Ctrl_Pagos -- Pago
+Ctrl_Pagos -- DetallePago
+Ctrl_Pagos -- MetodoPago
+Ctrl_Pagos -- MovimientoCaja
+Ctrl_Pagos -- SesionCaja
+Ctrl_Pagos -- Bitacora
+
+Cita "1" -[norank]- "0..*" Notificacion : tiene
+Cita "1" -[norank]- "0..1" Pago : tiene
+Pago "1" *-[norank]- "1..*" DetallePago : contiene
+DetallePago "0..*" -[norank]- "1" MetodoPago : clasifica
+DetallePago "1" -[norank]- "0..1" MovimientoCaja : genera
+SesionCaja "1" *-[norank]- "0..*" MovimientoCaja : registra
+@enduml

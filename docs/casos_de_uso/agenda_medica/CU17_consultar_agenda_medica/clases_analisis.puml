@@ -1,0 +1,104 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam dpi 200
+skinparam linetype polyline
+hide circle
+
+skinparam class {
+  BackgroundColor #EEEEEE
+  BorderColor #333333
+}
+
+title DIAGRAMA DE CLASE DE ANÁLISIS - CU17 Consultar Agenda Médica
+
+class "Administrador" as A <<actor>>
+class "Recepcionista" as R <<actor>>
+class "Médico" as MA <<actor>>
+
+class "UI_agendaMedica" as UI <<boundary>> {
+  + mostrarAgenda(): void
+  + mostrarMiAgenda(): void
+  + seleccionarMedico(idMedico): void
+  + consultarAgenda(fecha, estado): void
+  + filtrarMiAgenda(fecha, estado): void
+  + mostrarResultados(agenda): void
+  + mostrarMensaje(mensaje): void
+}
+
+class "AgendaMedicaController" as C <<control>> {
+  + listarMedicosParaAgenda(): List<Medico>
+  + consultarAgenda(idMedico, fecha, estado, permisoVerMotivo): List<Cita>
+  + consultarMiAgenda(idUsuario, fecha, estado, permisoVerMotivo): List<Cita>
+}
+
+class "Medico" as M <<entity>> {
+  - idMedico: Integer
+  - codigo: String
+  - registroProfesional: String
+  - telefono: String
+  - activo: Boolean
+  - idUsuario: Integer
+  + listarParaAgenda(): List<Medico>
+  + obtenerPorIdUsuario(idUsuario): Medico
+  + listarPorIds(idsMedico): List<Medico>
+}
+
+class "Cita" as CI <<entity>> {
+  - idCita: Integer
+  - codigo: String
+  - fecha: Date
+  - horaInicio: Time
+  - horaFin: Time
+  - estado: String
+  - motivo: String
+  - fechaCreacion: DateTime
+  - idPaciente: Integer
+  - idMedico: Integer
+  - idEspecialidad: Integer
+  + listarPorMedicoFechaEstado(idMedico, fecha, estado): List<Cita>
+}
+
+class "Paciente" as P <<entity>> {
+  - idPaciente: Integer
+  - codigo: String
+  - ci: String
+  - activo: Boolean
+  - idUsuario: Integer
+  + listarPorIds(idsPaciente): List<Paciente>
+}
+
+class "Especialidad" as E <<entity>> {
+  - idEspecialidad: Integer
+  - nombre: String
+  - descripcion: String
+  - activo: Boolean
+  + listarPorIds(idsEspecialidad): List<Especialidad>
+}
+
+class "Usuario" as U <<entity>> {
+  - idUsuario: Integer
+  - nombres: String
+  - apellidos: String
+  - correo: String
+  + listarPorIds(idsUsuario): List<Usuario>
+}
+
+A -- UI
+R -- UI
+MA -- UI
+UI -- C
+C -- M
+C -- CI
+C -- P
+C -- E
+C -- U
+
+U "1" -- "0..1" M : tiene
+U "1" -- "0..1" P : tiene
+M "1" -- "0..*" CI : atiende
+P "1" -- "0..*" CI : tiene
+E "1" -- "0..*" CI : clasifica
+
+@enduml

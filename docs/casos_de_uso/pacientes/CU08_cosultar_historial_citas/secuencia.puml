@@ -1,0 +1,64 @@
+@startuml
+autonumber
+autoactivate on
+skinparam shadowing false
+skinparam dpi 200
+
+title DIAGRAMA DE SECUENCIA - CU08 Consultar Historial de Citas
+
+actor "Recepcionista" as R
+actor "Paciente" as PA
+boundary "UI_historialCitas" as UI
+control "HistorialCitasController" as C
+entity "Paciente" as P
+entity "Usuario" as U
+entity "Cita" as CI
+entity "Medico" as M
+entity "Especialidad" as E
+
+alt Consulta de la recepcionista
+    R -> UI : buscarPaciente(texto)
+    UI -> C : buscarPacientes(texto)
+    C -> P : buscarPorCI(texto)
+    C -> U : buscarPorNombreApellido(texto)
+    U --> C : usuariosEncontrados
+    C -> P : listarPorIdsUsuario(idsUsuario)
+    P --> C : pacientesEncontrados
+    C --> UI : mostrarResultados(pacientesEncontrados)
+
+    R -> UI : seleccionarPaciente(idPaciente)
+    UI -> C : consultarHistorialPaciente(idPaciente, null)
+    C -> P : obtenerPorId(idPaciente)
+    P --> C : datosPaciente
+    C -> U : obtenerPorId(idUsuario)
+    U --> C : nombrePaciente
+
+else Consulta del paciente
+    PA -> UI : mostrarMisCitas()
+    UI -> C : consultarMisCitas(idUsuario, null)
+    C -> P : obtenerPorIdUsuario(idUsuario)
+    P --> C : datosPaciente
+    C -> U : obtenerPorId(idUsuario)
+    U --> C : nombrePaciente
+end
+
+C -> CI : listarPorPaciente(idPaciente, estado)
+CI --> C : citasConIdsMedicoYEspecialidad
+C -> M : listarPorIds(idsMedico)
+M --> C : datosMedicosConIdsUsuario
+C -> E : listarPorIds(idsEspecialidad)
+E --> C : datosEspecialidades
+C -> U : listarPorIds(idsUsuarioPacienteYMedico)
+U --> C : nombresPacienteYMedicos
+C --> UI : mostrarHistorial(datosPaciente, citas, nombres, especialidades)
+
+opt Filtrar por estado o limpiar filtro
+    R -> UI : filtrarPorEstado(estado) / limpiarFiltro()
+    PA -> UI : filtrarMisCitas(estado) / limpiarFiltro()
+    UI -> C : consultarHistorial(idPaciente, estado?)
+    C -> CI : listarPorPaciente(idPaciente, estado?)
+    CI --> C : citasFiltradas
+    C --> UI : mostrarHistorialActualizado(citasFiltradas)
+end
+
+@enduml
