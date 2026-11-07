@@ -46,6 +46,17 @@
 - Las páginas públicas (login, recuperar y restablecer) comparten la plantilla `resources/views/compartido/publica.blade.php`.
 - Base existente: `database/sql/actualizacion_recuperar_contrasena.sql`.
 
+## Notificaciones push (RF30, RF31) — 06/11/2026
+- Web Push estándar con la librería `minishlink/web-push` y claves VAPID propias (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` en `.env`). No hay cuenta en ningún servicio externo; las claves deben ser las mismas en todos los `.env` y en Railway (si cambian, las suscripciones dejan de servir).
+- RF30 en CU04 "Mi perfil" (solo pacientes): tarjeta "Notificaciones" con el estado de este dispositivo, "Activar/Desactivar en este dispositivo" y la lista de dispositivos activos (cada uno se puede desactivar). La suscripción se envía con un formulario normal que llena `public/js/notificaciones.js` (sin API ni JSON). Service worker: `public/sw.js`; al pulsar el aviso abre "Mis citas".
+- RF31: `App\Modulos\pagos\service\Notificador` intenta push en todos los dispositivos activos; si no hay o fallan todos, correo (Brevo); si tampoco, "Fallida". Las suscripciones que el navegador borró (404/410) se desactivan solas. La tabla `notificacion` guarda por dónde salió (`canal`).
+- Avisos: "Cita programada" (CU21, tras el pago), "Cita reprogramada" (CU14), "Cita cancelada" (CU15, solo citas Programadas o Confirmadas; la cancelación automática por falta de pago NO se avisa) y "Recordatorio" 24 h antes. Se envían después de guardar (`DB::afterCommit`): un fallo nunca deshace la operación.
+- Recordatorio: se crea "Pendiente" al programar la cita con `programada_para` = inicio − 24 h; al reprogramar se anula y se crea otro; al cancelar queda "Anulada". Si faltan menos de 24 h no se crea (el paciente acaba de recibir el aviso de programada o reprogramada). El comando `notificaciones:enviar-recordatorios` (cada 5 minutos) envía los que tocan, anula los de citas que ya no están vigentes y crea los que falten para citas antiguas.
+- Railway: `docker/entrypoint.sh` arranca `php artisan schedule:work` en segundo plano como www-data (también hace correr `pagos:liberar-reservas`). El Dockerfile agrega la extensión `bcmath`.
+- iPhone/iPad: push solo si el paciente agrega la clínica a la pantalla de inicio (iOS 16.4+); para eso están `public/manifest.json` y el ícono `public/img/icono-192.png`.
+- Bitácora: ACTIVAR_NOTIFICACIONES y DESACTIVAR_NOTIFICACIONES (tabla `suscripcion_push`). Los envíos no van a la bitácora (quedan en `notificacion`).
+- Base existente: `database/sql/actualizacion_notificaciones_push.sql` (tabla `suscripcion_push` y estado "Anulada").
+
 ## Usuarios (CU01)
 - En CU01 solo se asignan roles activos **excepto Paciente** (las cuentas de pacientes se crean en el CU06 junto con su ficha). Al editar una cuenta se muestra también su rol actual.
 - Correo opcional; si se ingresa, debe ser único. Contraseña obligatoria al registrar; al modificar, si se deja vacía se mantiene.
@@ -102,7 +113,7 @@
 - CU21: al vencer o cancelar, la cita queda "Cancelada" con `cancelada_por = 'Sistema'` y motivo "Pago no realizado a tiempo" o "Pago cancelado"; el pago y sus detalles pendientes quedan "Anulado"; se avisa el efectivo a devolver. La sesión de Stripe abierta se expira; si alcanzó a pagarse, se reembolsa automáticamente. Las cancelaciones automáticas no van a la bitácora; "Cancelar" registra ANULAR_PAGO.
 - CU21: Stripe Checkout (modo prueba). Se aprueba solo si al verificar la sesión en el servidor `payment_status = 'paid'` y coinciden el detalle (metadata), el monto y la moneda. `referencia_externa` = payment_intent. Moneda configurable (`STRIPE_CURRENCY`, por defecto bob).
 - CU21: la forma de cobro (efectivo / en línea / combinado) se recuerda en la sesión de Laravel; solo se cambia si no hay detalles "Pendiente". El recepcionista que elige la forma "toma" el cobro (`pago.id_usuario`) y el efectivo entra a SU caja. Comprobante `CP-0001` con bloqueo `pg_advisory_xact_lock` para no repetir números.
-- CU21 (RF29): aviso "Cita programada" solo por correo (Brevo por API, `MAIL_MAILER=brevo`); se envía después de guardar y, si falla o el paciente no tiene correo, la notificación queda "Fallida" sin revertir el pago. PENDIENTE: notificaciones push.
+- CU21 (RF29): aviso "Cita programada" por push y, si no hay o falla, por correo (ver "Notificaciones push"). Se envía después de guardar; si falla, la notificación queda "Fallida" sin revertir el pago.
 - Bitácora: PAGAR_CITA, ANULAR_PAGO.
 - CU13 + CU21: "Registrar cita" es un asistente por pasos: Paciente (solo recepcionista) → Especialidad (con el precio de la tarifa) → Médico → Fecha y hora (7 días con cupos y bloques libres) → Resumen y pago. Cada paso es una página (lo elegido viaja en la URL; sin API). Solo se ofrecen especialidades activas con tarifa y médicos activos. La pantalla de pago (CU21) muestra la misma barra de pasos.
 - CU12: el cálculo de horarios libres está en `app/Modulos/citas/service/Disponibilidad.php` (lo usan "Disponibilidad" y el asistente). La pantalla "Disponibilidad" sigue existiendo (consulta y CU14).

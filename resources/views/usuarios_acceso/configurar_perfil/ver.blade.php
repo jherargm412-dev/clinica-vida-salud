@@ -165,6 +165,73 @@
             </div>
         </div>
 
+        {{-- 5. Notificaciones push (RF30): solo pacientes. El JavaScript está en public/js/notificaciones.js --}}
+        @if ($esPaciente)
+            <div class="col-12" id="notificaciones">
+                <div class="card border-0 shadow-sm" data-push data-clave-publica="{{ $clavePublicaPush }}" data-service-worker="{{ asset('sw.js') }}">
+                    <div class="card-body">
+                        <h2 class="h5 fw-semibold mb-1"><i class="bi bi-bell me-1"></i> Notificaciones</h2>
+                        <p class="small text-muted mb-3">
+                            Reciba en este dispositivo los avisos de sus citas: programada, reprogramada, cancelada y un
+                            recordatorio 24 horas antes. Si no tiene notificaciones activas, se las enviamos por correo.
+                        </p>
+
+                        {{-- Estado en ESTE navegador (lo completa el JavaScript) --}}
+                        <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                            <div>
+                                <span class="text-muted">En este dispositivo:</span>
+                                <span class="badge text-bg-secondary" data-push-estado>Comprobando…</span>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm d-none" data-push-activar>
+                                <i class="bi bi-bell me-1"></i> Activar en este dispositivo
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm d-none" data-push-desactivar>
+                                <i class="bi bi-bell-slash me-1"></i> Desactivar en este dispositivo
+                            </button>
+                        </div>
+                        <div class="alert alert-warning small py-2 d-none" data-push-mensaje></div>
+
+                        {{-- Formulario oculto: el JavaScript lo llena con los datos del navegador y lo envía --}}
+                        <form method="POST" action="{{ route('perfil.notificaciones.activar') }}" class="d-none" data-push-form>
+                            @csrf
+                            <input type="hidden" name="endpoint">
+                            <input type="hidden" name="p256dh">
+                            <input type="hidden" name="auth">
+                            <input type="hidden" name="dispositivo">
+                        </form>
+
+                        {{-- Todos sus dispositivos con notificaciones activas --}}
+                        <h3 class="h6 fw-semibold mb-2">Dispositivos con notificaciones activas</h3>
+                        <ul class="list-group list-group-flush">
+                            @forelse ($suscripciones as $suscripcion)
+                                <li class="list-group-item px-0 d-flex justify-content-between align-items-center gap-2"
+                                    data-push-dispositivo="{{ $suscripcion->endpoint }}">
+                                    <div>
+                                        <i class="bi bi-display me-1 text-muted"></i> {{ $suscripcion->dispositivo }}
+                                        <span class="badge text-bg-primary d-none" data-push-este>Este dispositivo</span>
+                                        <div class="small text-muted">Activadas el {{ $suscripcion->fecha_registro?->format('d/m/Y H:i') }}</div>
+                                    </div>
+                                    <form method="POST" action="{{ route('perfil.notificaciones.desactivar', $suscripcion) }}"
+                                          data-confirmar="¿Desactivar las notificaciones en {{ $suscripcion->dispositivo }}?">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Desactivar</button>
+                                    </form>
+                                </li>
+                            @empty
+                                <li class="list-group-item px-0 text-muted">Ningún dispositivo. Los avisos le llegarán por correo.</li>
+                            @endforelse
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        @endif
+
     </div>
+
+    @if ($esPaciente)
+        @push('scripts')
+            <script src="{{ asset('js/notificaciones.js') }}"></script>
+        @endpush
+    @endif
 
 @endsection

@@ -12,6 +12,7 @@ use App\Modulos\pagos\models\Notificacion;
 use App\Modulos\pagos\models\Pago;
 use App\Modulos\pagos\models\SesionCaja;
 use App\Modulos\pagos\models\Tarifa;
+use App\Modulos\pagos\service\Notificador;
 use App\Modulos\pagos\service\PasarelaPagoEnLinea;
 use App\Modulos\pagos\service\ReservaPago;
 use App\Modulos\usuarios_acceso\models\Bitacora;
@@ -541,9 +542,11 @@ class PagoController extends Controller
                 'Cita: ' . $citaBloqueada->codigo . ' - Comprobante: ' . $pago->numero_comprobante
                 . ' - Total: Bs ' . $pago->monto_total . ' (Efectivo: Bs ' . $montoEfectivo . ', En línea: Bs ' . $montoEnLinea . ')');
 
-            // 8 / 8a: aviso al paciente; el correo se envía DESPUÉS de guardar y, si falla, no revierte el pago
-            $aviso = Notificacion::registrarAviso($citaBloqueada->id_cita, 'Cita programada');
-            DB::afterCommit(fn () => $aviso->enviarCorreo());
+            // 8 / 8a (RF31): aviso al paciente (push y, si no hay o falla, correo). Se envía DESPUÉS de guardar
+            // y, si falla, no revierte el pago. También se programa el recordatorio 24 h antes de la cita.
+            $aviso = Notificacion::registrarAviso($citaBloqueada->id_cita, Notificacion::PROGRAMADA);
+            Notificacion::programarRecordatorio($citaBloqueada);
+            DB::afterCommit(fn () => Notificador::enviar($aviso));
 
             return ['ok' => true];
         });

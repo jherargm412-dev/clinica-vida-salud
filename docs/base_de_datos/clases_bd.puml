@@ -46,6 +46,16 @@ class Bitacora {
   ip : String
   idUsuario : Integer
 }
+class SuscripcionPush {
+  idSuscripcion : Integer
+  endpoint : String
+  claveP256dh : String
+  claveAuth : String
+  dispositivo : String
+  activo : Boolean
+  fechaRegistro : DateTime
+  idUsuario : Integer
+}
 class RecuperacionContrasena {
   idRecuperacion : Integer
   token : String
@@ -172,6 +182,7 @@ Permiso "1" -- "0..*" RolPermiso
 RolPermiso "1..*" -- "1" Rol
 Rol "1" -- "0..*" Usuario : tiene
 Usuario "0..1" -- "0..*" Bitacora : registra
+Usuario "1" -- "0..*" SuscripcionPush : activa
 Usuario "1" -- "0..*" RecuperacionContrasena : solicita
 Usuario "1" -- "0..1" Medico : tiene
 Usuario "1" -- "0..1" Paciente : tiene

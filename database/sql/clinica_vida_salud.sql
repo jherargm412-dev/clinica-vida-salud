@@ -25,6 +25,7 @@ DROP TABLE IF EXISTS cita                CASCADE;
 DROP TABLE IF EXISTS horario_atencion    CASCADE;
 DROP TABLE IF EXISTS medico_especialidad CASCADE;
 DROP TABLE IF EXISTS recuperacion_contrasena CASCADE;
+DROP TABLE IF EXISTS suscripcion_push    CASCADE;
 DROP TABLE IF EXISTS bitacora            CASCADE;
 DROP TABLE IF EXISTS perfil_medico       CASCADE;
 DROP TABLE IF EXISTS paciente            CASCADE;
@@ -160,6 +161,20 @@ CREATE TABLE recuperacion_contrasena (
     CONSTRAINT fk_recuperacion_usuario FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario) ON DELETE RESTRICT,
     CONSTRAINT uq_recuperacion_token   UNIQUE (token),
     CONSTRAINT ck_recuperacion_fechas  CHECK (fecha_expiracion > fecha_solicitud)
+);
+
+-- RF30: navegadores o dispositivos donde el paciente activó las notificaciones push
+CREATE TABLE suscripcion_push (
+    id_suscripcion   SERIAL        PRIMARY KEY,
+    id_usuario       INTEGER       NOT NULL,
+    endpoint         TEXT          NOT NULL,              -- dirección del servicio push del navegador (Google, Mozilla o Apple)
+    clave_p256dh     VARCHAR(255)  NOT NULL,              -- clave pública del navegador para cifrar el mensaje
+    clave_auth       VARCHAR(255)  NOT NULL,              -- secreto de autenticación del navegador
+    dispositivo      VARCHAR(100),                        -- descripción legible, p. ej. "Chrome en Windows"
+    activo           BOOLEAN       NOT NULL DEFAULT TRUE, -- FALSE: el paciente la desactivó o el navegador ya no la acepta
+    fecha_registro   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_suscripcion_usuario  FOREIGN KEY (id_usuario) REFERENCES usuario (id_usuario) ON DELETE RESTRICT,
+    CONSTRAINT uq_suscripcion_endpoint UNIQUE (endpoint)
 );
 
 CREATE TABLE tarifa (
@@ -360,14 +375,14 @@ CREATE TABLE movimiento_caja (
 CREATE TABLE notificacion (
     id_notificacion  SERIAL       PRIMARY KEY,
     id_cita          INTEGER      NOT NULL,
-    tipo             VARCHAR(30)  NOT NULL,               -- p. ej. 'Cita programada'
-    canal            VARCHAR(10)  NOT NULL,               -- 'Push' o 'Correo'
-    programada_para  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    tipo             VARCHAR(30)  NOT NULL,               -- 'Cita programada', 'Cita reprogramada', 'Cita cancelada' o 'Recordatorio'
+    canal            VARCHAR(10)  NOT NULL,               -- 'Push' o 'Correo' (el canal por el que se envió; si push falla pasa a Correo)
+    programada_para  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- recordatorio: 24 h antes de la cita
     enviada_en       TIMESTAMP,
     estado           VARCHAR(10)  NOT NULL DEFAULT 'Pendiente',
     CONSTRAINT fk_notificacion_cita   FOREIGN KEY (id_cita) REFERENCES cita (id_cita) ON DELETE RESTRICT,
     CONSTRAINT ck_notificacion_canal  CHECK (canal IN ('Push', 'Correo')),
-    CONSTRAINT ck_notificacion_estado CHECK (estado IN ('Pendiente', 'Enviada', 'Fallida'))
+    CONSTRAINT ck_notificacion_estado CHECK (estado IN ('Pendiente', 'Enviada', 'Fallida', 'Anulada'))
 );
 
 -- ---------------------------------------------------------------------
@@ -388,6 +403,11 @@ CREATE INDEX ix_detalle_pago_pago    ON detalle_pago (id_pago);
 CREATE INDEX ix_movimiento_caja_sesion ON movimiento_caja (id_sesion_caja);
 CREATE INDEX ix_notificacion_cita    ON notificacion (id_cita);
 CREATE INDEX ix_recuperacion_usuario ON recuperacion_contrasena (id_usuario);
+CREATE INDEX ix_suscripcion_usuario  ON suscripcion_push (id_usuario) WHERE activo;
+CREATE INDEX ix_notificacion_pendiente ON notificacion (programada_para) WHERE estado = 'Pendiente';
+-- Un solo recordatorio pendiente por cita
+CREATE UNIQUE INDEX uq_notificacion_recordatorio_pendiente
+    ON notificacion (id_cita) WHERE tipo = 'Recordatorio' AND estado = 'Pendiente';
 
 -- ---------------------------------------------------------------------
 -- 6. Datos iniciales

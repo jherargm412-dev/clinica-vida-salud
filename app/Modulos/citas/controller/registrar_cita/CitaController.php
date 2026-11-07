@@ -13,7 +13,9 @@ use App\Modulos\medicos_especialidades\models\HorarioAtencion;
 use App\Modulos\medicos_especialidades\models\Medico;
 use App\Modulos\pacientes\models\Paciente;
 use App\Modulos\pagos\models\MetodoPago;
+use App\Modulos\pagos\models\Notificacion;
 use App\Modulos\pagos\models\Tarifa;
+use App\Modulos\pagos\service\Notificador;
 use App\Modulos\pagos\service\ReservaPago;
 use App\Modulos\usuarios_acceso\models\Bitacora;
 use Carbon\Carbon;
@@ -96,6 +98,12 @@ class CitaController extends Controller
                 'Cita: '.$cita->codigo.' - Motivo: '.$motivoCancelacion,
                 $idUsuario
             );
+
+            // RF31: aviso "Cita cancelada" (push o correo) DESPUÉS de guardar; si falla no deshace la
+            // cancelación. El recordatorio de 24 h que estaba pendiente ya no se envía.
+            Notificacion::anularRecordatorio($idCita);
+            $aviso = Notificacion::registrarAviso($idCita, Notificacion::CANCELADA);
+            DB::afterCommit(fn () => Notificador::enviar($aviso));
 
             return ['success' => true];
         });
@@ -564,6 +572,12 @@ class CitaController extends Controller
                     .' - Anterior: '.$fechaAnterior.' '.$horaInicioAnterior.'-'.$horaFinAnterior
                     .' - Nueva: '.$nuevaFecha.' '.substr($nuevaHoraInicio, 0, 5).'-'.substr($nuevaHoraFin, 0, 5)
             );
+
+            // RF31: aviso "Cita reprogramada" (push o correo) DESPUÉS de guardar; si falla no deshace
+            // la reprogramación. El recordatorio de 24 h se mueve a la nueva fecha (o se anula si falta menos).
+            Notificacion::programarRecordatorio($cita);
+            $aviso = Notificacion::registrarAviso($cita->id_cita, Notificacion::REPROGRAMADA);
+            DB::afterCommit(fn () => Notificador::enviar($aviso));
 
             return ['id_cita' => $cita->id_cita];
         });

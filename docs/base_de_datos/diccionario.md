@@ -5,7 +5,7 @@ Tablas y columnas en `snake_case` (PostgreSQL). El script completo está en `dat
 ## Restricciones principales
 
 - Todas las FK son `ON DELETE RESTRICT`, salvo las composiciones con `ON DELETE CASCADE`: `horario_atencion.id_medico`, `detalle_pago.id_pago` y `movimiento_caja.id_sesion_caja`.
-- Únicos: `rol.nombre`; `permiso.clave` y `permiso.nombre`; `LOWER(TRIM(especialidad.nombre))`; `usuario.nombre_usuario` y `usuario.correo`; `medico.id_usuario`, `medico.codigo`, `medico.registro_profesional`; `paciente.id_usuario`, `paciente.codigo`, `paciente.ci`; `cita.codigo`; `metodo_pago.nombre`; `pago.id_cita` y `pago.numero_comprobante`; `movimiento_caja.id_detalle_pago`; `recuperacion_contrasena.token`.
+- Únicos: `rol.nombre`; `permiso.clave` y `permiso.nombre`; `LOWER(TRIM(especialidad.nombre))`; `usuario.nombre_usuario` y `usuario.correo`; `medico.id_usuario`, `medico.codigo`, `medico.registro_profesional`; `paciente.id_usuario`, `paciente.codigo`, `paciente.ci`; `cita.codigo`; `metodo_pago.nombre`; `pago.id_cita` y `pago.numero_comprobante`; `movimiento_caja.id_detalle_pago`; `recuperacion_contrasena.token`; `suscripcion_push.endpoint`.
 - CHECK: `usuario.intentos_fallidos` entre 0 y 3; `paciente.sexo` en ('M','F'); `paciente.fecha_nacimiento <= hoy`; `horario_atencion.dia_semana` entre 1 y 7, `hora_fin > hora_inicio`, `duracion_cita > 0`; `cita.hora_fin > hora_inicio`; `cita.estado` en ('Pendiente de pago','Programada','Confirmada','Atendida','Cancelada','Inasistencia'); montos de tarifa, pago, detalle y movimiento > 0; montos de caja >= 0; estados de `sesion_caja`, `pago`, `detalle_pago` y `notificacion` (ver cada tabla).
 - Índice único parcial `uq_cita_medico_horario (id_medico, fecha, hora_inicio) WHERE estado <> 'Cancelada'`: un médico no puede tener dos citas vigentes a la misma hora.
 - Índice único parcial `uq_tarifa_activa_especialidad (id_especialidad) WHERE activo = TRUE`: una sola tarifa activa por especialidad.
@@ -231,8 +231,25 @@ Enlaces de un solo uso de CU02 "Recuperar contraseña". Base existente: `databas
 |---|---|---|---|---|---|
 | id_notificacion | SERIAL | 4 bytes | No | Sí (PK) | Identificador único de la notificación |
 | id_cita | INTEGER | 4 bytes | No | Sí (FK) | Cita sobre la que se avisa |
-| tipo | VARCHAR(30) | 30 caracteres | No | No | Tipo de aviso, p. ej. Cita programada |
-| canal | VARCHAR(10) | 10 caracteres | No | No | Push o Correo |
-| programada_para | TIMESTAMP | 8 bytes | No | No | Cuándo debe enviarse (por defecto la actual) |
+| tipo | VARCHAR(30) | 30 caracteres | No | No | Cita programada, Cita reprogramada, Cita cancelada o Recordatorio |
+| canal | VARCHAR(10) | 10 caracteres | No | No | Push o Correo: por dónde se envió (mientras está Pendiente vale Push, que es lo primero que se intenta) |
+| programada_para | TIMESTAMP | 8 bytes | No | No | Cuándo debe enviarse (por defecto la actual; el Recordatorio, 24 h antes de la cita) |
 | enviada_en | TIMESTAMP | 8 bytes | Sí | No | Cuándo se envió |
-| estado | VARCHAR(10) | 10 caracteres | No | No | Pendiente, Enviada o Fallida (por defecto Pendiente) |
+| estado | VARCHAR(10) | 10 caracteres | No | No | Pendiente, Enviada, Fallida o Anulada (recordatorio que ya no corresponde); por defecto Pendiente |
+
+Índice único parcial `uq_notificacion_recordatorio_pendiente (id_cita) WHERE tipo = 'Recordatorio' AND estado = 'Pendiente'`: un solo recordatorio pendiente por cita. Base existente: `database/sql/actualizacion_notificaciones_push.sql`.
+
+## suscripcion_push
+
+RF30: navegadores o dispositivos donde el paciente activó las notificaciones push (CU04).
+
+| Atributo | Tipo de Dato | Longitud | Nulo | Es llave | Descripción |
+|---|---|---|---|---|---|
+| id_suscripcion | SERIAL | 4 bytes | No | Sí (PK) | Identificador único de la suscripción |
+| id_usuario | INTEGER | 4 bytes | No | Sí (FK) | Cuenta del paciente |
+| endpoint | TEXT | Variable | No | No (único) | Dirección del servicio push del navegador (Google, Mozilla o Apple) |
+| clave_p256dh | VARCHAR(255) | 255 caracteres | No | No | Clave pública del navegador para cifrar el mensaje |
+| clave_auth | VARCHAR(255) | 255 caracteres | No | No | Secreto de autenticación del navegador |
+| dispositivo | VARCHAR(100) | 100 caracteres | Sí | No | Descripción legible, p. ej. Chrome en Windows |
+| activo | BOOLEAN | 1 byte | No | No | FALSE si el paciente la desactivó o el navegador ya no la acepta (por defecto TRUE) |
+| fecha_registro | TIMESTAMP | 8 bytes | No | No | Cuándo se activó (por defecto la actual) |
