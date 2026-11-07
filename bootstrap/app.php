@@ -11,9 +11,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Render entrega la app detrás de varios proxies internos (IPs privadas 10.x).
-        // Confiamos en los rangos privados para que request()->ip() devuelva la IP real del usuario.
+        // La nube entrega la app detrás de proxies internos. Laravel solo lee la IP real del usuario
+        // (encabezado X-Forwarded-For) si la petición viene de un proxy de confianza; si no, la bitácora
+        // guarda la IP del proxy. Railway usa el rango 100.64.0.0/10 (por eso salían IPs 100.64.0.x);
+        // los rangos privados 10.x, 172.16.x y 192.168.x se mantienen (Render, Docker local).
+        // Son direcciones internas que no se pueden usar desde internet, así que nadie puede falsificar su IP.
         $middleware->trustProxies(at: [
+            '100.64.0.0/10',
             '10.0.0.0/8',
             '172.16.0.0/12',
             '192.168.0.0/16',

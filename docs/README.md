@@ -41,5 +41,8 @@ Los casos de uso con un solo escenario tienen `comunicacion.puml` y `secuencia.p
 | pagos | CU20 Gestionar Tarifas y Métodos de Pago | Jherar |
 | pagos | CU21 Pagar Cita | Jherar |
 | pagos | CU22 Gestionar Caja | Jherar |
+| asistencia_usuario | CU23 Gestionar Preguntas Frecuentes | Jherar |
+| asistencia_usuario | CU24 Consultar Asistente Virtual | Jherar |
+| asistencia_usuario | CU25 Navegar por Comando de Voz | Jherar |
 
 Los casos de uso de Luis Fernando (CU06, CU11–CU15) los agrega él con la misma estructura.
