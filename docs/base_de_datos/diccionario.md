@@ -5,8 +5,8 @@ Tablas y columnas en `snake_case` (PostgreSQL). El script completo está en `dat
 ## Restricciones principales
 
 - Todas las FK son `ON DELETE RESTRICT`, salvo las composiciones con `ON DELETE CASCADE`: `horario_atencion.id_medico`, `detalle_pago.id_pago` y `movimiento_caja.id_sesion_caja`.
-- Únicos: `rol.nombre`; `permiso.clave` y `permiso.nombre`; `LOWER(TRIM(especialidad.nombre))`; `usuario.nombre_usuario` y `usuario.correo`; `medico.id_usuario`, `medico.codigo`, `medico.registro_profesional`; `paciente.id_usuario`, `paciente.codigo`, `paciente.ci`; `cita.codigo`; `metodo_pago.nombre`; `pago.id_cita` y `pago.numero_comprobante`; `movimiento_caja.id_detalle_pago`; `recuperacion_contrasena.token`; `suscripcion_push.endpoint`.
-- CHECK: `usuario.intentos_fallidos` entre 0 y 3; `paciente.sexo` en ('M','F'); `paciente.fecha_nacimiento <= hoy`; `horario_atencion.dia_semana` entre 1 y 7, `hora_fin > hora_inicio`, `duracion_cita > 0`; `cita.hora_fin > hora_inicio`; `cita.estado` en ('Pendiente de pago','Programada','Confirmada','Atendida','Cancelada','Inasistencia'); montos de tarifa, pago, detalle y movimiento > 0; montos de caja >= 0; estados de `sesion_caja`, `pago`, `detalle_pago` y `notificacion` (ver cada tabla).
+- Únicos: `rol.nombre`; `permiso.clave` y `permiso.nombre`; `LOWER(TRIM(especialidad.nombre))`; `usuario.nombre_usuario` y `usuario.correo`; `medico.id_usuario`, `medico.codigo`, `medico.registro_profesional`; `paciente.id_usuario`, `paciente.codigo`, `paciente.ci`; `cita.codigo`; `metodo_pago.nombre`; `pago.id_cita` y `pago.numero_comprobante`; `movimiento_caja.id_detalle_pago`; `recuperacion_contrasena.token`; `suscripcion_push.endpoint`; `LOWER(pregunta_frecuente.pregunta)`.
+- CHECK: `usuario.intentos_fallidos` entre 0 y 3; `paciente.sexo` en ('M','F'); `paciente.fecha_nacimiento <= hoy`; `horario_atencion.dia_semana` entre 1 y 7, `hora_fin > hora_inicio`, `duracion_cita > 0`; `cita.hora_fin > hora_inicio`; `cita.estado` en ('Pendiente de pago','Programada','Confirmada','Atendida','Cancelada','Inasistencia'); montos de tarifa, pago, detalle y movimiento > 0; montos de caja >= 0; estados de `sesion_caja`, `pago`, `detalle_pago` y `notificacion` (ver cada tabla); `pregunta_frecuente.categoria` en ('Citas','Pagos','Notificaciones','Mi cuenta','La clínica').
 - Índice único parcial `uq_cita_medico_horario (id_medico, fecha, hora_inicio) WHERE estado <> 'Cancelada'`: un médico no puede tener dos citas vigentes a la misma hora.
 - Índice único parcial `uq_tarifa_activa_especialidad (id_especialidad) WHERE activo = TRUE`: una sola tarifa activa por especialidad.
 - Índice único parcial `uq_sesion_caja_abierta (id_usuario) WHERE estado = 'Abierta'`: un recepcionista no puede tener dos cajas abiertas.
@@ -15,8 +15,9 @@ Tablas y columnas en `snake_case` (PostgreSQL). El script completo está en `dat
 ## Datos iniciales
 
 - Roles: Administrador, Recepcionista, Medico, Paciente.
-- 21 permisos (uno por caso de uso; CU21 tiene dos: cobrar y pagar la propia) asignados según el diagrama general: Administrador todos, Recepcionista 11, Medico 2, Paciente 5.
+- 25 permisos (uno por caso de uso; CU19 tiene dos: reporte básico y todos los reportes; CU21 tiene dos: cobrar y pagar la propia) asignados según el diagrama general: Administrador todos, Recepcionista 12, Medico 3, Paciente 7.
 - Métodos de pago: Efectivo (no en línea) y Pago en línea (en línea), ambos activos.
+- 24 preguntas frecuentes del asistente virtual (CU23/CU24), en las 5 categorías. Las de "La clínica" (dirección, horario y teléfono) son datos de ejemplo.
 - Usuario `admin` / `Admin2026*` con rol Administrador.
 
 ## rol
@@ -253,3 +254,17 @@ RF30: navegadores o dispositivos donde el paciente activó las notificaciones pu
 | dispositivo | VARCHAR(100) | 100 caracteres | Sí | No | Descripción legible, p. ej. Chrome en Windows |
 | activo | BOOLEAN | 1 byte | No | No | FALSE si el paciente la desactivó o el navegador ya no la acepta (por defecto TRUE) |
 | fecha_registro | TIMESTAMP | 8 bytes | No | No | Cuándo se activó (por defecto la actual) |
+
+## pregunta_frecuente
+
+CU23: preguntas y respuestas que administra el administrador. CU24 (asistente virtual) responde solo con las activas.
+
+| Atributo | Tipo de Dato | Longitud | Nulo | Es llave | Descripción |
+|---|---|---|---|---|---|
+| id_pregunta_frecuente | SERIAL | 4 bytes | No | Sí (PK) | Identificador único de la pregunta |
+| categoria | VARCHAR(20) | 20 caracteres | No | No | Citas, Pagos, Notificaciones, Mi cuenta o La clínica |
+| pregunta | VARCHAR(200) | 200 caracteres | No | No (único) | Texto de la pregunta (único sin distinguir mayúsculas) |
+| respuesta | VARCHAR(1000) | 1000 caracteres | No | No | Texto con el que responde el asistente |
+| palabras_clave | VARCHAR(300) | 300 caracteres | No | No | Palabras o frases separadas por comas, en minúsculas, con las que el asistente reconoce la pregunta |
+| activo | BOOLEAN | 1 byte | No | No | FALSE si se desactivó: el asistente deja de usarla (por defecto TRUE) |
+| fecha_registro | TIMESTAMP | 8 bytes | No | No | Cuándo se registró (por defecto la actual) |

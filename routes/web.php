@@ -25,3 +25,4 @@ require __DIR__ . '/modulos/citas.php';
 require __DIR__ . '/modulos/agenda_medica.php';
 require __DIR__ . '/modulos/reportes.php';
 require __DIR__ . '/modulos/pagos.php';
+require __DIR__ . '/modulos/asistencia_usuario.php';

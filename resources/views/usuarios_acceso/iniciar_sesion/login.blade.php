@@ -57,4 +57,11 @@
         Tras 3 intentos fallidos la cuenta se bloquea. Puede desbloquearla restableciendo su contraseña
         o pidiéndolo al administrador.
     </p>
+
+    {{-- CU24 Consultar asistente virtual: actor Visitante (sin sesión) --}}
+    <div class="text-center mt-3">
+        <a href="{{ route('asistente.publico.mostrar') }}" class="small">
+            <i class="bi bi-robot me-1"></i>¿Tienes dudas? Pregúntale al asistente virtual
+        </a>
+    </div>
 @endsection

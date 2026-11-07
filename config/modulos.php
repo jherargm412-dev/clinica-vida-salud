@@ -26,6 +26,8 @@ return [
         'medicos_especialidades' => ['titulo' => 'Médicos y especialidades', 'icono' => 'bi-person-badge'],
         'citas'                  => ['titulo' => 'Citas',                    'icono' => 'bi-calendar-check'],
         'pagos'                  => ['titulo' => 'Pagos y caja',             'icono' => 'bi-wallet2'],
+        'asistencia_usuario'     => ['titulo' => 'Asistencia al usuario',    'icono' => 'bi-chat-dots'],
+        // Agenda médica y Reportes van al final: suelen tener una sola opción (enlace directo, sin desplegable)
         'agenda_medica'          => ['titulo' => 'Agenda médica',            'icono' => 'bi-calendar3'],
         'reportes'               => ['titulo' => 'Reportes',                 'icono' => 'bi-bar-chart'],
     ],
@@ -71,5 +73,14 @@ return [
         ['grupo' => 'pagos', 'titulo' => 'Pagar cita', 'icono' => 'bi-credit-card', 'cu' => 'CU21',
             'permisos' => ['pagos.cobrar', 'pagos.pagar_propia'], 'ruta' => 'pagos.index'],
         ['grupo' => 'pagos', 'titulo' => 'Caja', 'icono' => 'bi-safe', 'cu' => 'CU22', 'permisos' => ['caja.gestionar'], 'ruta' => 'caja.index'],
+
+        // Asistencia al usuario. CU25 se usa con el micrófono de la barra superior; su opción del menú
+        // solo muestra la lista de comandos disponibles (flujo 6b).
+        ['grupo' => 'asistencia_usuario', 'titulo' => 'Preguntas frecuentes', 'icono' => 'bi-question-circle', 'cu' => 'CU23',
+            'permisos' => ['faq.gestionar'], 'ruta' => 'faq.index', 'activo' => ['faq.*']],
+        ['grupo' => 'asistencia_usuario', 'titulo' => 'Asistente virtual', 'icono' => 'bi-robot', 'cu' => 'CU24',
+            'permisos' => ['asistente.consultar'], 'ruta' => 'asistente.mostrar', 'activo' => ['asistente.*']],
+        ['grupo' => 'asistencia_usuario', 'titulo' => 'Comandos de voz', 'icono' => 'bi-mic', 'cu' => 'CU25',
+            'permisos' => ['voz.usar'], 'ruta' => 'voz.ayuda', 'activo' => ['voz.*']],
     ],
 ];

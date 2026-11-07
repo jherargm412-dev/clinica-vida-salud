@@ -26,6 +26,18 @@
             </div>
 
             <div class="d-flex align-items-center gap-1">
+            {{-- CU25 Navegar por comando de voz (public/js/comando_voz.js).
+                 Oculto (d-none) hasta que el script confirme que el navegador reconoce voz (flujo 1a). --}}
+            @if (auth()->user()->tienePermiso('voz.usar'))
+                <button type="button" class="btn btn-link text-white px-2 d-none" data-comando-voz aria-pressed="false"
+                        title="Comando de voz (diga «ayuda» para ver los comandos)" aria-label="Dar un comando de voz">
+                    <i class="bi bi-mic fs-5"></i>
+                </button>
+                <form method="POST" action="{{ route('voz.interpretar') }}" id="form-comando-voz" class="d-none">
+                    @csrf
+                    <input type="hidden" name="texto">
+                </form>
+            @endif
             {{-- Modo claro / oscuro (public/js/app.js, punto 6) --}}
             <button type="button" class="btn btn-link text-white px-2" data-cambiar-tema
                     title="Cambiar a modo oscuro / claro" aria-label="Cambiar entre modo claro y oscuro">
@@ -77,6 +89,13 @@
 
         {{-- Contenido de cada pantalla --}}
         <main class="flex-grow-1 p-3 p-md-4" style="min-width: 0">
+            {{-- CU25 (paso 8): comando de voz reconocido --}}
+            @if (session('comando'))
+                <div class="alert alert-info alert-dismissible fade show py-2">
+                    <i class="bi bi-mic me-1"></i> Comando de voz: «{{ session('comando') }}»
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
             @if (session('ok'))
                 <div class="alert alert-success alert-dismissible fade show">
                     <i class="bi bi-check-circle me-1"></i> {{ session('ok') }}
@@ -96,6 +115,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/app.js') }}"></script>
+    @if (auth()->user()->tienePermiso('voz.usar'))
+        <script src="{{ asset('js/comando_voz.js') }}"></script>
+    @endif
     @stack('scripts')
 </body>
 </html>
