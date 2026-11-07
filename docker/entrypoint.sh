@@ -9,6 +9,13 @@ PORT="${PORT:-8080}"
 sed -i "s/^Listen .*/Listen ${PORT}/" /etc/apache2/ports.conf
 sed -i "s/<VirtualHost \*:[0-9]*>/<VirtualHost *:${PORT}>/" /etc/apache2/sites-available/000-default.conf
 
+# 1b. Apache debe tener UN solo MPM (módulo que decide cómo atiende las peticiones).
+#     PHP (mod_php) necesita "prefork". En Railway aparecía otro MPM activo y Apache no
+#     arrancaba (error AH00534 "More than one MPM loaded"), así que se quitan los demás.
+echo "MPM activos al arrancar: $(ls /etc/apache2/mods-enabled/ | grep '^mpm_.*\.load$' | tr '\n' ' ')"
+rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_worker.*
+a2enmod -q mpm_prefork
+
 # 2. Aviso si falta la clave de la aplicación (sin ella no funcionan las sesiones)
 if [ -z "$APP_KEY" ]; then
     echo "ATENCION: falta la variable APP_KEY (generarla con: php artisan key:generate --show)"
