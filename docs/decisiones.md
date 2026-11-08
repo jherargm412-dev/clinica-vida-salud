@@ -87,6 +87,7 @@
 - Al abrir la bitácora, Desde y Hasta vienen con la fecha de hoy; "Limpiar filtros" muestra todos los registros. La IP se ve en la lista.
 - Zona horaria America/La_Paz en Laravel (`config/app.php`) y en la sesión de PostgreSQL (`config/database.php`), para que "hoy" y `fecha_hora` coincidan también en Railway.
 - Ver detalle en un modal (fecha y hora, usuario y correo, acción, detalle, tabla afectada, IP).
+- IP en Railway: primero salía la IP interna (100.64.x.x) y se agregó ese rango a `trustProxies`. Luego salía para todos la IP de la entrada (edge) de Railway en São Paulo (46.151.194.x, encabezado `x-railway-edge: gru1`). 07/11/2026: el middleware `IpRealRailway` (usuarios_acceso, global con `prepend`) usa el encabezado `X-Real-IP` que Railway pone con la IP real del cliente, solo si la petición viene de 100.64.0.0/10. En local se sigue viendo 127.0.0.1 (es normal). Los registros anteriores conservan la IP de São Paulo.
 - Ciclo 2: "Datos anteriores / Datos nuevos" (ver ideas del Ciclo 2).
 
 ## Configurar perfil de usuario (CU04)
