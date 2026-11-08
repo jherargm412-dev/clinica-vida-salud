@@ -13,9 +13,8 @@ use Illuminate\View\View;
 /**
  * CU24 Consultar Asistente Virtual (Ctrl_AsistenteVirtual en los diagramas).
  *
- * Lo usan dos actores con las mismas operaciones:
- *   - Paciente (con sesión):    rutas "asistente.*"          -> plantilla interna (compartido.app)
- *   - Visitante (sin sesión):   rutas "asistente.publico.*"  -> plantilla pública (compartido.publica)
+ * Lo usa el Paciente con sesión iniciada (permiso asistente.consultar), desde el menú.
+ * Rutas "asistente.*" en routes/modulos/asistencia_usuario.php.
  *
  * La conversación se guarda SOLO en la sesión de Laravel (no en la base de datos):
  * se borra al cerrar sesión o con "Limpiar conversación". Máximo los últimos 20 mensajes.
@@ -29,15 +28,10 @@ class AsistenteVirtualController extends Controller
     // Pasos 1-2: muestra el chat con la conversación guardada
     public function mostrar(): View
     {
-        $datos = [
+        return view('asistencia_usuario.consultar_asistente_virtual.paciente', [
             'conversacion' => session(self::SESION, []),
-            'prefijo' => $this->prefijo(),
             'categorias' => PreguntaFrecuente::ICONOS,
-        ];
-
-        return auth()->check()
-            ? view('asistencia_usuario.consultar_asistente_virtual.paciente', $datos)
-            : view('asistencia_usuario.consultar_asistente_virtual.visitante', $datos);
+        ]);
     }
 
     // Pasos 3-7: el usuario escribe una pregunta
@@ -111,14 +105,8 @@ class AsistenteVirtualController extends Controller
         session([self::SESION => array_slice($conversacion, -self::MAXIMO_MENSAJES)]);
     }
 
-    /** Prefijo de las rutas según el actor: Paciente (con sesión) o Visitante (sin sesión). */
-    private function prefijo(): string
-    {
-        return auth()->check() ? 'asistente.' : 'asistente.publico.';
-    }
-
     private function volverAlChat(): RedirectResponse
     {
-        return redirect()->route($this->prefijo() . 'mostrar');
+        return redirect()->route('asistente.mostrar');
     }
 }
