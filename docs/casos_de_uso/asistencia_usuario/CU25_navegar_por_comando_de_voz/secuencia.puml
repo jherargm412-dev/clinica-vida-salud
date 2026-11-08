@@ -1,0 +1,47 @@
+@startuml
+title CU25 Navegar por Comando de Voz - Diagrama de secuencia
+hide footbox
+skinparam sequenceMessageAlign center
+
+' Flujo principal con el comando "disponibilidad de pediatría"; y ver comandos disponibles (6b)
+
+actor Usuario
+boundary UI_ComandoVoz
+control Ctrl_ComandoVoz
+entity "Usuario" as UsuarioEntidad
+entity Especialidad
+
+activate Usuario
+Usuario -> UI_ComandoVoz : presionarMicrofono()
+activate UI_ComandoVoz
+UI_ComandoVoz -> UI_ComandoVoz : escucharComando()
+Usuario -> UI_ComandoVoz : decirComando("disponibilidad de pediatría")
+UI_ComandoVoz -> UI_ComandoVoz : convertirVozATexto()
+UI_ComandoVoz -> Ctrl_ComandoVoz : interpretarComando(texto)
+activate Ctrl_ComandoVoz
+Ctrl_ComandoVoz -> Ctrl_ComandoVoz : normalizarTexto(texto)
+Ctrl_ComandoVoz -> Ctrl_ComandoVoz : identificarComando(texto)
+Ctrl_ComandoVoz -> UsuarioEntidad : tienePermiso("disponibilidad.consultar")
+UsuarioEntidad --> Ctrl_ComandoVoz : true
+Ctrl_ComandoVoz -> Especialidad : listarActivas()
+Especialidad --> Ctrl_ComandoVoz : especialidades
+Ctrl_ComandoVoz -> Ctrl_ComandoVoz : obtenerPantallaDestino(comando, especialidad)
+Ctrl_ComandoVoz --> UI_ComandoVoz : pantallaDestino, "Comando: disponibilidad de pediatría"
+deactivate Ctrl_ComandoVoz
+UI_ComandoVoz -> UI_ComandoVoz : mostrarPantalla(pantallaDestino)
+deactivate UI_ComandoVoz
+
+Usuario -> UI_ComandoVoz : mostrarComandosDisponibles()
+activate UI_ComandoVoz
+UI_ComandoVoz -> Ctrl_ComandoVoz : obtenerComandosDisponibles(usuario)
+activate Ctrl_ComandoVoz
+Ctrl_ComandoVoz -> UsuarioEntidad : tienePermiso(clave)
+UsuarioEntidad --> Ctrl_ComandoVoz : permisos
+Ctrl_ComandoVoz -> UsuarioEntidad : esMedico(), esPaciente()
+UsuarioEntidad --> Ctrl_ComandoVoz : perfil
+Ctrl_ComandoVoz --> UI_ComandoVoz : comandos
+deactivate Ctrl_ComandoVoz
+UI_ComandoVoz -> UI_ComandoVoz : mostrarLista(comandos)
+deactivate UI_ComandoVoz
+deactivate Usuario
+@enduml

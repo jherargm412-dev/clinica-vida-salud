@@ -1,0 +1,62 @@
+@startuml
+title CU23 Gestionar Preguntas Frecuentes - Diagrama de clases de análisis
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 35
+skinparam ranksep 120
+hide circle
+
+class UI_PreguntasFrecuentes <<boundary>> {
+  + mostrarPreguntas(texto, categoria, estado)
+  + nuevaPregunta()
+  + guardarPregunta(categoria, pregunta, respuesta, palabrasClave)
+  + editarPregunta(idPreguntaFrecuente)
+  + modificarPregunta(idPreguntaFrecuente, categoria, pregunta, respuesta, palabrasClave)
+  + desactivarPregunta(idPreguntaFrecuente)
+  + activarPregunta(idPreguntaFrecuente)
+}
+
+class Ctrl_PreguntasFrecuentes <<control>> {
+  + obtenerPreguntas(texto, categoria, estado)
+  + obtenerCategorias()
+  + registrarPregunta(categoria, pregunta, respuesta, palabrasClave)
+  + obtenerPregunta(idPreguntaFrecuente)
+  + actualizarPregunta(idPreguntaFrecuente, categoria, pregunta, respuesta, palabrasClave)
+  + desactivarPregunta(idPreguntaFrecuente)
+  + activarPregunta(idPreguntaFrecuente)
+}
+
+class PreguntaFrecuente <<entity>> {
+  - idPreguntaFrecuente: Integer
+  - categoria: String
+  - pregunta: String
+  - respuesta: String
+  - palabrasClave: String
+  - activo: Boolean
+  - fechaRegistro: DateTime
+  --
+  + listar(texto, categoria, estado)
+  + existePregunta(pregunta, idExcepto)
+  + normalizarPalabrasClave(palabrasClave)
+  + insertarPregunta(categoria, pregunta, respuesta, palabrasClave)
+  + actualizarPregunta(idPreguntaFrecuente, categoria, pregunta, respuesta, palabrasClave)
+  + cambiarEstado(idPreguntaFrecuente, activo)
+}
+
+class Bitacora <<entity>> {
+  - idBitacora: Integer
+  - fechaHora: DateTime
+  - accion: String
+  - tablaAfectada: String
+  - detalle: String
+  - ip: String
+  --
+  + registrar(usuario, accion, detalle, ip)
+}
+
+UI_PreguntasFrecuentes -- Ctrl_PreguntasFrecuentes
+Ctrl_PreguntasFrecuentes -- PreguntaFrecuente
+Ctrl_PreguntasFrecuentes -- Bitacora
+@enduml

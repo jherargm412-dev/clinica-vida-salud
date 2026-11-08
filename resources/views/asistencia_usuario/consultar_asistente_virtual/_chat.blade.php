@@ -1,5 +1,5 @@
-{{-- CU24 Consultar Asistente Virtual · UI_AsistenteVirtual (parcial compartido por Paciente y Visitante)
-     Recibe: $conversacion (sesión), $prefijo ("asistente." o "asistente.publico.") y $categorias (nombre => ícono).
+{{-- CU24 Consultar Asistente Virtual · UI_AsistenteVirtual (parcial que usa paciente.blade.php)
+     Recibe: $conversacion (sesión) y $categorias (nombre => ícono).
      Todo funciona con formularios normales (sin API): cada envío vuelve a esta misma pantalla. --}}
 
 <style>
@@ -12,10 +12,10 @@
 
 @php
     // Botones de categorías (paso 2 y flujo 3a). Se usan arriba del cuadro de texto y dentro de algunas respuestas.
-    $botonesCategorias = function () use ($categorias, $prefijo) {
+    $botonesCategorias = function () use ($categorias) {
         $html = '';
         foreach ($categorias as $nombre => $icono) {
-            $html .= '<form method="POST" action="' . e(route($prefijo . 'categoria')) . '" class="d-inline">'
+            $html .= '<form method="POST" action="' . e(route('asistente.categoria')) . '" class="d-inline">'
                 . csrf_field()
                 . '<input type="hidden" name="categoria" value="' . e($nombre) . '">'
                 . '<button type="submit" class="btn btn-sm btn-outline-primary rounded-pill mb-1">'
@@ -38,7 +38,7 @@
         </div>
         {{-- "Limpiar conversación" --}}
         @if ($conversacion)
-            <form method="POST" action="{{ route($prefijo . 'limpiar') }}" data-confirmar="¿Borrar la conversación?">
+            <form method="POST" action="{{ route('asistente.limpiar') }}" data-confirmar="¿Borrar la conversación?">
                 @csrf
                 <button type="submit" class="btn btn-sm btn-outline-secondary" title="Limpiar conversación">
                     <i class="bi bi-trash3"></i><span class="d-none d-sm-inline ms-1">Limpiar</span>
@@ -82,7 +82,7 @@
                         @if (! empty($mensaje['sugerencias']))
                             <div class="d-grid gap-1 mt-2">
                                 @foreach ($mensaje['sugerencias'] as $sugerencia)
-                                    <form method="POST" action="{{ route($prefijo . 'pregunta', $sugerencia['id']) }}">
+                                    <form method="POST" action="{{ route('asistente.pregunta', $sugerencia['id']) }}">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-outline-primary w-100 cvs-sugerencia">
                                             <i class="bi bi-chat-left-text me-1"></i>{{ $sugerencia['pregunta'] }}
@@ -107,7 +107,7 @@
     <div class="card-footer bg-transparent">
         <div class="mb-2">{!! $botonesCategorias() !!}</div>
 
-        <form method="POST" action="{{ route($prefijo . 'enviar') }}" class="needs-validation" novalidate>
+        <form method="POST" action="{{ route('asistente.enviar') }}" class="needs-validation" novalidate>
             @csrf
             <div class="input-group has-validation">
                 <input type="text" name="mensaje" id="cvs-mensaje" maxlength="200" required autocomplete="off"

@@ -1,0 +1,13 @@
+@startuml
+title CU24 Consultar Asistente Virtual - Diagrama de casos de uso
+left to right direction
+skinparam shadowing false
+
+actor Paciente
+
+rectangle "Sistema de gestión de citas médicas" {
+  usecase "CU24 Consultar\nAsistente Virtual" as CU24
+}
+
+Paciente -- CU24
+@enduml

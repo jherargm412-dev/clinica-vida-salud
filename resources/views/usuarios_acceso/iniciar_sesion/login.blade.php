@@ -4,8 +4,7 @@
 @section('titulo', 'Iniciar sesión')
 
 @section('contenido')
-    <h2 class="h4 fw-semibold mb-1">Iniciar sesión</h2>
-    <p class="text-muted mb-4">Ingrese con su nombre de usuario o correo electrónico.</p>
+    <h2 class="h4 fw-semibold mb-4">Iniciar sesión</h2>
 
     @if (session('ok'))
         <div class="alert alert-success py-2"><i class="bi bi-check-circle me-1"></i> {{ session('ok') }}</div>
@@ -57,11 +56,4 @@
         Tras 3 intentos fallidos la cuenta se bloquea. Puede desbloquearla restableciendo su contraseña
         o pidiéndolo al administrador.
     </p>
-
-    {{-- CU24 Consultar asistente virtual: actor Visitante (sin sesión) --}}
-    <div class="text-center mt-3">
-        <a href="{{ route('asistente.publico.mostrar') }}" class="small">
-            <i class="bi bi-robot me-1"></i>¿Tienes dudas? Pregúntale al asistente virtual
-        </a>
-    </div>
 @endsection

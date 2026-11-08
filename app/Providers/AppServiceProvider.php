@@ -40,9 +40,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('recuperar-contrasena', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
         RateLimiter::for('restablecer-contrasena', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
 
-        // CU24 Asistente virtual: máximo 30 acciones por minuto por conexión (la versión del Visitante es pública).
+        // CU24 Asistente virtual: máximo 30 acciones por minuto por usuario.
         // Al superarlo, Laravel muestra la página 429 ("Demasiadas consultas").
-        RateLimiter::for('asistente-virtual', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
+        RateLimiter::for('asistente-virtual', fn (Request $request) => Limit::perMinute(30)->by((string) $request->user()?->id_usuario ?: $request->ip()));
         // CU25 Comandos de voz: máximo 30 por minuto por usuario.
         RateLimiter::for('comando-voz', fn (Request $request) => Limit::perMinute(30)->by((string) $request->user()?->id_usuario ?: $request->ip()));
     }

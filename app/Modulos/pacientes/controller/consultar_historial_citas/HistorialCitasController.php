@@ -19,7 +19,7 @@ class HistorialCitasController extends Controller
 {
     private const ERROR_PACIENTE_NO_ASOCIADO = 'Su cuenta no está asociada a un paciente, contacte a la clínica';
 
-    /** Muestra el buscador a recepción o el historial propio al paciente. */
+    /** Muestra el buscador y la lista de pacientes a recepción, o el historial propio al paciente. */
     public function mostrarBuscadorPacientes(Request $request): View
     {
         $usuario = Auth::user();
@@ -29,8 +29,9 @@ class HistorialCitasController extends Controller
             return $this->consultarMisCitas($usuario->id_usuario, $estado);
         }
 
+        // Paso 3: además del buscador, se muestra la lista de pacientes (10 por página)
         return view('pacientes.consultar_historial_citas.buscar_paciente', [
-            'pacientes' => null,
+            'pacientes' => Paciente::listarPaginados(10),
             'texto' => '',
             'busquedaRealizada' => false,
         ]);

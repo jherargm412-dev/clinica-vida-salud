@@ -1,0 +1,22 @@
+@startuml
+title CU25 Navegar por Comando de Voz - Diagrama de casos de uso
+left to right direction
+skinparam shadowing false
+
+actor Administrador
+actor Recepcionista
+actor "Médico" as Medico
+actor Paciente
+actor Usuario
+
+Administrador --|> Usuario
+Recepcionista --|> Usuario
+Medico --|> Usuario
+Paciente --|> Usuario
+
+rectangle "Sistema de gestión de citas médicas" {
+  usecase "CU25 Navegar por\nComando de Voz" as CU25
+}
+
+Usuario -- CU25
+@enduml

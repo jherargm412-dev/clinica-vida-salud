@@ -25,6 +25,11 @@ return Application::configure(basePath: dirname(__DIR__))
             '::1',
         ]);
 
+        // Railway: la entrada (edge) de São Paulo también es un proxy, así que X-Forwarded-For terminaba
+        // con su IP (46.151.194.x) para todos. Este filtro usa el encabezado X-Real-IP que pone Railway
+        // con la IP real del usuario. Va primero (prepend) para que todo lo demás ya vea la IP correcta.
+        $middleware->prepend(\App\Modulos\usuarios_acceso\middleware\IpRealRailway::class);
+
         // Sin sesión → al login; con sesión e intentando entrar al login → al inicio
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('inicio'));
