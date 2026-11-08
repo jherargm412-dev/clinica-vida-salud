@@ -1,94 +1,131 @@
-# Clínica Vida Salud — Sistema web de gestión de citas médicas
+# Clínica Vida Salud — Sistema web para la gestión de citas médicas
 
-Proyecto del Grupo 15 (Ingeniería de Requisitos). Aplicación **monolítica** con patrón **MVC**:
+Sistema web que permite a la Clínica "Vida Salud" gestionar sus pacientes, médicos, especialidades,
+horarios, citas médicas, pagos y caja, con reportes, bitácora de auditoría y asistencia al usuario
+(asistente virtual y comandos de voz).
+
+🌐 **Sistema en línea:** https://clinica-vida-salud.up.railway.app/
+
+---
+
+## Datos académicos
+
+| | |
+|---|---|
+| **Universidad** | Universidad Autónoma Gabriel René Moreno (UAGRM) |
+| **Facultad** | Facultad de Ingeniería en Ciencias de la Computación y Telecomunicaciones |
+| **Materia** | Ingeniería de Requisitos y Modelado |
+| **Docente** | Ing. Angélica Garzón Cuéllar |
+| **Grupo** | 15 |
+| **Metodología** | PUDS (Proceso Unificado de Desarrollo de Software) con UML |
+
+| Integrante | Registro |
+|---|---|
+| Gonzales Montero David Jherar | 224027591 |
+| Porcel Calizaya Luis Fernando | 221045511 |
+
+---
+
+## Funcionalidades (casos de uso)
+
+El sistema implementa **25 casos de uso** organizados en **8 paquetes**, desarrollados en dos ciclos.
+
+| Paquete | Caso de uso | Ciclo |
+|---|---|:---:|
+| **Usuarios y acceso** | CU01 Gestionar usuarios y asignar roles | 1 |
+| | CU02 Iniciar sesión | 1 |
+| | CU03 Gestionar roles y permisos | 1 |
+| | CU04 Configurar perfil de usuario | 1 |
+| | CU05 Consultar bitácora | 1 |
+| **Pacientes** | CU06 Gestionar paciente | 1 |
+| | CU07 Gestionar perfil médico | 2 |
+| | CU08 Consultar historial de citas | 2 |
+| **Médicos y especialidades** | CU09 Gestionar especialidad | 1 |
+| | CU10 Gestionar médico | 1 |
+| | CU11 Gestionar horario de atención | 1 |
+| **Citas** | CU12 Consultar disponibilidad | 1 |
+| | CU13 Registrar cita | 1 |
+| | CU14 Reprogramar cita | 1 |
+| | CU15 Cancelar cita | 1 |
+| | CU16 Controlar estado y asistencia de cita | 2 |
+| **Agenda médica** | CU17 Consultar agenda médica | 2 |
+| | CU18 Registrar atención de cita | 2 |
+| **Reportes** | CU19 Generar reporte | 2 |
+| **Pagos y caja** | CU20 Gestionar tarifas y métodos de pago | 2 |
+| | CU21 Pagar cita | 2 |
+| | CU22 Gestionar caja | 2 |
+| **Asistencia al usuario** | CU23 Gestionar preguntas frecuentes | 2 |
+| | CU24 Consultar asistente virtual | 2 |
+| | CU25 Navegar por comando de voz | 2 |
+
+---
+
+## Tecnologías
 
 | Capa | Tecnología |
 |---|---|
-| Backend | PHP 8.2+ con Laravel 12 |
-| Vistas | Blade + Bootstrap 5 (CDN) + JavaScript |
-| Base de datos | PostgreSQL (script `database/sql/clinica_vida_salud.sql`) |
+| Backend | PHP 8.2 con Laravel 12 |
+| Vistas | Blade + Bootstrap 5.3 + JavaScript |
+| Base de datos | PostgreSQL |
+| Pagos en línea | Stripe (modo de prueba) |
+| Correo y notificaciones | Brevo (correo) y Web Push |
+| Despliegue | Docker + Railway |
 
-## Cómo ejecutarlo en tu computadora
+---
 
-1. Instala **PHP 8.2+** (con la extensión `pdo_pgsql`), **Composer** y **PostgreSQL**.
-2. Crea la base de datos `clinica_vida_salud` y ejecuta el script `database/sql/clinica_vida_salud.sql`
-   (en pgAdmin: Query Tool → abrir archivo → ejecutar).
-   Si la base ya existía antes del ciclo 2, ejecuta también `database/sql/actualizacion_ciclo2_perfil_medico_atencion.sql`.
-3. En la carpeta del proyecto:
-   ```bash
-   composer install
-   cp .env.example .env
-   php artisan key:generate
-   ```
-4. Abre `.env` y escribe la contraseña de tu usuario `postgres` en `DB_PASSWORD`.
-5. Ejecuta `php artisan serve` y abre http://localhost:8000
+## Arquitectura
 
-Usuario inicial: **admin** / **Admin2026*** (cámbiala después).
+Aplicación **monolítica** con patrón **MVC** (Modelo – Vista – Controlador). El código está organizado
+**igual que el diagrama de paquetes** del análisis: cada paquete tiene su carpeta, y dentro de ella
+una carpeta por caso de uso. Así cada clase del diseño se encuentra directamente en el código:
 
-> No se usan migraciones de Laravel: la base se crea con el script SQL.
-
-## Organización del código (por paquetes)
-
-El código sigue el **diagrama de paquetes**: primero el paquete, luego la capa y luego el caso de uso.
-
-```
-app/Modulos/<paquete>/
-├── controller/<caso_de_uso>/   Controladores (Ctrl_ en los diagramas)
-├── request/<caso_de_uso>/      Validación de formularios
-├── service/                    Lógica compleja (solo si hace falta)
-├── middleware/                 (solo usuarios_acceso: permisos y cuenta activa)
-└── models/                     Modelos Eloquent = entidades (tabla de la BD)
-resources/views/<paquete>/<caso_de_uso>/   Vistas Blade (UI_ en los diagramas)
-resources/views/compartido/                Plantilla base, menú e inicio
-routes/modulos/<paquete>.php               Rutas de cada paquete
-```
-
-| Paquete | Casos de uso | Modelos |
-|---|---|---|
-| `usuarios_acceso` | CU01–CU05 | Usuario, Rol, Permiso, Bitacora |
-| `pacientes` | CU06–CU08 | Paciente |
-| `medicos_especialidades` | CU09–CU11 | Especialidad, Medico, HorarioAtencion |
-| `citas` | CU12–CU16 | Cita |
-| `agenda_medica` | CU17–CU18 | — |
-| `reportes` | CU19 | — |
-
-Los nombres de carpetas van en `snake_case` y deben coincidir **exactamente** con el `namespace`
-(por ejemplo `App\Modulos\usuarios_acceso\models\Usuario`), porque en Linux (Railway) importan las mayúsculas.
-
-## Cómo agregar un caso de uso
-
-1. Crea el controlador en `app/Modulos/<paquete>/controller/<caso_de_uso>/`.
-2. Crea sus vistas en `resources/views/<paquete>/<caso_de_uso>/` usando `@extends('compartido.app')`.
-3. Agrega sus rutas en `routes/modulos/<paquete>.php`, protegidas con `->middleware('permiso:<clave>')`.
-4. En `config/modulos.php` cambia `'ruta' => null` por el nombre de la ruta principal para habilitarlo en el menú.
-5. Registra las acciones importantes con `Bitacora::registrar('ACCION', 'tabla', 'detalle');`.
-
-## Docker y despliegue en la nube
-
-El proyecto se empaqueta en una imagen Docker (**PHP 8.2 + Apache**). La misma imagen se usa para probar en la computadora y en Railway.
-
-| Archivo | Para qué |
+| En los diagramas | En el código |
 |---|---|
-| `Dockerfile` | Construye la imagen: extensiones `pdo_pgsql` y `opcache`, `composer install` sin dependencias de desarrollo, Apache apuntando a `public/` |
-| `docker/apache-sitio.conf` | Sitio de Apache (carpeta `public/`, `.htaccess` habilitado, logs a la consola) |
-| `docker/entrypoint.sh` | Al arrancar: usa el puerto de la variable `PORT`, cachea configuración/rutas/vistas e inicia Apache |
-| `.dockerignore` | Lo que no entra a la imagen (`.env`, `.git`, `vendor`, cachés locales…) |
-| `docker-compose.yml` | Solo para pruebas locales: app + PostgreSQL 17 que carga `database/sql/clinica_vida_salud.sql` la primera vez |
+| Paquete | `app/Modulos/<paquete>/` |
+| `UI_` (interfaz) | Vista Blade en `resources/views/<paquete>/<caso_de_uso>/` |
+| `Ctrl_` (controlador) | Controlador en `app/Modulos/<paquete>/controller/<caso_de_uso>/` |
+| Entidad | Modelo en `app/Modulos/<paquete>/models/` (una tabla de la base de datos) |
 
-### Probar en la computadora (Docker Desktop)
+---
 
-```bash
-docker compose up --build        # primera vez (o cuando cambie el código): construye y levanta
-# abrir http://localhost:8080   (usuario admin / Admin2026*)
-docker compose down              # apagar (la base queda guardada)
-docker compose down -v           # apagar y borrar la base (la próxima vez se vuelve a cargar el script)
+## Estructura del repositorio
+
+```
+clinica-vida-salud/
+├── app/Modulos/                 Código por paquete
+│   ├── usuarios_acceso/
+│   ├── pacientes/
+│   ├── medicos_especialidades/
+│   ├── citas/
+│   ├── agenda_medica/
+│   ├── reportes/
+│   ├── pagos/
+│   └── asistencia_usuario/
+│       ├── controller/          Controladores, una carpeta por caso de uso
+│       ├── models/              Modelos (entidades)
+│       └── service/             Lógica de negocio compleja
+├── resources/views/             Vistas Blade, por paquete y caso de uso
+├── routes/modulos/              Rutas de cada paquete
+├── config/modulos.php           Menú del sistema y permisos de cada opción
+├── database/sql/                Script de la base de datos y sus actualizaciones
+├── docs/                        Documentación PUDS
+│   ├── arquitectura/            Diagramas de paquetes y casos de uso generales
+│   ├── base_de_datos/           Diagrama de clases y diccionario de datos
+│   └── casos_de_uso/            Por caso de uso: detallar y diagramas (.puml)
+├── public/                      CSS, JavaScript e imágenes
+├── docker/ y Dockerfile         Imagen para el despliegue en Railway
+└── README.md
 ```
 
-El `APP_KEY` se toma del `.env` de la computadora. La base de Docker usa el puerto **5433** para no chocar con el PostgreSQL local.
+---
 
-### Railway
+## Ramas de trabajo (Git)
 
-1. Servicio **PostgreSQL** y cargar el script `database/sql/clinica_vida_salud.sql` **una sola vez** (el script borra y crea las tablas).
-2. Servicio desde el repositorio de GitHub (rama `main`): Railway detecta el `Dockerfile`.
-3. Variables: `APP_KEY`, `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `DB_CONNECTION=pgsql`, `DB_URL=${{Postgres.DATABASE_URL}}`, `LOG_CHANNEL=stderr`, `SESSION_DRIVER=file`, `CACHE_STORE=file`, `QUEUE_CONNECTION=sync`, `APP_TIMEZONE=America/La_Paz`.
-4. Generar el dominio público y cambiar la contraseña del administrador.
+| Rama | Uso |
+|---|---|
+| `main` | Versión estable; es la que se despliega en Railway |
+| `dev-prueba` | Integración y pruebas del trabajo de ambos integrantes |
+| `dev-jherar` | Trabajo de David Jherar Gonzales Montero |
+| `dev-fernando` | Trabajo de Luis Fernando Porcel Calizaya |
+
+Flujo: **rama personal → Pull Request a `dev-prueba` → pruebas → Pull Request a `main`**.
