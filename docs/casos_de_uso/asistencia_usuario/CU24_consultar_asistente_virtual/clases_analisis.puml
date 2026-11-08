@@ -1,0 +1,65 @@
+@startuml
+title CU24 Consultar Asistente Virtual - Diagrama de clases de análisis
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 35
+skinparam ranksep 120
+hide circle
+
+class UI_AsistenteVirtual <<boundary>> {
+  + mostrarAsistente()
+  + enviarPregunta(mensaje)
+  + elegirCategoria(categoria)
+  + elegirPregunta(idPreguntaFrecuente)
+  + limpiarConversacion()
+}
+
+class Ctrl_AsistenteVirtual <<control>> {
+  + obtenerConversacion()
+  + responderPregunta(mensaje)
+  + normalizarTexto(mensaje)
+  + buscarRespuesta(palabras)
+  + obtenerPreguntasPorCategoria(categoria)
+  + obtenerRespuesta(idPreguntaFrecuente)
+  + guardarEnConversacion(pregunta, respuesta)
+  + limpiarConversacion()
+}
+
+class PreguntaFrecuente <<entity>> {
+  - idPreguntaFrecuente: Integer
+  - categoria: String
+  - pregunta: String
+  - respuesta: String
+  - palabrasClave: String
+  - activo: Boolean
+  - fechaRegistro: DateTime
+  --
+  + listarActivas()
+  + listarActivasPorCategoria(categoria)
+  + obtenerPregunta(idPreguntaFrecuente)
+}
+
+class Especialidad <<entity>> {
+  - idEspecialidad: Integer
+  - nombre: String
+  - descripcion: String
+  - activo: Boolean
+  --
+  + listarActivasConTarifa()
+}
+
+class Tarifa <<entity>> {
+  - idTarifa: Integer
+  - monto: Decimal
+  - vigenteDesde: Date
+  - activo: Boolean
+}
+
+UI_AsistenteVirtual -- Ctrl_AsistenteVirtual
+Ctrl_AsistenteVirtual -- PreguntaFrecuente
+Ctrl_AsistenteVirtual -- Especialidad
+
+Especialidad "1" -[norank]- "0..*" Tarifa : tiene
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+title CU24 Consultar Asistente Virtual - Diagrama de comunicación
+left to right direction
+skinparam linetype polyline
+skinparam defaultTextAlignment left
+skinparam shadowing false
+
+actor Paciente
+boundary UI_AsistenteVirtual
+control Ctrl_AsistenteVirtual
+entity Especialidad
+entity PreguntaFrecuente
+
+Paciente -- UI_AsistenteVirtual : "<color:#000000>1: mostrarAsistente() →</color>\n<color:#1F5FBF>2: enviarPregunta(mensaje) →</color>\n<color:#D9730D>3: elegirCategoria(categoria) →</color>\n<color:#D9730D>3.4: elegirPregunta(idPreguntaFrecuente) →</color>\n<color:#2E8B57>4: limpiarConversacion() →</color>"
+
+UI_AsistenteVirtual -- Ctrl_AsistenteVirtual : "<color:#000000>1.1: obtenerConversacion() →</color>\n<color:#000000>1.2: conversacion, categorias ←</color>\n<color:#1F5FBF>2.1: responderPregunta(mensaje) →</color>\n<color:#1F5FBF>2.4: respuesta, conversacion ←</color>\n<color:#D9730D>3.1: obtenerPreguntasPorCategoria(categoria) →</color>\n<color:#D9730D>3.3: preguntas, conversacion ←</color>\n<color:#D9730D>3.5: obtenerRespuesta(idPreguntaFrecuente) →</color>\n<color:#D9730D>3.7: respuesta, conversacion ←</color>\n<color:#2E8B57>4.1: limpiarConversacion() →</color>\n<color:#2E8B57>4.2: saludo ←</color>"
+
+Ctrl_AsistenteVirtual -- Especialidad : "<color:#1F5FBF>2.2: listarActivasConTarifa() →</color>"
+
+Ctrl_AsistenteVirtual -- PreguntaFrecuente : "<color:#1F5FBF>2.3: listarActivas() →</color>\n<color:#D9730D>3.2: listarActivasPorCategoria(categoria) →</color>\n<color:#D9730D>3.6: obtenerPregunta(idPreguntaFrecuente) →</color>"
+
+legend right
+  <color:#000000>1: Mostrar asistente virtual</color>
+  <color:#1F5FBF>2: Enviar pregunta</color>
+  <color:#D9730D>3: Consultar por categoría</color>
+  <color:#2E8B57>4: Limpiar conversación</color>
+endlegend
+@enduml

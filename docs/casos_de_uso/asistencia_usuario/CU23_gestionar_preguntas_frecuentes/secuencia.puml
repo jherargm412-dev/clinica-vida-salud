@@ -1,0 +1,68 @@
+@startuml
+title CU23 Gestionar Preguntas Frecuentes - Diagrama de secuencia
+hide footbox
+skinparam sequenceMessageAlign center
+
+' Flujo principal: mostrar -> nueva -> guardar; y desactivar (el asistente virtual deja de usarla)
+
+actor Administrador
+boundary UI_PreguntasFrecuentes
+control Ctrl_PreguntasFrecuentes
+entity PreguntaFrecuente
+entity Bitacora
+
+activate Administrador
+Administrador -> UI_PreguntasFrecuentes : mostrarPreguntas(texto, categoria, estado)
+activate UI_PreguntasFrecuentes
+UI_PreguntasFrecuentes -> Ctrl_PreguntasFrecuentes : obtenerPreguntas(texto, categoria, estado)
+activate Ctrl_PreguntasFrecuentes
+Ctrl_PreguntasFrecuentes -> PreguntaFrecuente : listar(texto, categoria, estado)
+PreguntaFrecuente --> Ctrl_PreguntasFrecuentes : preguntas
+Ctrl_PreguntasFrecuentes --> UI_PreguntasFrecuentes : preguntas, categorias
+deactivate Ctrl_PreguntasFrecuentes
+UI_PreguntasFrecuentes -> UI_PreguntasFrecuentes : mostrarLista(preguntas, categorias)
+deactivate UI_PreguntasFrecuentes
+
+Administrador -> UI_PreguntasFrecuentes : nuevaPregunta()
+activate UI_PreguntasFrecuentes
+UI_PreguntasFrecuentes -> Ctrl_PreguntasFrecuentes : obtenerCategorias()
+activate Ctrl_PreguntasFrecuentes
+Ctrl_PreguntasFrecuentes --> UI_PreguntasFrecuentes : categorias
+deactivate Ctrl_PreguntasFrecuentes
+UI_PreguntasFrecuentes -> UI_PreguntasFrecuentes : mostrarFormulario(categorias)
+deactivate UI_PreguntasFrecuentes
+
+Administrador -> UI_PreguntasFrecuentes : guardarPregunta(categoria, pregunta, respuesta, palabrasClave)
+activate UI_PreguntasFrecuentes
+UI_PreguntasFrecuentes -> Ctrl_PreguntasFrecuentes : registrarPregunta(categoria, pregunta, respuesta, palabrasClave)
+activate Ctrl_PreguntasFrecuentes
+Ctrl_PreguntasFrecuentes -> Ctrl_PreguntasFrecuentes : validarCampos(categoria, pregunta, respuesta, palabrasClave)
+Ctrl_PreguntasFrecuentes -> PreguntaFrecuente : existePregunta(pregunta, null)
+PreguntaFrecuente --> Ctrl_PreguntasFrecuentes : false
+Ctrl_PreguntasFrecuentes -> PreguntaFrecuente : normalizarPalabrasClave(palabrasClave)
+PreguntaFrecuente --> Ctrl_PreguntasFrecuentes : palabrasClaveOrdenadas
+Ctrl_PreguntasFrecuentes -> PreguntaFrecuente : insertarPregunta(categoria, pregunta, respuesta, palabrasClaveOrdenadas)
+PreguntaFrecuente --> Ctrl_PreguntasFrecuentes : preguntaFrecuente
+Ctrl_PreguntasFrecuentes -> Bitacora : registrar(administrador, "Registrar pregunta frecuente", detalle, ip)
+Bitacora --> Ctrl_PreguntasFrecuentes : ok
+Ctrl_PreguntasFrecuentes --> UI_PreguntasFrecuentes : "Pregunta registrada", preguntas
+deactivate Ctrl_PreguntasFrecuentes
+UI_PreguntasFrecuentes -> UI_PreguntasFrecuentes : mostrarMensaje("Pregunta registrada")
+deactivate UI_PreguntasFrecuentes
+
+Administrador -> UI_PreguntasFrecuentes : desactivarPregunta(idPreguntaFrecuente)
+activate UI_PreguntasFrecuentes
+UI_PreguntasFrecuentes -> UI_PreguntasFrecuentes : pedirConfirmacion()
+Administrador -> UI_PreguntasFrecuentes : confirmar()
+UI_PreguntasFrecuentes -> Ctrl_PreguntasFrecuentes : desactivarPregunta(idPreguntaFrecuente)
+activate Ctrl_PreguntasFrecuentes
+Ctrl_PreguntasFrecuentes -> PreguntaFrecuente : cambiarEstado(idPreguntaFrecuente, false)
+PreguntaFrecuente --> Ctrl_PreguntasFrecuentes : ok
+Ctrl_PreguntasFrecuentes -> Bitacora : registrar(administrador, "Desactivar pregunta frecuente", detalle, ip)
+Bitacora --> Ctrl_PreguntasFrecuentes : ok
+Ctrl_PreguntasFrecuentes --> UI_PreguntasFrecuentes : "Pregunta desactivada", preguntas
+deactivate Ctrl_PreguntasFrecuentes
+UI_PreguntasFrecuentes -> UI_PreguntasFrecuentes : mostrarMensaje("Pregunta desactivada")
+deactivate UI_PreguntasFrecuentes
+deactivate Administrador
+@enduml

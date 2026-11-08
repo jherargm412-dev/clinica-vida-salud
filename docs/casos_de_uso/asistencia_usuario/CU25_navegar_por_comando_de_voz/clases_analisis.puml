@@ -1,0 +1,53 @@
+@startuml
+title CU25 Navegar por Comando de Voz - Diagrama de clases de análisis
+left to right direction
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 35
+skinparam ranksep 120
+hide circle
+
+class UI_ComandoVoz <<boundary>> {
+  + presionarMicrofono()
+  + escucharComando()
+  + decirComando(voz)
+  + convertirVozATexto()
+  + enviarComando(texto)
+  + cancelarEscucha()
+  + mostrarComandosDisponibles()
+}
+
+class Ctrl_ComandoVoz <<control>> {
+  + interpretarComando(texto)
+  + normalizarTexto(texto)
+  + identificarComando(texto)
+  + verificarPermiso(usuario, pantalla)
+  + obtenerPantallaDestino(comando, dato)
+  + obtenerComandosDisponibles(usuario)
+}
+
+class Usuario <<entity>> {
+  - idUsuario: Integer
+  - nombreUsuario: String
+  - correo: String
+  - activo: Boolean
+  --
+  + tienePermiso(clave)
+  + esMedico()
+  + esPaciente()
+}
+
+class Especialidad <<entity>> {
+  - idEspecialidad: Integer
+  - nombre: String
+  - descripcion: String
+  - activo: Boolean
+  --
+  + listarActivas()
+}
+
+UI_ComandoVoz -- Ctrl_ComandoVoz
+Ctrl_ComandoVoz -- Usuario
+Ctrl_ComandoVoz -- Especialidad
+@enduml

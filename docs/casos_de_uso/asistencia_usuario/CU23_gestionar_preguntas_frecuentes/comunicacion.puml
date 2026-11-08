@@ -1,0 +1,29 @@
+@startuml
+title CU23 Gestionar Preguntas Frecuentes - Diagrama de comunicación
+left to right direction
+skinparam linetype polyline
+skinparam defaultTextAlignment left
+skinparam shadowing false
+
+actor Administrador
+boundary UI_PreguntasFrecuentes
+control Ctrl_PreguntasFrecuentes
+entity PreguntaFrecuente
+entity Bitacora
+
+Administrador -- UI_PreguntasFrecuentes : "<color:#000000>1: mostrarPreguntas(texto, categoria, estado) →</color>\n<color:#1F5FBF>2: nuevaPregunta() →</color>\n<color:#1F5FBF>2.3: guardarPregunta(categoria, pregunta, respuesta, palabrasClave) →</color>\n<color:#D9730D>3: editarPregunta(idPreguntaFrecuente) →</color>\n<color:#D9730D>3.3: modificarPregunta(idPreguntaFrecuente, categoria, pregunta, respuesta, palabrasClave) →</color>\n<color:#2E8B57>4: desactivarPregunta(idPreguntaFrecuente) →</color>\n<color:#7B2D8E>5: activarPregunta(idPreguntaFrecuente) →</color>"
+
+UI_PreguntasFrecuentes -- Ctrl_PreguntasFrecuentes : "<color:#000000>1.1: obtenerPreguntas(texto, categoria, estado) →</color>\n<color:#000000>1.3: preguntas, categorias ←</color>\n<color:#1F5FBF>2.1: obtenerCategorias() →</color>\n<color:#1F5FBF>2.2: categorias ←</color>\n<color:#1F5FBF>2.4: registrarPregunta(categoria, pregunta, respuesta, palabrasClave) →</color>\n<color:#1F5FBF>2.9: 'Pregunta registrada', preguntas ←</color>\n<color:#D9730D>3.1: obtenerPregunta(idPreguntaFrecuente) →</color>\n<color:#D9730D>3.2: pregunta, categorias ←</color>\n<color:#D9730D>3.4: actualizarPregunta(idPreguntaFrecuente, categoria, pregunta, respuesta, palabrasClave) →</color>\n<color:#D9730D>3.9: 'Pregunta actualizada', preguntas ←</color>\n<color:#2E8B57>4.1: desactivarPregunta(idPreguntaFrecuente) →</color>\n<color:#2E8B57>4.4: 'Pregunta desactivada', preguntas ←</color>\n<color:#7B2D8E>5.1: activarPregunta(idPreguntaFrecuente) →</color>\n<color:#7B2D8E>5.4: 'Pregunta activada', preguntas ←</color>"
+
+Ctrl_PreguntasFrecuentes -- PreguntaFrecuente : "<color:#000000>1.2: listar(texto, categoria, estado) →</color>\n<color:#1F5FBF>2.5: existePregunta(pregunta, null) →</color>\n<color:#1F5FBF>2.6: normalizarPalabrasClave(palabrasClave) →</color>\n<color:#1F5FBF>2.7: insertarPregunta(categoria, pregunta, respuesta, palabrasClave) →</color>\n<color:#D9730D>3.5: existePregunta(pregunta, idPreguntaFrecuente) →</color>\n<color:#D9730D>3.6: normalizarPalabrasClave(palabrasClave) →</color>\n<color:#D9730D>3.7: actualizarPregunta(idPreguntaFrecuente, categoria, pregunta, respuesta, palabrasClave) →</color>\n<color:#2E8B57>4.2: cambiarEstado(idPreguntaFrecuente, false) →</color>\n<color:#7B2D8E>5.2: cambiarEstado(idPreguntaFrecuente, true) →</color>"
+
+Ctrl_PreguntasFrecuentes -- Bitacora : "<color:#1F5FBF>2.8: registrar(administrador, 'Registrar pregunta frecuente', detalle, ip) →</color>\n<color:#D9730D>3.8: registrar(administrador, 'Modificar pregunta frecuente', detalle, ip) →</color>\n<color:#2E8B57>4.3: registrar(administrador, 'Desactivar pregunta frecuente', detalle, ip) →</color>\n<color:#7B2D8E>5.3: registrar(administrador, 'Activar pregunta frecuente', detalle, ip) →</color>"
+
+legend right
+  <color:#000000>1: Mostrar preguntas frecuentes</color>
+  <color:#1F5FBF>2: Registrar pregunta</color>
+  <color:#D9730D>3: Modificar pregunta</color>
+  <color:#2E8B57>4: Desactivar pregunta</color>
+  <color:#7B2D8E>5: Activar pregunta</color>
+endlegend
+@enduml

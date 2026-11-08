@@ -9,18 +9,6 @@ use App\Modulos\asistencia_usuario\controller\gestionar_preguntas_frecuentes\Pre
 use App\Modulos\asistencia_usuario\controller\navegar_por_voz\ComandoVozController;
 use Illuminate\Support\Facades\Route;
 
-// CU24 Consultar asistente virtual: actor VISITANTE (sin sesión, enlace desde el login).
-// "throttle:asistente-virtual" (AppServiceProvider) limita las preguntas por minuto: esta página es pública.
-Route::middleware('guest')->prefix('ayuda/asistente-virtual')->name('asistente.publico.')->group(function () {
-    Route::get('/', [AsistenteVirtualController::class, 'mostrar'])->name('mostrar');
-    Route::middleware('throttle:asistente-virtual')->group(function () {
-        Route::post('/', [AsistenteVirtualController::class, 'enviar'])->name('enviar');
-        Route::post('/categoria', [AsistenteVirtualController::class, 'categoria'])->name('categoria');
-        Route::post('/preguntas/{preguntaFrecuente}', [AsistenteVirtualController::class, 'pregunta'])->name('pregunta');
-        Route::post('/limpiar', [AsistenteVirtualController::class, 'limpiar'])->name('limpiar');
-    });
-});
-
 Route::middleware(['auth', 'cuenta.activa'])->group(function () {
 
     // CU23 Gestionar preguntas frecuentes
@@ -34,7 +22,8 @@ Route::middleware(['auth', 'cuenta.activa'])->group(function () {
         Route::post('/preguntas-frecuentes/{preguntaFrecuente}/activar', [PreguntaFrecuenteController::class, 'activar'])->name('faq.activar');
     });
 
-    // CU24 Consultar asistente virtual: actor PACIENTE (con sesión)
+    // CU24 Consultar asistente virtual: actor Paciente (solo con sesión iniciada).
+    // "throttle:asistente-virtual" (AppServiceProvider) limita las preguntas por minuto de cada usuario.
     Route::middleware('permiso:asistente.consultar')->prefix('asistente-virtual')->name('asistente.')->group(function () {
         Route::get('/', [AsistenteVirtualController::class, 'mostrar'])->name('mostrar');
         Route::middleware('throttle:asistente-virtual')->group(function () {
