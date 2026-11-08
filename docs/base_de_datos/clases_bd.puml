@@ -8,24 +8,20 @@ hide circle
 hide methods
 title Diagrama de clases de la base de datos - Ciclo 2
 
-class Permiso {
-  idPermiso : Integer
-  clave : String
-  nombre : String
-  descripcion : String
-}
-class RolPermiso {
-  idRol : Integer
-  idPermiso : Integer
-}
+' Sin PK ni FK (eso va en el mapeo / diccionario). Las tablas puente rol_permiso y
+' medico_especialidad se representan como asociaciones muchos a muchos.
+
 class Rol {
-  idRol : Integer
   nombre : String
   descripcion : String
   activo : Boolean
 }
+class Permiso {
+  clave : String
+  nombre : String
+  descripcion : String
+}
 class Usuario {
-  idUsuario : Integer
   nombreUsuario : String
   correo : String
   contrasena : String
@@ -35,45 +31,29 @@ class Usuario {
   bloqueado : Boolean
   intentosFallidos : Integer
   fechaRegistro : DateTime
-  idRol : Integer
 }
 class Bitacora {
-  idBitacora : Integer
   fechaHora : DateTime
   accion : String
   tablaAfectada : String
   detalle : String
   ip : String
-  idUsuario : Integer
+}
+class RecuperacionContrasena {
+  token : String
+  fechaSolicitud : DateTime
+  fechaExpiracion : DateTime
+  usado : Boolean
 }
 class SuscripcionPush {
-  idSuscripcion : Integer
   endpoint : String
   claveP256dh : String
   claveAuth : String
   dispositivo : String
   activo : Boolean
   fechaRegistro : DateTime
-  idUsuario : Integer
-}
-class RecuperacionContrasena {
-  idRecuperacion : Integer
-  token : String
-  fechaSolicitud : DateTime
-  fechaExpiracion : DateTime
-  usado : Boolean
-  idUsuario : Integer
-}
-class Medico {
-  idMedico : Integer
-  codigo : String
-  registroProfesional : String
-  telefono : String
-  activo : Boolean
-  idUsuario : Integer
 }
 class Paciente {
-  idPaciente : Integer
   codigo : String
   ci : String
   fechaNacimiento : Date
@@ -81,29 +61,36 @@ class Paciente {
   telefono : String
   direccion : String
   activo : Boolean
-  idUsuario : Integer
 }
-class MedicoEspecialidad {
-  idMedico : Integer
-  idEspecialidad : Integer
+class PerfilMedico {
+  tipoSangre : String
+  alergias : String
+  enfermedadesCronicas : String
+  medicamentos : String
+  nombreContactoEmergencia : String
+  parentescoContactoEmergencia : String
+  telefonoContactoEmergencia : String
+  fechaActualizacion : DateTime
+}
+class Medico {
+  codigo : String
+  registroProfesional : String
+  telefono : String
+  activo : Boolean
 }
 class Especialidad {
-  idEspecialidad : Integer
   nombre : String
   descripcion : String
   activo : Boolean
 }
 class HorarioAtencion {
-  idHorario : Integer
   diaSemana : Integer
   horaInicio : Time
   horaFin : Time
   duracionCita : Integer
   activo : Boolean
-  idMedico : Integer
 }
 class Cita {
-  idCita : Integer
   codigo : String
   fecha : Date
   horaInicio : Time
@@ -114,92 +101,93 @@ class Cita {
   motivoCancelacion : String
   fechaCancelacion : DateTime
   canceladaPor : String
-  idPaciente : Integer
-  idMedico : Integer
-  idEspecialidad : Integer
-  idUsuarioCancelacion : Integer
+}
+class AtencionMedica {
+  diagnostico : String
+  notasClinicas : String
+  fechaHoraRegistro : DateTime
+}
+class Notificacion {
+  tipo : String
+  canal : String
+  programadaPara : DateTime
+  enviadaEn : DateTime
+  estado : String
 }
 class Tarifa {
-  idTarifa : Integer
   monto : Decimal
   vigenteDesde : Date
   activo : Boolean
-  idEspecialidad : Integer
 }
 class MetodoPago {
-  idMetodoPago : Integer
   nombre : String
   enLinea : Boolean
   activo : Boolean
 }
+class Pago {
+  numeroComprobante : String
+  montoTotal : Decimal
+  fecha : DateTime
+  estado : String
+}
+class DetallePago {
+  monto : Decimal
+  referenciaExterna : String
+  sesionPasarela : String
+  estado : String
+}
 class SesionCaja {
-  idSesionCaja : Integer
   apertura : DateTime
   montoInicial : Decimal
   cierre : DateTime
   montoContado : Decimal
   diferencia : Decimal
   estado : String
-  idUsuario : Integer
-}
-class Pago {
-  idPago : Integer
-  numeroComprobante : String
-  montoTotal : Decimal
-  fecha : DateTime
-  estado : String
-  idCita : Integer
-  idUsuario : Integer
-}
-class DetallePago {
-  idDetallePago : Integer
-  monto : Decimal
-  referenciaExterna : String
-  idSesionPasarela : String
-  estado : String
-  idPago : Integer
-  idMetodoPago : Integer
 }
 class MovimientoCaja {
-  idMovimientoCaja : Integer
   tipo : String
   monto : Decimal
   fecha : DateTime
-  idSesionCaja : Integer
-  idDetallePago : Integer
 }
-class Notificacion {
-  idNotificacion : Integer
-  tipo : String
-  canal : String
-  programadaPara : DateTime
-  enviadaEn : DateTime
-  estado : String
-  idCita : Integer
+class PreguntaFrecuente {
+  categoria : String
+  pregunta : String
+  respuesta : String
+  palabrasClave : String
+  activo : Boolean
+  fechaRegistro : DateTime
 }
 
-Permiso "1" -- "0..*" RolPermiso
-RolPermiso "1..*" -- "1" Rol
-Rol "1" -- "0..*" Usuario : tiene
+' Usuarios y acceso
+Rol "0..*" -- "1..*" Permiso : tiene
+Rol "1" -- "0..*" Usuario : asigna
 Usuario "0..1" -- "0..*" Bitacora : registra
-Usuario "1" -- "0..*" SuscripcionPush : activa
 Usuario "1" -- "0..*" RecuperacionContrasena : solicita
-Usuario "1" -- "0..1" Medico : tiene
+Usuario "1" -- "0..*" SuscripcionPush : activa
+
+' Pacientes y médicos
 Usuario "1" -- "0..1" Paciente : tiene
-Usuario "0..1" -- "0..*" Cita : cancela
-Medico "1" -- "1..*" MedicoEspecialidad
-MedicoEspecialidad "0..*" -- "1" Especialidad
+Usuario "1" -- "0..1" Medico : tiene
+Paciente "1" -- "0..1" PerfilMedico : tiene
+Medico "0..*" -- "1..*" Especialidad : atiende
 Medico "1" *-- "0..*" HorarioAtencion : tiene
-Medico "1" -- "0..*" Cita : atiende
+
+' Citas y agenda
 Paciente "1" -- "0..*" Cita : tiene
+Medico "1" -- "0..*" Cita : atiende
 Especialidad "1" -- "0..*" Cita : clasifica
+Usuario "0..1" -- "0..*" Cita : cancela
+Cita "1" -- "0..1" AtencionMedica : registra
+Medico "1" -- "0..*" AtencionMedica : registra
+Cita "1" -- "0..*" Notificacion : genera
+
+' Pagos y caja
 Especialidad "1" -- "0..*" Tarifa : tiene
 Cita "1" -- "0..1" Pago : tiene
-Cita "1" -- "0..*" Notificacion : tiene
 Usuario "1" -- "0..*" Pago : registra
 Pago "1" *-- "1..*" DetallePago : contiene
-DetallePago "0..*" -- "1" MetodoPago : clasifica
-DetallePago "1" -- "0..1" MovimientoCaja : genera
+MetodoPago "1" -- "0..*" DetallePago : clasifica
 Usuario "1" -- "0..*" SesionCaja : abre
 SesionCaja "1" *-- "0..*" MovimientoCaja : registra
+DetallePago "1" -- "0..1" MovimientoCaja : genera
 @enduml

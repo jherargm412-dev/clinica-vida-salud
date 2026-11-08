@@ -158,6 +158,7 @@
 - CU16 usa `CAMBIAR_ESTADO_CITA` para cualquier transición; CU18 usa `REGISTRAR_ATENCION` y CU07 `ACTUALIZAR_PERFIL_MEDICO`. Los nombres de tabla en bitácora usan las tablas reales (`cita`, `atencion_medica`, `perfil_medico`) y ningún registro de auditoría incluye diagnóstico ni notas clínicas.
 - Los badges de todos los estados de cita se obtienen de `Cita::COLOR_ESTADO` para conservar una sola asignación de colores.
 - CU16 no permite registrar Atención/Inasistencia hasta el inicio de la cita. CU18 tampoco lista ni guarda atención antes del inicio, y no admite más de una atención clínica por cita.
+- 07/11/2026: CU08 muestra la lista de pacientes (activos e inactivos, 10 por página) debajo del buscador, para que la pantalla no quede vacía y se pueda elegir un paciente sin escribir. En el menú, "Pacientes" (CU06) pasó a llamarse "Gestionar pacientes" para no repetir el nombre del módulo.
 - CU08 ejecuta `ReservaPago::liberarVencidas()` antes de consultar el historial para que las reservas vencidas aparezcan como canceladas.
 
 ## Asistencia al usuario (CU23, CU24, CU25) — 07/11/2026

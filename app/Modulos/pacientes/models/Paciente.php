@@ -112,6 +112,15 @@ class Paciente extends Model
             ->orderBy('codigo');
     }
 
+    /** CU08: lista todos los pacientes (activos e inactivos) por páginas, para elegir uno sin buscar. */
+    public static function listarPaginados(int $porPagina = 10): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        return self::query()
+            ->with('usuario')
+            ->orderBy('codigo')
+            ->paginate($porPagina);
+    }
+
     /** CU08: obtiene pacientes seleccionados por su identificador. */
     public static function listarPorIds(array $idsPaciente): \Illuminate\Database\Eloquent\Collection
     {

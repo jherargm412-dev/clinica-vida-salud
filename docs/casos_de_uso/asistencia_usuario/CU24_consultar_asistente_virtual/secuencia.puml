@@ -1,0 +1,65 @@
+@startuml
+title CU24 Consultar Asistente Virtual - Diagrama de secuencia
+hide footbox
+skinparam sequenceMessageAlign center
+
+' Flujo principal: mostrar -> enviar pregunta; y consultar por categoría (3a)
+
+actor Paciente
+boundary UI_AsistenteVirtual
+control Ctrl_AsistenteVirtual
+entity Especialidad
+entity PreguntaFrecuente
+
+activate Paciente
+Paciente -> UI_AsistenteVirtual : mostrarAsistente()
+activate UI_AsistenteVirtual
+UI_AsistenteVirtual -> Ctrl_AsistenteVirtual : obtenerConversacion()
+activate Ctrl_AsistenteVirtual
+Ctrl_AsistenteVirtual --> UI_AsistenteVirtual : conversacion, categorias
+deactivate Ctrl_AsistenteVirtual
+UI_AsistenteVirtual -> UI_AsistenteVirtual : mostrarChat(saludo, conversacion, categorias)
+deactivate UI_AsistenteVirtual
+
+Paciente -> UI_AsistenteVirtual : enviarPregunta(mensaje)
+activate UI_AsistenteVirtual
+UI_AsistenteVirtual -> Ctrl_AsistenteVirtual : responderPregunta(mensaje)
+activate Ctrl_AsistenteVirtual
+Ctrl_AsistenteVirtual -> Ctrl_AsistenteVirtual : validarMensaje(mensaje)
+Ctrl_AsistenteVirtual -> Ctrl_AsistenteVirtual : normalizarTexto(mensaje)
+Ctrl_AsistenteVirtual -> Especialidad : listarActivasConTarifa()
+Especialidad --> Ctrl_AsistenteVirtual : especialidades
+Ctrl_AsistenteVirtual -> PreguntaFrecuente : listarActivas()
+PreguntaFrecuente --> Ctrl_AsistenteVirtual : preguntas
+Ctrl_AsistenteVirtual -> Ctrl_AsistenteVirtual : buscarRespuesta(palabras)
+Ctrl_AsistenteVirtual -> Ctrl_AsistenteVirtual : guardarEnConversacion(mensaje, respuesta)
+Ctrl_AsistenteVirtual --> UI_AsistenteVirtual : respuesta, conversacion
+deactivate Ctrl_AsistenteVirtual
+UI_AsistenteVirtual -> UI_AsistenteVirtual : mostrarConversacion(conversacion)
+deactivate UI_AsistenteVirtual
+
+Paciente -> UI_AsistenteVirtual : elegirCategoria(categoria)
+activate UI_AsistenteVirtual
+UI_AsistenteVirtual -> Ctrl_AsistenteVirtual : obtenerPreguntasPorCategoria(categoria)
+activate Ctrl_AsistenteVirtual
+Ctrl_AsistenteVirtual -> PreguntaFrecuente : listarActivasPorCategoria(categoria)
+PreguntaFrecuente --> Ctrl_AsistenteVirtual : preguntas
+Ctrl_AsistenteVirtual -> Ctrl_AsistenteVirtual : guardarEnConversacion(categoria, preguntas)
+Ctrl_AsistenteVirtual --> UI_AsistenteVirtual : preguntas, conversacion
+deactivate Ctrl_AsistenteVirtual
+UI_AsistenteVirtual -> UI_AsistenteVirtual : mostrarConversacion(conversacion)
+deactivate UI_AsistenteVirtual
+
+Paciente -> UI_AsistenteVirtual : elegirPregunta(idPreguntaFrecuente)
+activate UI_AsistenteVirtual
+UI_AsistenteVirtual -> Ctrl_AsistenteVirtual : obtenerRespuesta(idPreguntaFrecuente)
+activate Ctrl_AsistenteVirtual
+Ctrl_AsistenteVirtual -> PreguntaFrecuente : obtenerPregunta(idPreguntaFrecuente)
+PreguntaFrecuente --> Ctrl_AsistenteVirtual : pregunta, respuesta
+Ctrl_AsistenteVirtual -> Ctrl_AsistenteVirtual : guardarEnConversacion(pregunta, respuesta)
+Ctrl_AsistenteVirtual --> UI_AsistenteVirtual : respuesta, conversacion
+deactivate Ctrl_AsistenteVirtual
+UI_AsistenteVirtual -> UI_AsistenteVirtual : mostrarConversacion(conversacion)
+deactivate UI_AsistenteVirtual
+deactivate Paciente
+@enduml

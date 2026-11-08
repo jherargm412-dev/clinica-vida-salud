@@ -1,0 +1,13 @@
+@startuml
+title CU23 Gestionar Preguntas Frecuentes - Diagrama de casos de uso
+left to right direction
+skinparam shadowing false
+
+actor Administrador
+
+rectangle "Sistema de gestión de citas médicas" {
+  usecase "CU23 Gestionar\nPreguntas Frecuentes" as CU23
+}
+
+Administrador -- CU23
+@enduml
